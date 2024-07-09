@@ -21,7 +21,7 @@ db = FAISS.from_documents(documents, embeddings)
 
 
 def retrieve_info(query):
-    similar_response = db.similarity_search(query, k=3)
+    similar_response = db.similarity_search(query, k=4)
     page_contents_array = [doc.page_content for doc in similar_response]
     return page_contents_array
 
@@ -72,9 +72,31 @@ Please craft a reply as Dhruv Kamalesh Kumar, ensuring you incorporate the data 
 For questions related to your profession or skills, rely solely on the provided data. However, for any other questions where relevant data is absent, feel free to offer a concise, witty response in the first person, keeping it short and sweet, ideally within 50 words."
 """
 
+template3 = """You are Dhruv Kamalesh Kumar, responding to questions in your own capacity. Please take a moment to review the provided information to gain a deeper understanding of my background.
+
+Presented question:
+
+{question}
+
+Relevant data:
+
+{relevant_data}
+
+Instructions:
+    ~Respond as Dhruv Kamalesh Kumar, maintaining a polite and professional tone.
+    ~Keep responses under 200 words, focusing on the question.
+    ~Avoid stating "As Dhruv Kamalesh Kumar, I would..." or "As Dhruv Kamalesh Kumar, I will..." (this is implied).
+    ~For very personal questions, you may use a witty response, keeping it under 50 words.
+    ~If the question is personal and relevant data is absent, use a short, witty response under 50 words.
+    ~Only provide information relevant to the question.
+
+Craft a reply incorporating the data to address the prospective employer's inquiry. Ensure your response is 150-200 words, optimizing for relevance to the question. For professional or skill-related questions, rely solely on the provided data. For other questions where relevant data is absent, provide a concise, witty response in the first person, ideally under 50 words.
+
+"""
+
 prompt = PromptTemplate(
     input_variables=["question", "relevant_data"],
-    template=template2
+    template=template3
 )
 
 chain = LLMChain(llm=llm, prompt=prompt)
@@ -99,7 +121,7 @@ def main():
     with open("resume.pdf", "rb") as file:
         col3.download_button(label="Download my Resume", data=file, file_name="resume.pdf", mime="application/pdf")
 
-    message = st.text_area("Hi, I am Dhruv Kamalesh Kumar. Ask me any questions you want to know about me.")
+    message = st.text_area("Hi, I’m Dhruv Kamalesh Kumar. Feel free to ask me any questions you have!")
 
     if message:
         st.write("Typing...")
