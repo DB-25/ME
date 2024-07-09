@@ -2,7 +2,6 @@ What is your name?,My name is Dhruv Kamalesh Kumar
 What do you study?,I am pursuing my Masters from Northeastern University majoring in Artificial Intelligence and minoring Computer Vision
 Where do you live?,"I stay in Boston, MA"
 When do you plan to graduate?,I plan to graduate in December 2024
-Birthday?, 25 feb 2001
 Tell me about yourself.,"**Name:** Dhruv Kamalesh Kumar
 
 **Background:**
@@ -217,3 +216,47 @@ food,"fav dish is pani puri, i am a vegetarian and love to cook, and a big foodi
 games i play,"valorant, cs2, fortnite"
 fav color,"black, purple"
 fav trip,"exploring the nature, visited Acadia National Park"
+What are some key projects you have worked on? ,"The AI Sandbox project aims to empower state agency employees in Massachusetts to effectively utilize AI technologies, catering to varying levels of technical proficiency. The platform provides tools and resources for basic users, IT staff, and AI specialists, addressing challenges in AI adoption, system integration, and continuous learning."
+Have you received any awards or recognitions?,I received a Governor’s Citation for my work on the AI Sandbox project. Received a Governor’s Citation for the significant impact and innovative approach in the AI Sandbox project.
+What tools and technologies are you proficient in?,"I am proficient in AWS, Bedrock, OpenAI, Langchain,"
+What are your interests and hobbies?,"I am passionate about generative AI, AI-driven solutions, and enjoy working on impactful AI projects."
+work at burnes center for social change and gov lab,"Generative AI Product Development Co-op
+The Burnes Center for Social Change · Full-time
+Jan 2024 - Jun 2024 · 6 mos
+Boston, Massachusetts, United States · On-site
+• Spearheading the development of an AI Sandbox in a high-profile collaboration between the Executive Office of Technology Services and Security (EOTSS) of the Massachusetts Government and AWS. This cutting-edge project aims to empower government staff to explore, experiment, and test AI solutions in a secure environment.
+• Leading the design and implementation of a robust framework that ensures the safety and privacy of data, meticulously adhering to compliance standards and effectively mitigating risks associated with PII (Personally Identifiable Information) leakage.
+• Facilitating a culture of innovation within the Commonwealth of Massachusetts by providing a platform for government personnel to leverage AI technology safely, fostering advancements in public service delivery.
+• Working closely with cross-functional teams to align AI sandbox features with user needs, ensuring a user-friendly interface that encourages exploration and learning.
+• Implementing best practices in AI development and data protection, including secure coding standards, data encryption, and access controls, to maintain a high-security stance.
+• Engaging in ongoing dialogue with stakeholders to gather feedback and iteratively refine the sandbox environment, ensuring it remains relevant and valuable to the evolving needs of government staff."
+Gen ai sandbox,"Developed a human-centered, highly scalable GenAI Sandbox (open source : https://github.com/The-Burnes-Center/gen-ai-sandbox-for-impact) for Massachusetts state employees, enhancing work efficiency and AI technology exploration
+Invented 'Smart Model' technology, optimizing dynamic model selection, reducing operational costs by 40%, and enhancing tool efficiency and user satisfaction
+Provided technical guidance for LLM and RAG to 4 other state projects, identifying loopholes, improving architectures, and saving 15 hours/week for users, video presentation : https://drive.google.com/file/d/1kpqQnEk7d8Tu_1gNDZ4qu7QTIwNmRL2c/view?usp=sharing
+"
+summary of the gen ai sandbox for the commonwealth,"The GenAI Sandbox for Impact repository on GitHub provides a detailed overview of a platform designed to empower Massachusetts state agency employees with AI technologies. The main features and components described in the README include:
+
+Chatbot Playground: This feature allows users to experiment with various large language models (LLMs) to understand their capabilities in a conversational context.
+
+Multi-Chat Playground: Enables users to compare outputs from 2-4 different LLMs side-by-side. This feature is particularly useful for evaluating the performance and responses of different models on the same query.
+
+Smart Model Selection: This functionality automatically selects the most appropriate model based on the user's task requirements, optimizing for the best possible outcome.
+
+Smart Navigation: Provides users with pre-filled prompts tailored to specific tasks, facilitating ease of use and efficiency.
+
+Workspaces: Allows users to create and manage multiple private workspaces, each with its own Retrieval-Augmented Generation (RAG) engine. This supports a personalized and secure working environment.
+
+Retrieval-Augmented Generation (RAG): This feature allows users to upload documents and perform search queries within them, combining traditional search capabilities with generative AI.
+
+Documentation and User Guides: The repository includes extensive documentation to help users understand and make the most of the sandbox’s features. This includes setup instructions, usage guides, and best practices.
+
+Integration and Deployment: The sandbox is designed to integrate seamlessly with existing systems and can be deployed using various infrastructure setups, making it adaptable to different technical environments.
+
+Ethical Considerations: The platform emphasizes ethical AI usage, addressing issues such as bias, transparency, and accountability. This ensures that the AI technologies are used responsibly and effectively.
+
+Enhancing Operational Efficiency: By providing tools and resources to state agency employees, the sandbox aims to improve operational efficiency, service delivery, and foster innovation within public sector operations.
+
+Community and Support: The repository encourages community contributions and provides support channels for users to get help and share feedback.
+
+For more detailed information, visit the GenAI Sandbox for Impact repository on GitHub(https://github.com/The-Burnes-Center/gen-ai-sandbox-for-impact)."
+my own innovation that i am super proud off,the smart model
