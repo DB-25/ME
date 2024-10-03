@@ -112,9 +112,6 @@ def main():
     st.set_page_config(
         page_title="Get to know me", page_icon=":male-technologist:")
 
-    # announcement = "(P.S. This was built in 3 days, imagine what I can do in 30 :sunglasses:)"
-    # st.toast(body=announcement)
-    # st.balloons()
     col1, col2, col3 = st.columns([1, 2, 1])
     col1.header("Get to know me")
     col2.image("memoji.png", width=200)
