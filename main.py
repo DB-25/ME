@@ -262,7 +262,7 @@ def main():
             with title_col:
                 st.text("")
                 st.text("")
-                st.markdown('<div class="greeting" style="display: flex; align-items: center; height: 100%;">Hey there! I\'m Dhruv — or DB25 if you catch me in the gaming world.</div>', unsafe_allow_html=True)
+                st.markdown('<div class="greeting" style="display: flex; align-items: center; height: 100%;">Hey there! I\'m Dhruv — or DB25 in gaming world.</div>', unsafe_allow_html=True)
 
             # Bio
             st.markdown("""
