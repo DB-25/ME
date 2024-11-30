@@ -2,49 +2,27 @@ from typing import Optional, Any
 import logging
 from langchain.agents import Tool, AgentType, initialize_agent
 from langchain.memory import ConversationBufferMemory
-from langchain.chat_models import ChatOpenAI
-from langchain.embeddings.base import Embeddings
-from langchain.vectorstores.base import VectorStore
+from langchain_openai import ChatOpenAI
 from services.pinecone_service import retrieve_info
 import streamlit as st
 
 def initialize_chat_agent(
-    vector_store: Optional[VectorStore] = None,
-    embeddings: Optional[Embeddings] = None,
+    vector_store: Optional[Any] = None,
+    embeddings: Optional[Any] = None,
     llm: Optional[Any] = None,
     index: Optional[Any] = None
 ) -> Any:
-    """
-    Initialize the chat agent with necessary tools and configuration.
-    """
+    """Initialize the chat agent with Pinecone retrieval capabilities."""
     try:
-        # Initialize LLM if not provided
-        if llm is None:
-            llm = ChatOpenAI(
-                temperature=0.01,
-                model="gpt-4-1106-preview"
-            )
+        # Initialize LLM
+        llm = ChatOpenAI(temperature=0, model="gpt-4-1106-preview")
 
-        # Initialize memory
-        memory = ConversationBufferMemory(
-            memory_key="chat_history",
-            return_messages=True
-        )
-
-        # Define the retrieval function wrapper
-        def retrieve_wrapper(query: str) -> str:
-            try:
-                return retrieve_info(index, embeddings, query)
-            except Exception as e:
-                logging.error(f"Error in retrieve_wrapper: {str(e)}")
-                return "I apologize, I couldn't retrieve the information."
-
-        # Define tools
+        # Define the retrieval tool
         tools = [
             Tool(
-                name="Information Lookup",
-                func=retrieve_wrapper,
-                description="Search for information about Dhruv's background and experience"
+                name="Pinecone Retrieval",
+                func=lambda q: retrieve_info(index, embeddings, q),
+                description="Use this to fetch relevant information about Dhruv's background and experience."
             )
         ]
 
@@ -53,10 +31,7 @@ def initialize_chat_agent(
             tools=tools,
             llm=llm,
             agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-            memory=memory,
-            verbose=True,
-            handle_parsing_errors=True,
-            max_iterations=3
+            verbose=True
         )
 
         return agent
@@ -66,8 +41,23 @@ def initialize_chat_agent(
         raise
 
 def generate_response(agent: Any, question: str) -> str:
-    """Generate a response using the chat agent."""
+    """Generate a response using the chat agent with specific instructions."""
     try:
+        combined_input = f"""
+Please respond to the question by reflecting Dhruv Kamalesh Kumar's professional background and experience. Maintain a polite and professional tone in the response.
+
+Instructions:
+    ~Keep responses under 200 words, focusing on the question.
+    ~For very personal questions, respond with a concise, polite reply, ideally under 50 words.
+    ~Only provide information that is relevant to the question.
+    ~Avoid sharing personal contact details or sensitive information.
+    ~Use professional language and tone throughout the response.
+    ~Answer directly and concisely.
+    ~Use pronouns like "I" or "me".
+
+Now, here is the question to answer:
+{question}
+"""
         # Add typing indicator
         with st.empty():
             st.markdown("""
@@ -78,7 +68,7 @@ def generate_response(agent: Any, question: str) -> str:
                 </div>
             """, unsafe_allow_html=True)
             
-            response = agent.run(question)
+            response = agent.run(combined_input)
             
         return response
     except Exception as e:
@@ -90,6 +80,9 @@ def handle_user_input(agent: Any, user_input: str) -> None:
     try:
         if user_input.strip():
             # Add user message to chat history
+            if 'chat_history' not in st.session_state:
+                st.session_state.chat_history = []
+                
             st.session_state.chat_history.append({
                 'type': 'user-message',
                 'content': user_input
@@ -102,19 +95,11 @@ def handle_user_input(agent: Any, user_input: str) -> None:
                 'content': response
             })
             
-            # Clear the input
-            st.session_state.user_input = ""
-            
     except Exception as e:
         logging.error(f"Error handling user input: {str(e)}")
         st.error("An error occurred while processing your message.")
 
 def clear_chat_history() -> None:
     """Clear the chat history."""
-    try:
-        if 'chat_history' in st.session_state:
-            st.session_state.chat_history = []
-            
-    except Exception as e:
-        logging.error(f"Error clearing chat history: {str(e)}")
-        st.error("An error occurred while clearing the chat history.")
+    if 'chat_history' in st.session_state:
+        st.session_state.chat_history = []

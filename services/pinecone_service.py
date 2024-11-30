@@ -56,21 +56,16 @@ def load_to_pinecone(index, documents, embeddings):
         raise
 
 def retrieve_info(index, embeddings, query: str) -> str:
+    """Retrieve information from Pinecone index."""
     try:
         query_embedding = embeddings.embed_query(query)
-        results = index.query(
+        result = index.query(
             vector=query_embedding,
             top_k=4,
             include_metadata=True
         )
-        
-        # Extract and combine the content from results
-        contents = [match['metadata']['content'] for match in results['matches'] if match.get('metadata', {}).get('content')]
-        
-        if not contents:
-            return "I couldn't find specific information about that."
-            
-        return "\n".join(contents)
+        page_contents_array = [match['metadata']['content'] for match in result['matches']]
+        return "\n".join(page_contents_array)
     except Exception as e:
         logging.error(f"Error retrieving info: {str(e)}")
         return "I apologize, I encountered an error while retrieving the information." 
