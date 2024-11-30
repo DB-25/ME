@@ -15,7 +15,11 @@ def initialize_chat_agent(
     """Initialize the chat agent with Pinecone retrieval capabilities."""
     try:
         # Initialize LLM
-        llm = ChatOpenAI(temperature=0, model="gpt-4-1106-preview")
+        llm = ChatOpenAI(
+            temperature=0, 
+            model="gpt-4-1106-preview",
+            streaming=True
+        )
 
         # Define the retrieval tool
         tools = [
@@ -26,12 +30,20 @@ def initialize_chat_agent(
             )
         ]
 
-        # Initialize the agent
+        # Initialize memory
+        memory = ConversationBufferMemory(
+            memory_key="chat_history",
+            return_messages=True
+        )
+
+        # Initialize the agent with memory
         agent = initialize_agent(
             tools=tools,
             llm=llm,
             agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-            verbose=True
+            memory=memory,
+            verbose=True,
+            handle_parsing_errors=True
         )
 
         return agent

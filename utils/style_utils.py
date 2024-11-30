@@ -78,15 +78,23 @@ def load_styles():
         }
 
         .hero-alias {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             color: var(--text-color);
         }
 
         .gamer-tag {
-            background: linear-gradient(135deg, #009FFD 0%, #6B46C1 100%);
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #00F5A0 0%, #00D9F5 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 217, 245, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .gamer-tag:hover {
+            transform: scale(1.05);
+            text-shadow: 0 4px 8px rgba(0, 217, 245, 0.3);
         }
 
         .hero-subtitle {
@@ -126,9 +134,15 @@ def load_styles():
         }
 
         .chat-messages {
-            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1rem;
+            height: 600px !important;
+            min-height: 600px !important;
+            max-height: 600px !important;
             overflow-y: auto;
-            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
         }
 
         .chat-input-container {
@@ -474,6 +488,7 @@ def load_styles():
             display: flex;
             flex-direction: column;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            height: calc(600px + 80px) !important;
         }
 
         /* Glass effect */

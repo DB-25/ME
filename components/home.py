@@ -66,7 +66,7 @@ def render_chat_section(agent):
                     <i class="fas fa-robot"></i>
                 </div>
                 <div class="chat-info">
-                    <h3>DB25 AI Assistant</h3>
+                    <h3>DB25-AI Assistant</h3>
                     <p class="chat-subtitle">Ask me anything about Dhruv's experience</p>
                 </div>
             </div>
