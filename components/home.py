@@ -27,8 +27,38 @@ def render_chat_section(agent):
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
 
-    # Chat Container
-    st.markdown("""
+    # Build messages HTML with proper escaping
+    messages_html = []
+    for msg in st.session_state.chat_history:
+        if msg['type'] == 'user-message':
+            messages_html.append(
+                '<div class="message user-message">'
+                '<div class="message-bubble glass-effect">'
+                f'<p>{msg["content"]}</p>'
+                '<span class="message-time">You</span>'
+                '</div>'
+                '</div>'
+            )
+        else:
+            messages_html.append(
+                '<div class="message bot-message">'
+                '<div class="message-avatar pulse-subtle">'
+                '<i class="fas fa-robot"></i>'
+                '</div>'
+                '<div class="message-content">'
+                '<div class="message-bubble glass-effect">'
+                f'<p>{msg["content"]}</p>'
+                '<span class="message-time">DB25 AI</span>'
+                '</div>'
+                '</div>'
+                '</div>'
+            )
+
+    # Join all messages with no extra whitespace
+    messages_html = ''.join(messages_html)
+
+    # Render entire chat card with messages
+    st.markdown(f"""
     <div class="chat-card">
         <div class="chat-header">
             <div class="chat-title">
@@ -40,66 +70,55 @@ def render_chat_section(agent):
                     <p class="chat-subtitle">Ask me anything about Dhruv's experience</p>
                 </div>
             </div>
-            <button class="clear-chat-btn glass-effect" onclick="clearChat()">
-                <i class="fas fa-trash"></i>
-            </button>
         </div>
-        <div class="chat-messages custom-scrollbar" id="chat-messages">
-    """, unsafe_allow_html=True)
-
-    # Render messages
-    for msg in st.session_state.chat_history:
-        if msg['type'] == 'user-message':
-            st.markdown(f"""
-            <div class="message user-message">
-                <div class="message-bubble glass-effect">
-                    <p>{msg['content']}</p>
-                    <span class="message-time">You</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div class="message bot-message">
-                <div class="message-avatar pulse-subtle">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="message-content">
-                    <div class="message-bubble glass-effect">
-                        <p>{msg['content']}</p>
-                        <span class="message-time">DB25 AI</span>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-    # Input container with send button
-    st.markdown("""
-        </div>
-        <form class="chat-input-container glass-effect" onsubmit="handleSubmit(event)">
-            <input type="text" 
-                   placeholder="Type your message..." 
-                   id="chat-input"
-                   class="glass-input"
-            />
-            <button type="submit" class="send-button pulse-hover">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </form>
+        <div class="chat-messages custom-scrollbar" id="chat-messages">{messages_html}</div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Handle clear chat
-    if st.session_state.get('clear_chat'):
-        clear_chat_history()
-        st.session_state.clear_chat = False
-        st.rerun()
+    # Chat input using Streamlit components
+    with st.container():
+        # Create a form for the chat input
+        with st.form(key="chat_form", clear_on_submit=True):
+            # Create two columns for input and button
+            col1, col2 = st.columns([5, 1])
+            
+            with col1:
+                user_input = st.text_input(
+                    "Message",
+                    key="user_message",
+                    label_visibility="collapsed",
+                    placeholder="Type your message..."
+                )
+            
+            with col2:
+                submit_button = st.form_submit_button(
+                    "Send",
+                    use_container_width=True,
+                    type="primary",
+                    help="Send message (or press Enter)"
+                )
 
-    # Handle incoming messages
-    if 'user_input' in st.session_state and st.session_state.user_input:
-        handle_user_input(agent, st.session_state.user_input)
-        st.session_state.user_input = ""
-        st.rerun()
+            if submit_button and user_input:
+                # Add user message to chat history
+                st.session_state.chat_history.append({
+                    'type': 'user-message',
+                    'content': user_input
+                })
+                
+                # Generate response
+                with st.spinner("Thinking..."):
+                    response = generate_response(agent, user_input)
+                
+                # Add bot response to chat history
+                st.session_state.chat_history.append({
+                    'type': 'bot-message',
+                    'content': response
+                })
+                
+                # Rerun to update the chat display
+                st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 def render_achievements_section():
     st.markdown("""

@@ -344,27 +344,9 @@ def load_styles():
             opacity: 0.9;
         }
 
-        .clear-chat-btn {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .clear-chat-btn:hover {
-            background: rgba(255,255,255,0.2);
-            transform: scale(1.05);
-        }
-
-        .clear-chat-btn i {
-            font-size: 16px;
+        /* Hide the actual Streamlit button */
+        [data-testid="stButton"] {
+            display: none !important;
         }
 
         /* Chat Messages */
@@ -925,6 +907,260 @@ def load_styles():
             }
         }
 
+        /* Submit Button Styling */
+        .stButton > button[kind="primary"] {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 12px !important;
+            backdrop-filter: blur(10px) !important;
+            padding: 0.5rem 1.5rem !important;
+            color: white !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+            height: 45px !important;
+            margin: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .stButton > button[kind="primary"]:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .stButton > button[kind="primary"]:active {
+            transform: translateY(0) !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Send Icon */
+        .stButton > button[kind="primary"]::after {
+            content: "↗" !important;
+            font-size: 1.2em !important;
+            margin-left: 4px !important;
+        }
+
+        /* Form Input Styling */
+        .stTextInput > div > div > input {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 12px !important;
+            padding: 0.75rem 1rem !important;
+            color: white !important;
+            height: 45px !important;
+            font-size: 1rem !important;
+        }
+
+        .stTextInput > div > div > input:focus {
+            border-color: rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+        }
+
+        /* Form Container */
+        .stForm {
+            background: rgba(0, 0, 0, 0.2) !important;
+            border-radius: 12px !important;
+            padding: 0.5rem !important;
+            margin-top: 1rem !important;
+        }
+
+        /* Hide Form Submit Border */
+        .stForm [data-testid="stForm"] {
+            border: none !important;
+            padding: 0 !important;
+        }
+
+        /* Hide the actual clear chat button */
+        [data-testid="clear_chat_btn"] {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 8px !important;
+            padding: 8px 16px !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+            margin-top: 10px !important;
+        }
+
+        [data-testid="clear_chat_btn"]:hover {
+            background: rgba(255, 0, 0, 0.2) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        [data-testid="clear_chat_btn"] p {
+            font-size: 20px !important;
+            margin: 0 !important;
+        }
+
+        /* Glass Effect Form Styling */
+        [data-testid="stForm"] {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 12px !important;
+            padding: 1rem !important;
+            backdrop-filter: blur(10px) !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Input Field Glass Effect */
+        .stTextInput > div > div > input {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 8px !important;
+            padding: 0.75rem 1rem !important;
+            color: white !important;
+            font-size: 1rem !important;
+        }
+
+        .stTextInput > div > div > input:focus {
+            border-color: rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+        }
+
+        /* Submit Button Glass Effect */
+        .stButton > button[kind="primary"] {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 8px !important;
+            backdrop-filter: blur(10px) !important;
+            padding: 0.75rem 1.5rem !important;
+            color: white !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+            height: 45px !important;
+        }
+
+        .stButton > button[kind="primary"]:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Remove Form Border */
+        [data-testid="stForm"] > div[data-testid="stForm"] {
+            border: none !important;
+            padding-top: 0 !important;
+        }
+
+        /* Placeholder Text Color */
+        .stTextInput > div > div > input::placeholder {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        /* Chat Messages Styling */
+        .chat-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .message {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .bot-message {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            max-width: 80%;
+            backdrop-filter: blur(10px);
+        }
+
+        .message-bubble p {
+            margin: 0;
+            color: white;
+            line-height: 1.5;
+        }
+
+        .message-time {
+            display: block;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 0.5rem;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Chat Card */
+        .chat-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .chat-header {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chat-info h3 {
+            margin: 0;
+            color: white;
+        }
+
+        .chat-subtitle {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
     </style>
 
     """, unsafe_allow_html=True)
