@@ -1,8 +1,0 @@
-fastapi[all]
-openai
-python-dotenv
-pydantic==1.*
-langchain-community
-langchain
-faiss-cpu
-tiktoken
