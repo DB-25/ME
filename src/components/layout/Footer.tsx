@@ -2,7 +2,7 @@
 
 import { useRef, type MouseEvent as ReactMouseEvent } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
-import { Mail, ExternalLink, ArrowDown } from "lucide-react";
+import { Mail, ArrowDown } from "lucide-react";
 import { profile } from "@/data/profile";
 import { cn } from "@/lib/utils";
 
@@ -25,10 +25,8 @@ function MagneticIcon({ children, href, label, download }: MagneticIconProps) {
     const rect = ref.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    const deltaX = (e.clientX - centerX) * 0.25;
-    const deltaY = (e.clientY - centerY) * 0.25;
-    x.set(deltaX);
-    y.set(deltaY);
+    x.set((e.clientX - centerX) * 0.25);
+    y.set((e.clientY - centerY) * 0.25);
   }
 
   function handleMouseLeave() {
@@ -50,7 +48,7 @@ function MagneticIcon({ children, href, label, download }: MagneticIconProps) {
       className={cn(
         "inline-flex items-center justify-center w-14 h-14 rounded-full",
         "glass-sm text-[var(--text-secondary)]",
-        "hover:text-[var(--accent-light)] hover:border-[var(--accent)]/30",
+        "hover:text-[var(--accent-warm)] hover:border-[var(--accent-warm)]/30",
         "transition-colors duration-200"
       )}
     >
@@ -62,14 +60,19 @@ function MagneticIcon({ children, href, label, download }: MagneticIconProps) {
 export function Footer() {
   return (
     <footer id="contact" className="section py-24 md:py-32">
-      <div className="text-center">
-        {/* CTA heading */}
-        <h2 className="text-h1 text-[var(--text-primary)] mb-12 max-w-2xl mx-auto">
-          Let&apos;s build something that matters.
+      <div className="max-w-xl">
+        {/* Heading — casual */}
+        <h2 className="text-h2 text-[var(--text-primary)] mb-4">
+          Say hi
         </h2>
 
+        {/* Personal one-liner */}
+        <p className="text-body text-[var(--text-secondary)] mb-10">
+          Based in Boston. From Bangalore. Fueled by pani puri.
+        </p>
+
         {/* Icon links */}
-        <div className="flex items-center justify-center gap-5 mb-10">
+        <div className="flex items-center gap-5 mb-8">
           <MagneticIcon
             href={`mailto:${profile.email}`}
             label="Email"
@@ -81,7 +84,7 @@ export function Footer() {
             href={profile.linkedin}
             label="LinkedIn"
           >
-            <ExternalLink className="w-5 h-5" />
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
           </MagneticIcon>
 
           <MagneticIcon
@@ -92,15 +95,15 @@ export function Footer() {
           </MagneticIcon>
         </div>
 
-        {/* Resume download button */}
+        {/* Resume download */}
         <a
           href="/resume.pdf"
           download
           className={cn(
             "group inline-flex items-center gap-2 px-6 py-3 rounded-full",
-            "text-sm font-medium text-[var(--accent-light)]",
-            "bg-[var(--accent)]/10 border border-[var(--accent)]/20",
-            "hover:bg-[var(--accent)]/20 hover:border-[var(--accent)]/40",
+            "text-sm font-medium text-[var(--accent-warm)]",
+            "bg-[var(--accent-warm)]/10 border border-[var(--accent-warm)]/20",
+            "hover:bg-[var(--accent-warm)]/20 hover:border-[var(--accent-warm)]/40",
             "transition-all duration-200"
           )}
         >
@@ -108,9 +111,9 @@ export function Footer() {
           <ArrowDown className="w-4 h-4 transition-transform duration-200 group-hover:translate-y-0.5" />
         </a>
 
-        {/* Credit line */}
-        <p className="text-xs text-[var(--text-tertiary)] mt-16">
-          Designed & built by {profile.name}
+        {/* Off-duty aside */}
+        <p className="text-xs text-[var(--text-tertiary)] mt-12">
+          Off-duty: Valorant, cooking experiments, PC builds
         </p>
       </div>
     </footer>

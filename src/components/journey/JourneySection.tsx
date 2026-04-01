@@ -37,11 +37,8 @@ export function JourneySection() {
     <section id="journey" className="section relative py-24 md:py-32">
       {/* Section heading */}
       <RevealText direction="up">
-        <div className="text-center mb-16 md:mb-24">
-          <p className="text-caption mb-3 text-[var(--accent-light)]">
-            WHERE IT ALL BEGAN
-          </p>
-          <h2 className="text-h1 text-[var(--text-primary)]">The Journey</h2>
+        <div className="mb-16 md:mb-24">
+          <h2 className="text-h2 text-[var(--text-primary)]">The road so far</h2>
         </div>
       </RevealText>
 
@@ -66,15 +63,15 @@ export function JourneySection() {
                 gradientUnits="userSpaceOnUse"
               >
                 <stop offset="0%" stopColor="var(--accent)" stopOpacity="0" />
-                <stop offset="15%" stopColor="var(--accent)" stopOpacity="1" />
+                <stop offset="15%" stopColor="var(--accent-warm)" stopOpacity="1" />
                 <stop
                   offset="85%"
-                  stopColor="var(--accent-light)"
+                  stopColor="var(--accent-warm-light)"
                   stopOpacity="1"
                 />
                 <stop
                   offset="100%"
-                  stopColor="var(--accent-light)"
+                  stopColor="var(--accent-warm-light)"
                   stopOpacity="0"
                 />
               </linearGradient>
@@ -115,7 +112,7 @@ export function JourneySection() {
         <div
           className="md:hidden absolute left-6 top-0 w-[2px] opacity-40"
           style={{
-            background: `linear-gradient(to bottom, transparent, var(--accent), transparent)`,
+            background: `linear-gradient(to bottom, transparent, var(--accent-warm), transparent)`,
             height: `${progress * 100}%`,
             transition: "height 0.1s linear",
           }}

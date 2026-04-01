@@ -4,41 +4,21 @@ import { skills, skillCategories, type Skill } from "@/data/skills";
 import { cn } from "@/lib/utils";
 import { RevealText } from "@/components/ui/RevealText";
 
-function SkillBadge({
-  skill,
-  categoryColor,
-}: {
-  skill: Skill;
-  categoryColor: string;
-}) {
+function SkillBadge({ skill }: { skill: Skill }) {
+  const hasConnections = skill.connections && skill.connections.length >= 3;
   return (
-    <div className="flex flex-col items-start">
-      <span
-        className={cn(
-          "glass-sm rounded-full px-4 py-2 text-sm",
-          "text-[var(--text-primary)] whitespace-nowrap"
-        )}
-      >
-        {skill.name}
-      </span>
-      {/* Proficiency bar */}
-      <div className="w-full mt-1.5 px-2">
-        <div className="h-[3px] w-full rounded-full bg-[var(--bg-border)] overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-700 ease-out"
-            style={{
-              width: `${skill.proficiency * 100}%`,
-              backgroundColor: categoryColor,
-            }}
-          />
-        </div>
-      </div>
-    </div>
+    <span
+      className={cn(
+        "glass-sm rounded-full px-4 py-2 text-[var(--text-primary)] whitespace-nowrap",
+        hasConnections ? "text-sm font-medium" : "text-[13px]"
+      )}
+    >
+      {skill.name}
+    </span>
   );
 }
 
 export function SkillsSection() {
-  // Group skills by category
   const grouped = skillCategories.map((category) => ({
     ...category,
     skills: skills.filter((s) => s.category === category.id),
@@ -46,17 +26,7 @@ export function SkillsSection() {
 
   return (
     <section id="skills" className="section py-24 md:py-32">
-      {/* Section heading */}
-      <RevealText direction="up">
-        <div className="text-center mb-16 md:mb-24">
-          <p className="text-caption mb-3 text-[var(--accent-light)]">
-            WHAT I WORK WITH
-          </p>
-          <h2 className="text-h1 text-[var(--text-primary)]">Skills</h2>
-        </div>
-      </RevealText>
-
-      {/* Categorized grid */}
+      {/* Categorized grid — no section header, categories speak for themselves */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12">
         {grouped.map((category, catIdx) => (
           <RevealText
@@ -76,14 +46,10 @@ export function SkillsSection() {
                 </h3>
               </div>
 
-              {/* Skill badges */}
-              <div className="flex flex-wrap gap-3">
+              {/* Skill badges — no proficiency bars */}
+              <div className="flex flex-wrap gap-2.5">
                 {category.skills.map((skill) => (
-                  <SkillBadge
-                    key={skill.name}
-                    skill={skill}
-                    categoryColor={category.color}
-                  />
+                  <SkillBadge key={skill.name} skill={skill} />
                 ))}
               </div>
             </div>

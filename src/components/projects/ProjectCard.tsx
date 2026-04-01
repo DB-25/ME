@@ -15,12 +15,18 @@ export function ProjectCard({ project, index }: ProjectCardProps) {
     <RevealText direction="up" delay={index * 0.1}>
       <div
         className={cn(
-          "glass-sm rounded-2xl p-6 h-full flex flex-col",
+          "glass-sm rounded-2xl p-6 h-full flex flex-col overflow-hidden relative",
           "transition-all duration-200 ease-out",
-          "hover:-translate-y-2 hover:border-[var(--accent)]/20",
-          "hover:shadow-[0_8px_30px_rgba(124,58,237,0.08)]"
+          "hover:-translate-y-1 hover:border-[var(--accent)]/20"
         )}
       >
+        {/* Top gradient accent bar */}
+        <div
+          className="absolute top-0 left-0 right-0 h-[3px]"
+          style={{
+            background: `linear-gradient(90deg, ${project.accentColor ?? "var(--accent)"}, ${project.accentColor ?? "var(--accent-light)"}80)`,
+          }}
+        />
         {/* Project name */}
         <h4 className="text-h3 text-[var(--text-primary)] mb-1">
           {project.name}
