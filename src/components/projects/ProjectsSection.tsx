@@ -14,12 +14,9 @@ export function ProjectsSection() {
       {/* Section heading */}
       <div className="section">
         <RevealText direction="up">
-          <div className="text-center mb-16 md:mb-24">
-            <p className="text-caption mb-3 text-[var(--accent-light)]">
-              PROJECTS
-            </p>
-            <h2 className="text-h1 text-[var(--text-primary)]">
-              What I&apos;ve Built
+          <div className="mb-16 md:mb-24">
+            <h2 className="text-h2 text-[var(--text-primary)]">
+              Things I&apos;ve shipped
             </h2>
           </div>
         </RevealText>

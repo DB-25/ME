@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Download, Sparkles } from "lucide-react";
+import { Menu, X, Download, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -140,13 +140,10 @@ export function Navigation({ onAIClick }: NavigationProps) {
           <div className="hidden md:flex items-center gap-3">
             <button
               onClick={onAIClick}
-              className="flex items-center gap-2 px-4 py-2 rounded-full glass-sm text-sm text-accent-light hover:text-accent-lighter transition-colors cursor-pointer"
+              className="flex items-center justify-center w-9 h-9 rounded-full glass-sm text-text-tertiary hover:text-accent-light transition-colors cursor-pointer"
+              title="Ask AI (⌘K)"
             >
-              <Sparkles size={14} />
-              Ask AI
-              <kbd className="hidden lg:inline-block text-[10px] text-text-tertiary bg-[#1A1A1A] px-1.5 py-0.5 rounded">
-                ⌘K
-              </kbd>
+              <HelpCircle size={16} />
             </button>
             <a
               href="/resume.pdf"
@@ -215,9 +212,9 @@ export function Navigation({ onAIClick }: NavigationProps) {
                 onAIClick();
                 setMobileOpen(false);
               }}
-              className="flex items-center gap-2 px-6 py-3 rounded-full glass text-accent-light cursor-pointer"
+              className="flex items-center gap-2 px-6 py-3 rounded-full glass text-text-secondary cursor-pointer text-base"
             >
-              <Sparkles size={18} />
+              <HelpCircle size={18} />
               Ask AI
             </motion.button>
           </motion.div>

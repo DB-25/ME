@@ -15,34 +15,40 @@ export interface Project {
 export const projects: Project[] = [
   // === FLAGSHIPS ===
   {
-    id: "knowledge-agent",
-    name: "knowledge-agent-for-impact",
-    subtitle: "Reusable RAG Platform for Government",
+    id: "a-iep",
+    name: "A-IEP",
+    subtitle: "AI for Individualized Education Programs",
     description:
-      "Architected a reusable RAG platform using AWS CDK, Python, and OpenSearch Serverless — adopted across 10+ production deployments for state and municipal agencies, establishing shared LLM infrastructure for the entire AI for Impact program.",
+      "Multi-agent document system that makes 50-100 page IEP documents accessible to families. 7-stage AWS Step Functions pipeline handles OCR, PII redaction via Comprehend, parallel AI analysis, and 4-language translation. Built with community feedback — we showed parents the AI prompts and let them reshape the system.",
     metrics: [
-      { label: "Deployments", value: "10+" },
-      { label: "Agencies", value: "20+" },
-      { label: "Users Served", value: "500K+" },
+      { label: "Families Served", value: "1,000+" },
+      { label: "Languages", value: "4" },
+      { label: "Pipeline Stages", value: "7" },
     ],
     techStack: [
-      "AWS CDK",
-      "Python",
-      "OpenSearch Serverless",
+      "AWS Step Functions",
+      "Comprehend",
+      "Bedrock",
       "Lambda",
-      "DynamoDB",
       "S3",
-      "KMS",
     ],
-    sceneId: "knowledge-agent",
+    links: [
+      { label: "Website", url: "https://a-iep.org" },
+      {
+        label: "Blog",
+        url: "https://rebootdemocracy.ai/blog/unboxing-the-prompt-how-community-feedback-and-ai-helped-us-build-better-ai-together",
+      },
+    ],
+    sceneId: "aiep",
     flagship: true,
+    accentColor: "#10B981",
   },
   {
     id: "genie",
     name: "GENIE",
     subtitle: "AI Sandbox for 44K+ State Employees",
     description:
-      "Launched a secure multi-model AI sandbox (Claude, Titan, Mistral) with side-by-side comparison and smart model routing across 14 models — adopted by 44K+ state employees across 8+ Massachusetts departments. Presented to Governor Maura Healey.",
+      "Secure multi-model AI sandbox (Claude, Titan, Mistral) with side-by-side comparison and smart model routing across 14 models. Adopted by 44K+ state employees across 8+ Massachusetts departments. Presented to Governor Maura Healey.",
     metrics: [
       { label: "State Employees", value: "44K+" },
       { label: "Cost Reduction", value: "40%" },
@@ -62,6 +68,14 @@ export const projects: Project[] = [
         label: "Open Source",
         url: "https://github.com/The-Burnes-Center/gen-ai-sandbox-for-impact",
       },
+      {
+        label: "Governor's Office",
+        url: "https://www.mass.gov/news/governor-healey-meets-with-northeastern-students-working-with-administration-on-ai-project-under-innovatema-partnership",
+      },
+      {
+        label: "GovTech",
+        url: "https://www.govtech.com/education/higher-ed/northeastern-university-student-projects-improve-government-with-ai",
+      },
     ],
     sceneId: "genie",
     flagship: true,
@@ -71,13 +85,31 @@ export const projects: Project[] = [
     name: "VCT Scout",
     subtitle: "2nd / 3,300+ Teams — AWS re:Invent 2024",
     description:
-      "GenAI assistant built with AWS Bedrock Agents analyzing 1TB+ of Valorant Champions Tour game logs. Helps team managers build competitive rosters based on player rankings and match criteria.",
+      "GenAI assistant built with AWS Bedrock Agents analyzing 1TB+ of Valorant Champions Tour game logs. Helps esports managers build competitive rosters through natural language queries over 4,700+ match files.",
     metrics: [
       { label: "Placement", value: "2nd / 3,300+" },
       { label: "Prize", value: "$8K + $8K AWS" },
       { label: "Game Logs", value: "1TB+" },
     ],
-    techStack: ["AWS Bedrock Agents", "Claude API", "Python", "S3"],
+    techStack: ["AWS Bedrock Agents", "Claude API", "Athena", "React", "Python"],
+    links: [
+      {
+        label: "Devpost",
+        url: "https://devpost.com/software/vct-scout",
+      },
+      {
+        label: "Northeastern News",
+        url: "https://news.northeastern.edu/2025/02/04/valorant-hackathon-challenge-ai/",
+      },
+      {
+        label: "GamesBeat",
+        url: "https://gamesbeat.com/aws-and-riot-games-name-winner-of-valorant-champions-tour-hackathon/",
+      },
+      {
+        label: "Amazon Press",
+        url: "https://press.aboutamazon.com/2024/12/aws-and-riot-games-announce-the-winner-of-the-valorant-champions-tour-hackathon-esports-manager-challenge",
+      },
+    ],
     sceneId: "vct",
     flagship: true,
     accentColor: "#EF4444",
@@ -87,7 +119,7 @@ export const projects: Project[] = [
     name: "One-L + ABE",
     subtitle: "AI-Powered Procurement Modernization",
     description:
-      "One-L: Contract analysis tool using Claude via Bedrock with 11-stage Step Functions orchestration for conflict detection and redlining — 83% reduction in legal review time. ABE: Assistive Buyer Engine with RAGAS evaluation pipeline and CloudWatch observability.",
+      "One-L: Contract analysis using Claude via Bedrock with 11-stage Step Functions orchestration for conflict detection and redlining — 83% reduction in legal review time. ABE: Assistive Buyer Engine with RAGAS evaluation pipeline and CloudWatch observability.",
     metrics: [
       { label: "Legal Review Cut", value: "83%" },
       { label: "Pipeline Stages", value: "11" },
@@ -108,25 +140,24 @@ export const projects: Project[] = [
 
   // === SECONDARY ===
   {
-    id: "a-iep",
-    name: "A-IEP",
-    subtitle: "AI for Individualized Education Programs",
+    id: "knowledge-agent",
+    name: "knowledge-agent-for-impact",
+    subtitle: "Reusable RAG Platform for Government",
     description:
-      "Multi-agent document system with 7-stage AWS Step Functions pipeline (OCR, PII redaction via Comprehend, parallel AI analysis, 4-language translation) serving 1,000+ families.",
+      "Architected a reusable RAG platform using AWS CDK, Python, and OpenSearch Serverless — adopted across 10+ production deployments for state and municipal agencies.",
     metrics: [
-      { label: "Families Served", value: "1,000+" },
-      { label: "Languages", value: "4" },
-      { label: "Pipeline Stages", value: "7" },
+      { label: "Deployments", value: "10+" },
+      { label: "Agencies", value: "20+" },
+      { label: "Users Served", value: "500K+" },
     ],
     techStack: [
-      "AWS Step Functions",
-      "Comprehend",
-      "Bedrock",
+      "AWS CDK",
+      "Python",
+      "OpenSearch Serverless",
       "Lambda",
-      "S3",
+      "DynamoDB",
     ],
-    links: [{ label: "Website", url: "https://a-iep.org" }],
-    sceneId: "aiep",
+    sceneId: "knowledge-agent",
     flagship: false,
   },
   {
@@ -134,7 +165,7 @@ export const projects: Project[] = [
     name: "Smart Model Selector",
     subtitle: "Intelligent Multi-Model Routing",
     description:
-      "Lambda + API Gateway system routing queries across 14 AI models by task, cost, and token requirements — cutting costs by 40%. Benchmarked latency, cost, and instruction-following with in-house evaluation frameworks.",
+      "Lambda + API Gateway system routing queries across 14 AI models by task, cost, and token requirements — cutting costs by 40%.",
     metrics: [
       { label: "Models", value: "14" },
       { label: "Cost Cut", value: "40%" },

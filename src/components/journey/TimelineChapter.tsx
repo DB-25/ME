@@ -52,9 +52,10 @@ export function TimelineChapter({ milestone, index }: TimelineChapterProps) {
     <RevealText direction={revealDirection} delay={index * 0.1}>
       <div
         className={cn(
-          "glass-sm rounded-2xl p-6 md:p-8 w-full max-w-lg",
-          "hover:border-[var(--accent)]/20 transition-colors duration-300"
+          "rounded-xl p-6 md:p-8 w-full max-w-lg",
+          "bg-[var(--bg-surface)] border-l-2 transition-colors duration-300"
         )}
+        style={{ borderLeftColor: milestone.accentColor ?? "var(--accent-warm)" }}
       >
         {/* Year badge */}
         <span
