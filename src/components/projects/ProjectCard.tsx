@@ -2,100 +2,91 @@
 
 import type { Project } from "@/data/projects";
 import { cn } from "@/lib/utils";
-import { ExternalLink } from "lucide-react";
-import { RevealText } from "@/components/ui/RevealText";
+import { ArrowUpRight } from "lucide-react";
 
 interface ProjectCardProps {
   project: Project;
-  index: number;
 }
 
-export function ProjectCard({ project, index }: ProjectCardProps) {
+/**
+ * Editorial secondary-project tile. Hairline `.tile`, mono labels,
+ * `.num-display` metric, `.link-grow` links, tech as understated mono
+ * tags separated by middots — deliberately NOT MUI pills.
+ */
+export function ProjectCard({ project }: ProjectCardProps) {
+  const accent = project.accentColor ?? "var(--accent)";
+  const kindLabel =
+    project.kind === "swe"
+      ? "software"
+      : project.kind === "ml"
+        ? "machine learning"
+        : "ai systems";
+  const lead = project.metrics[0];
+
   return (
-    <RevealText direction="up" delay={index * 0.1}>
-      <div
-        className={cn(
-          "glass-sm rounded-2xl p-6 h-full flex flex-col overflow-hidden relative",
-          "transition-all duration-200 ease-out",
-          "hover:-translate-y-1 hover:border-[var(--accent)]/20"
-        )}
-      >
-        {/* Top gradient accent bar */}
-        <div
-          className="absolute top-0 left-0 right-0 h-[3px]"
-          style={{
-            background: `linear-gradient(90deg, ${project.accentColor ?? "var(--accent)"}, ${project.accentColor ?? "var(--accent-light)"}80)`,
-          }}
+    <article
+      className={cn(
+        "tile group flex h-full flex-col p-6 sm:p-7",
+      )}
+    >
+      {/* eyebrow */}
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <span className="label-mono">{kindLabel}</span>
+        <span
+          className="inline-block h-[6px] w-[6px] rounded-full opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+          style={{ background: accent }}
         />
-        {/* Project name */}
-        <h4 className="text-h3 text-[var(--text-primary)] mb-1">
-          {project.name}
-        </h4>
+      </div>
 
-        {/* Subtitle */}
-        <p className="text-sm text-[var(--text-secondary)] mb-3">
-          {project.subtitle}
-        </p>
+      {/* name + subtitle */}
+      <h4 className="text-h3 text-[var(--text-primary)]">{project.name}</h4>
+      <p className="mt-1.5 text-sm text-[var(--text-secondary)]">
+        {project.subtitle}
+      </p>
 
-        {/* Description — truncated */}
-        <p className="text-sm text-[var(--text-tertiary)] leading-relaxed mb-5 line-clamp-3 flex-1">
-          {project.description}
-        </p>
+      {/* description */}
+      <p className="mt-4 text-sm leading-relaxed text-[var(--text-tertiary)]">
+        {project.description}
+      </p>
 
-        {/* Metrics row */}
-        {project.metrics.length > 0 && (
-          <div className="flex flex-wrap gap-4 mb-4">
-            {project.metrics.map((metric) => (
-              <div key={metric.label} className="flex flex-col">
-                <span className="text-sm font-semibold text-[var(--text-primary)]">
-                  {metric.value}
-                </span>
-                <span className="text-xs text-[var(--text-tertiary)]">
-                  {metric.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+      {/* lead metric — understated, big number */}
+      {lead && (
+        <div className="mt-6 flex items-baseline gap-3">
+          <span
+            className="num-display text-2xl"
+            style={{ color: accent }}
+          >
+            {lead.value}
+          </span>
+          <span className="label-mono">{lead.label}</span>
+        </div>
+      )}
 
-        {/* Tech stack badges */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {project.techStack.map((tech) => (
-            <span
-              key={tech}
-              className={cn(
-                "text-[11px] px-2 py-0.5 rounded-full",
-                "bg-[var(--bg-surface)] border border-[var(--bg-border)]",
-                "text-[var(--text-tertiary)]"
-              )}
+      {/* spacer pushes meta to the bottom for a clean grid baseline */}
+      <div className="flex-1" />
+
+      {/* tech — mono, middot-separated, NOT pills */}
+      <p className="mt-6 font-mono text-[11px] leading-relaxed tracking-wide text-[var(--text-tertiary)]">
+        {project.techStack.join("  ·  ")}
+      </p>
+
+      {/* links */}
+      {project.links && project.links.length > 0 && (
+        <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-t border-[var(--hairline)] pt-4">
+          {project.links.map((link) => (
+            <a
+              key={link.url}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link-grow inline-flex items-center gap-1 text-sm"
             >
-              {tech}
-            </span>
+              {link.label}
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
           ))}
         </div>
-
-        {/* Links */}
-        {project.links && project.links.length > 0 && (
-          <div className="flex gap-2 mt-auto pt-2">
-            {project.links.map((link) => (
-              <a
-                key={link.url}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  "inline-flex items-center gap-1.5 text-xs font-medium",
-                  "text-[var(--accent-light)] hover:text-[var(--accent-lighter)]",
-                  "transition-colors duration-200"
-                )}
-              >
-                {link.label}
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-    </RevealText>
+      )}
+    </article>
   );
 }

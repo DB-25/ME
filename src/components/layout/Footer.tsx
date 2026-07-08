@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, type MouseEvent as ReactMouseEvent } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
-import { Mail, ArrowDown } from "lucide-react";
+import { Mail } from "lucide-react";
 import { profile } from "@/data/profile";
+import { RevealText } from "@/components/ui/RevealText";
 import { cn } from "@/lib/utils";
 
 interface MagneticIconProps {
@@ -13,6 +15,7 @@ interface MagneticIconProps {
   download?: boolean;
 }
 
+/** Magnetic social link — pointer-following spring, reused from the prior footer. */
 function MagneticIcon({ children, href, label, download }: MagneticIconProps) {
   const ref = useRef<HTMLAnchorElement>(null);
   const x = useMotionValue(0);
@@ -46,9 +49,9 @@ function MagneticIcon({ children, href, label, download }: MagneticIconProps) {
       onMouseLeave={handleMouseLeave}
       style={{ x: springX, y: springY }}
       className={cn(
-        "inline-flex items-center justify-center w-14 h-14 rounded-full",
-        "glass-sm text-[var(--text-secondary)]",
-        "hover:text-[var(--accent-warm)] hover:border-[var(--accent-warm)]/30",
+        "inline-flex h-12 w-12 items-center justify-center rounded-full",
+        "tile text-[var(--text-secondary)]",
+        "hover:!border-[var(--accent)]/40 hover:text-[var(--accent)]",
         "transition-colors duration-200"
       )}
     >
@@ -59,61 +62,82 @@ function MagneticIcon({ children, href, label, download }: MagneticIconProps) {
 
 export function Footer() {
   return (
-    <footer id="contact" className="section py-24 md:py-32">
-      <div className="max-w-xl">
-        {/* Heading — casual */}
-        <h2 className="text-h2 text-[var(--text-primary)] mb-4">
-          Say hi
-        </h2>
-
-        {/* Personal one-liner */}
-        <p className="text-body text-[var(--text-secondary)] mb-10">
-          Based in Boston. From Bangalore. Fueled by pani puri.
-        </p>
-
-        {/* Icon links */}
-        <div className="flex items-center gap-5 mb-8">
-          <MagneticIcon
-            href={`mailto:${profile.email}`}
-            label="Email"
-          >
-            <Mail className="w-5 h-5" />
-          </MagneticIcon>
-
-          <MagneticIcon
-            href={profile.linkedin}
-            label="LinkedIn"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-          </MagneticIcon>
-
-          <MagneticIcon
-            href={profile.github}
-            label="GitHub"
-          >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-          </MagneticIcon>
+    <footer id="contact" className="section py-28 md:py-40">
+      <div className="flex flex-col gap-12 md:flex-row md:items-end md:justify-between">
+        {/* The warm moment */}
+        <div className="max-w-2xl">
+          <RevealText direction="up">
+            <p className="label-mono mb-5">say hi · let&apos;s build something</p>
+          </RevealText>
+          <RevealText direction="up" delay={0.05}>
+            <h2 className="text-h1 text-[var(--text-primary)]">
+              Got a system that real
+              <br className="hidden sm:block" /> people will depend on?{" "}
+              <span style={{ color: "var(--accent)" }}>Let&apos;s talk.</span>
+            </h2>
+          </RevealText>
+          <RevealText direction="up" delay={0.1}>
+            <p className="text-body mt-6">
+              I&apos;m happiest shipping things that matter — and always up for a
+              good problem, a strong coffee, or an argument about the best
+              vector store. Based in {profile.location}, by way of{" "}
+              {profile.origin}.
+            </p>
+          </RevealText>
         </div>
 
-        {/* Resume download */}
+        {/* Real-photo slot — currently the memoji placeholder */}
+        <RevealText direction="up" delay={0.15}>
+          {/* TODO: swap memoji.png for a real photo when provided */}
+          <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full tile md:h-32 md:w-32">
+            <Image
+              src="/memoji.png"
+              alt={profile.name}
+              fill
+              sizes="128px"
+              className="object-cover"
+            />
+          </div>
+        </RevealText>
+      </div>
+
+      {/* Social links — magnetic */}
+      <RevealText direction="up" delay={0.1}>
+        <div className="mt-14 flex items-center gap-4">
+          <MagneticIcon href={`mailto:${profile.email}`} label="Email">
+            <Mail className="h-5 w-5" />
+          </MagneticIcon>
+
+          <MagneticIcon href={profile.linkedin} label="LinkedIn">
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+            </svg>
+          </MagneticIcon>
+
+          <MagneticIcon href={profile.github} label="GitHub">
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+          </MagneticIcon>
+
+          <span className="ml-3 hidden font-mono text-[0.78rem] text-[var(--text-secondary)] sm:inline">
+            {profile.email}
+          </span>
+        </div>
+      </RevealText>
+
+      {/* Bottom bar — resume + off-duty personality */}
+      <div className="mt-20 flex flex-col gap-6 hairline-t pt-8 md:flex-row md:items-center md:justify-between">
         <a
           href="/resume.pdf"
           download
-          className={cn(
-            "group inline-flex items-center gap-2 px-6 py-3 rounded-full",
-            "text-sm font-medium text-[var(--accent-warm)]",
-            "bg-[var(--accent-warm)]/10 border border-[var(--accent-warm)]/20",
-            "hover:bg-[var(--accent-warm)]/20 hover:border-[var(--accent-warm)]/40",
-            "transition-all duration-200"
-          )}
+          className="link-grow font-mono text-[0.78rem] uppercase tracking-[0.14em]"
         >
-          Download Resume
-          <ArrowDown className="w-4 h-4 transition-transform duration-200 group-hover:translate-y-0.5" />
+          Download résumé →
         </a>
-
-        {/* Off-duty aside */}
-        <p className="text-xs text-[var(--text-tertiary)] mt-12">
-          Off-duty: Valorant, cooking experiments, PC builds
+        <p className="font-mono text-[0.72rem] text-[var(--text-tertiary)]">
+          off-duty: Valorant ranked · cooking experiments (ask about the pani
+          puri) · ongoing PC build
         </p>
       </div>
     </footer>

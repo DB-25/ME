@@ -6,11 +6,11 @@ export interface Skill {
 }
 
 export const skillCategories = [
-  { id: "llm", label: "LLM / ML", color: "#7C3AED" },
-  { id: "cloud", label: "Cloud & DevOps", color: "#3B82F6" },
-  { id: "languages", label: "Languages", color: "#10B981" },
-  { id: "data", label: "Data & Search", color: "#F59E0B" },
-  { id: "frameworks", label: "Frameworks", color: "#EC4899" },
+  { id: "llm", label: "LLM / ML", color: "#A78BFA" },
+  { id: "cloud", label: "Cloud & DevOps", color: "#85B7EB" },
+  { id: "languages", label: "Languages", color: "#5DCAA5" },
+  { id: "data", label: "Data & Search", color: "#E8845C" },
+  { id: "frameworks", label: "Frameworks", color: "#F0997B" },
 ] as const;
 
 export const skills: Skill[] = [
@@ -41,10 +41,15 @@ export const skills: Skill[] = [
   { name: "Docker", category: "cloud", proficiency: 0.8, connections: ["GitHub Actions"] },
   { name: "GitHub Actions", category: "cloud", proficiency: 0.85, connections: ["Docker", "AWS CDK"] },
   { name: "CloudWatch", category: "cloud", proficiency: 0.85, connections: ["Lambda", "API Gateway"] },
+  { name: "ECS", category: "cloud", proficiency: 0.8, connections: ["Docker", "AWS CDK"] },
+  { name: "Kubernetes", category: "cloud", proficiency: 0.7, connections: ["Docker"] },
+  { name: "Azure OpenAI", category: "cloud", proficiency: 0.75, connections: ["OpenAI"] },
+  { name: "GCP Vertex AI", category: "cloud", proficiency: 0.7, connections: ["Python"] },
 
   // Languages
   { name: "Python", category: "languages", proficiency: 0.95, connections: ["LangChain", "PyTorch", "Lambda"] },
   { name: "TypeScript", category: "languages", proficiency: 0.85, connections: ["React", "AWS CDK"] },
+  { name: "Dart (Flutter)", category: "languages", proficiency: 0.85, connections: ["React"] },
   { name: "JavaScript", category: "languages", proficiency: 0.85, connections: ["React", "TypeScript"] },
   { name: "Java", category: "languages", proficiency: 0.7, connections: ["SQL"] },
   { name: "C++", category: "languages", proficiency: 0.7, connections: [] },

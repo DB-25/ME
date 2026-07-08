@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Download, HelpCircle } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { label: "Journey", href: "#journey" },
-  { label: "Projects", href: "#projects" },
-  { label: "Skills", href: "#skills" },
+  { label: "Story", href: "#story" },
+  { label: "Work", href: "#work" },
+  { label: "Stack", href: "#stack" },
   { label: "Impact", href: "#impact" },
   { label: "Contact", href: "#contact" },
 ];
@@ -17,16 +17,13 @@ const navLinks = [
 const SECTION_IDS = navLinks.map((l) => l.href.slice(1));
 
 /**
- * Custom hook: observes which section is currently in the center of the viewport.
- * Uses IntersectionObserver with rootMargin that targets the middle 0% band,
- * so only the section intersecting the viewport center is "active".
+ * Observes which section currently crosses the viewport midpoint.
+ * Same IntersectionObserver pattern as before, retargeted to the new IDs.
  */
 function useActiveSection(): string {
   const [activeSection, setActiveSection] = useState("");
 
   useEffect(() => {
-    // rootMargin: shrink top by 50% and bottom by 50%
-    // This means only elements crossing the viewport midpoint register as intersecting.
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -35,13 +32,9 @@ function useActiveSection(): string {
           }
         }
       },
-      {
-        rootMargin: "-50% 0px -50% 0px",
-        threshold: 0,
-      }
+      { rootMargin: "-50% 0px -50% 0px", threshold: 0 }
     );
 
-    // Wait a tick for sections to mount (Next.js hydration)
     const timer = setTimeout(() => {
       for (const id of SECTION_IDS) {
         const el = document.getElementById(id);
@@ -59,7 +52,8 @@ function useActiveSection(): string {
 }
 
 interface NavigationProps {
-  onAIClick: () => void;
+  /** Optional, kept for back-compat. The Ask affordance always dispatches the event too. */
+  onAIClick?: () => void;
 }
 
 export function Navigation({ onAIClick }: NavigationProps) {
@@ -81,142 +75,154 @@ export function Navigation({ onAIClick }: NavigationProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
+  // Fires both the legacy callback (if provided) AND the global command event.
+  const openCommand = useCallback(() => {
+    onAIClick?.();
+    window.dispatchEvent(new CustomEvent("dhruv:open-command"));
+  }, [onAIClick]);
+
   return (
     <>
       <motion.nav
         initial={{ opacity: 0, y: -20 }}
-        animate={{
-          opacity: scrolled ? 1 : 0,
-          y: hidden ? -100 : 0,
-        }}
-        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        animate={{ opacity: scrolled ? 1 : 0, y: hidden ? -100 : 0 }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all",
-          scrolled && "glass"
+          "fixed top-0 left-0 right-0 z-50",
+          scrolled && "glass-sm hairline-b",
+          !scrolled && "pointer-events-none"
         )}
       >
-        <div className="mx-auto max-w-7xl px-6 flex items-center justify-between h-16">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
           {/* Logo */}
           <a
-            href="#"
-            className="font-mono font-bold text-lg tracking-tight text-accent-light hover:text-accent-lighter transition-colors"
+            href="#top"
+            className="font-mono text-sm font-medium tracking-tight text-[var(--text-primary)] transition-colors hover:text-[var(--accent)]"
           >
             DB25
           </a>
 
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-8">
+          {/* Desktop links — mono */}
+          <div className="hidden items-center gap-7 md:flex">
             {navLinks.map((link) => {
-              const sectionId = link.href.slice(1);
-              const isActive = activeSection === sectionId;
-
+              const isActive = activeSection === link.href.slice(1);
               return (
                 <a
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    "relative text-sm transition-colors duration-200 pb-1",
+                    "font-mono text-[0.72rem] uppercase tracking-[0.14em] transition-colors duration-200",
                     isActive
-                      ? "text-[var(--accent-light)]"
-                      : "text-text-secondary hover:text-text-primary"
+                      ? "text-[var(--accent)]"
+                      : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                   )}
                 >
                   {link.label}
-                  {/* Active indicator line */}
-                  <span
-                    className="absolute bottom-0 left-0 h-[2px] bg-[var(--accent)] transition-all duration-300"
-                    style={{
-                      width: isActive ? "100%" : "0%",
-                      transitionTimingFunction:
-                        "cubic-bezier(0.16, 1, 0.3, 1)",
-                    }}
-                  />
                 </a>
               );
             })}
           </div>
 
-          {/* Right Actions */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Right actions */}
+          <div className="hidden items-center gap-5 md:flex">
             <button
-              onClick={onAIClick}
-              className="flex items-center justify-center w-9 h-9 rounded-full glass-sm text-text-tertiary hover:text-accent-light transition-colors cursor-pointer"
-              title="Ask AI (⌘K)"
+              onClick={openCommand}
+              className="group flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.14em] text-[var(--text-tertiary)] transition-colors hover:text-[var(--text-primary)] cursor-pointer"
+              title="Ask anything (⌘K)"
             >
-              <HelpCircle size={16} />
+              Ask
+              <span className="kbd">⌘K</span>
             </button>
             <a
               href="/resume.pdf"
               download
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-sm text-accent-light hover:bg-accent/20 transition-colors"
+              className="link-grow font-mono text-[0.72rem] uppercase tracking-[0.14em]"
             >
-              <Download size={14} />
               Resume
             </a>
           </div>
 
-          {/* Mobile Hamburger */}
+          {/* Mobile hamburger */}
           <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 text-text-secondary hover:text-text-primary cursor-pointer"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+            className="p-1.5 text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] md:hidden cursor-pointer"
           >
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+            <Menu size={22} />
           </button>
         </div>
       </motion.nav>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile menu overlay — hairline, near-black */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[60] bg-[#0A0A0A]/95 backdrop-blur-xl flex flex-col items-center justify-center gap-8"
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[60] flex flex-col bg-[var(--bg-primary)]/97 backdrop-blur-xl md:hidden"
           >
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="absolute top-6 right-6 p-2 text-text-secondary hover:text-text-primary cursor-pointer"
-            >
-              <X size={24} />
-            </button>
-            {navLinks.map((link, i) => {
-              const sectionId = link.href.slice(1);
-              const isActive = activeSection === sectionId;
+            <div className="flex h-14 items-center justify-between px-6 hairline-b">
+              <span className="font-mono text-sm font-medium text-[var(--text-primary)]">
+                DB25
+              </span>
+              <button
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close menu"
+                className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
+              >
+                <X size={22} />
+              </button>
+            </div>
 
-              return (
-                <motion.a
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05, duration: 0.3 }}
-                  className={cn(
-                    "text-2xl font-semibold transition-colors",
-                    isActive
-                      ? "text-[var(--accent-light)]"
-                      : "text-text-primary hover:text-accent-light"
-                  )}
-                >
-                  {link.label}
-                </motion.a>
-              );
-            })}
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              onClick={() => {
-                onAIClick();
-                setMobileOpen(false);
-              }}
-              className="flex items-center gap-2 px-6 py-3 rounded-full glass text-text-secondary cursor-pointer text-base"
-            >
-              <HelpCircle size={18} />
-              Ask AI
-            </motion.button>
+            <div className="flex flex-1 flex-col justify-center gap-2 px-8">
+              {navLinks.map((link, i) => {
+                const isActive = activeSection === link.href.slice(1);
+                return (
+                  <motion.a
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05, duration: 0.3 }}
+                    className={cn(
+                      "flex items-baseline gap-3 py-3 text-3xl font-semibold tracking-tight transition-colors",
+                      isActive
+                        ? "text-[var(--accent)]"
+                        : "text-[var(--text-primary)]"
+                    )}
+                  >
+                    <span className="font-mono text-[0.7rem] text-[var(--text-faint)]">
+                      0{i + 1}
+                    </span>
+                    {link.label}
+                  </motion.a>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-between gap-4 px-8 pb-12">
+              <button
+                onClick={() => {
+                  openCommand();
+                  setMobileOpen(false);
+                }}
+                className="flex items-center gap-2 font-mono text-[0.78rem] uppercase tracking-[0.14em] text-[var(--text-secondary)] cursor-pointer"
+              >
+                Ask
+                <span className="kbd">⌘K</span>
+              </button>
+              <a
+                href="/resume.pdf"
+                download
+                onClick={() => setMobileOpen(false)}
+                className="link-grow font-mono text-[0.78rem] uppercase tracking-[0.14em]"
+              >
+                Resume
+              </a>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

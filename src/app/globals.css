@@ -1,37 +1,51 @@
 @import "tailwindcss";
 
 /* ============================================
-   DESIGN SYSTEM — The Dhruv Experience
+   DESIGN SYSTEM — Editorial / Command Center
+   Bespoke, hairline, terracotta-forward.
    ============================================ */
 
 :root {
-  /* Background */
-  --bg-primary: #0A0A0A;
-  --bg-surface: #141414;
-  --bg-elevated: #1A1A1A;
-  --bg-border: #2A2A2A;
+  /* Background — near-black, low chroma */
+  --bg-primary: #09090B;
+  --bg-surface: #0D0D10;
+  --bg-elevated: #141417;
+  --bg-border: #1C1C20;
 
   /* Text */
-  --text-primary: #F2F2F2;
-  --text-secondary: #A1A1AA;
-  --text-tertiary: #52525B;
+  --text-primary: #ECECEF;
+  --text-secondary: #9A9AA3;
+  --text-tertiary: #56565F;
+  --text-faint: #3A3A40;
 
-  /* Accent — Purple */
-  --accent: #7C3AED;
-  --accent-light: #A78BFA;
-  --accent-lighter: #C084FC;
-  --accent-glow: rgba(167, 139, 250, 0.15);
-  --accent-gradient: linear-gradient(135deg, #7C3AED, #A78BFA, #C084FC);
+  /* Accent — Terracotta (primary) */
+  --accent: #E8845C;
+  --accent-light: #F0A882;
+  --accent-dark: #C56A45;
+  --accent-glow: rgba(232, 132, 92, 0.14);
 
-  /* Accent — Warm (terracotta/burnt orange) */
+  /* Secondary accents — used sparingly, categorical only */
+  --accent-purple: #A78BFA;
+  --accent-teal: #5DCAA5;
+  --accent-blue: #85B7EB;
+
+  /* Back-compat warm aliases */
   --accent-warm: #E8845C;
   --accent-warm-light: #F0A882;
-  --accent-warm-glow: rgba(232, 132, 92, 0.15);
+  --accent-warm-glow: rgba(232, 132, 92, 0.14);
 
-  /* Glass */
-  --glass-bg: rgba(255, 255, 255, 0.03);
+  /* Hairlines & glass */
+  --hairline: rgba(255, 255, 255, 0.06);
+  --hairline-strong: rgba(255, 255, 255, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.025);
   --glass-border: rgba(255, 255, 255, 0.06);
-  --glass-blur: blur(20px) saturate(180%);
+  --glass-blur: blur(16px) saturate(160%);
+
+  /* Radii — tighter, editorial */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
 
   /* Easing */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -39,7 +53,7 @@
   --ease-hover: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* Spacing (8pt grid) */
+  /* Spacing */
   --space-1: 8px;
   --space-2: 16px;
   --space-3: 24px;
@@ -47,6 +61,7 @@
   --space-6: 48px;
   --space-8: 64px;
   --space-12: 96px;
+  --space-16: 128px;
 }
 
 @theme inline {
@@ -57,13 +72,16 @@
   --color-border: var(--bg-border);
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);
-  --color-accent-lighter: var(--accent-lighter);
+  --color-accent-dark: var(--accent-dark);
+  --color-accent-purple: var(--accent-purple);
+  --color-accent-teal: var(--accent-teal);
+  --color-accent-blue: var(--accent-blue);
   --color-accent-warm: var(--accent-warm);
   --color-accent-warm-light: var(--accent-warm-light);
   --color-text-secondary: var(--text-secondary);
   --color-text-tertiary: var(--text-tertiary);
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
 
 /* ============================================
@@ -71,7 +89,6 @@
    ============================================ */
 
 html {
-  scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -80,19 +97,27 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   line-height: 1.6;
+}
+
+/* Contain horizontal overflow on the ROOT. It must live on <html> so the
+   viewport stays the scroll container that the document (and Lenis) drive.
+   Putting overflow-x on <body> makes <body> the scroller and freezes
+   window/Lenis scrolling. */
+html {
   overflow-x: hidden;
 }
 
 ::selection {
-  background: rgba(124, 58, 237, 0.25);
-  color: var(--text-primary);
+  background: rgba(232, 132, 92, 0.25);
+  color: #fff;
 }
 
 *:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 4px;
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
 /* ============================================
@@ -100,64 +125,132 @@ body {
    ============================================ */
 
 .text-display {
-  font-size: clamp(3rem, 8vw, 5rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  font-size: clamp(3.25rem, 9vw, 7rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
 }
 
 .text-h1 {
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-size: clamp(2.25rem, 5.5vw, 4rem);
   font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
 }
 
 .text-h2 {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
   font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.text-h3 {
+  font-size: clamp(1.25rem, 3vw, 1.6rem);
+  font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.25;
 }
 
-.text-h3 {
-  font-size: clamp(1.25rem, 3vw, 1.5rem);
-  font-weight: 500;
-  line-height: 1.3;
-}
-
 .text-body {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 400;
-  line-height: 1.6;
-  max-width: 65ch;
+  line-height: 1.65;
+  max-width: 62ch;
+  color: var(--text-secondary);
 }
 
 .text-caption {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 400;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-secondary);
 }
 
-/* ============================================
-   GRAIN OVERLAY
-   ============================================ */
+/* Monospace micro-label — the editorial eyebrow */
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
 
-.grain-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.04;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-size: 256px 256px;
+.num-display {
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ============================================
-   GLASS MORPHISM
+   SURFACES — bento tiles & hairlines
+   ============================================ */
+
+.tile {
+  background: var(--bg-surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  transition: border-color 0.35s var(--ease-hover), background-color 0.35s var(--ease-hover);
+}
+
+.tile:hover {
+  border-color: var(--hairline-strong);
+  background: var(--bg-elevated);
+}
+
+.hairline-t {
+  border-top: 1px solid var(--hairline);
+}
+.hairline-b {
+  border-bottom: 1px solid var(--hairline);
+}
+
+/* Keyboard key glyph */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1;
+  color: var(--text-secondary);
+  border: 1px solid var(--bg-border);
+  border-radius: 5px;
+  padding: 3px 7px;
+  background: rgba(255, 255, 255, 0.02);
+  min-width: 20px;
+}
+
+/* Underline-grow text link */
+.link-grow {
+  position: relative;
+  color: var(--text-secondary);
+  transition: color 0.25s var(--ease-hover);
+}
+.link-grow::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s var(--ease-out-expo);
+}
+.link-grow:hover {
+  color: var(--text-primary);
+}
+.link-grow:hover::after {
+  transform: scaleX(1);
+}
+
+/* ============================================
+   GLASS (subtle)
    ============================================ */
 
 .glass {
@@ -165,7 +258,7 @@ body {
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
 }
 
 .glass-sm {
@@ -173,19 +266,22 @@ body {
   backdrop-filter: blur(12px) saturate(150%);
   -webkit-backdrop-filter: blur(12px) saturate(150%);
   border: 1px solid var(--glass-border);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 /* ============================================
-   GLOW EFFECTS
+   GRAIN OVERLAY (subtle)
    ============================================ */
 
-.glow-accent {
-  box-shadow: 0 0 30px var(--accent-glow), 0 0 60px rgba(124, 58, 237, 0.05);
-}
-
-.glow-text {
-  text-shadow: 0 0 20px var(--accent-glow);
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.03;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
 }
 
 /* ============================================
@@ -194,42 +290,58 @@ body {
 
 .section {
   position: relative;
-  padding: var(--space-12) var(--space-3);
-  max-width: 1280px;
+  padding: var(--space-16) var(--space-3);
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .section-full {
   position: relative;
-  padding: var(--space-12) 0;
+  padding: var(--space-16) 0;
   width: 100%;
+}
+
+@media (max-width: 768px) {
+  .section,
+  .section-full {
+    padding-top: var(--space-12);
+    padding-bottom: var(--space-12);
+  }
 }
 
 /* ============================================
    SCROLLBAR
    ============================================ */
 
-/* Prevent horizontal overflow from canvas/absolute elements */
-html,
-body {
-  overflow-x: hidden;
-}
-
 ::-webkit-scrollbar {
   width: 6px;
 }
-
 ::-webkit-scrollbar-track {
   background: transparent;
 }
-
 ::-webkit-scrollbar-thumb {
   background: var(--bg-border);
   border-radius: 3px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-tertiary);
+}
+
+/* ============================================
+   ANIMATION HELPERS
+   ============================================ */
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.caret-blink {
+  animation: blink 1.05s steps(1) infinite;
+}
+
+@keyframes float-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ============================================
