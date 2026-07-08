@@ -9,6 +9,8 @@ interface AnimatedCounterProps {
   suffix?: string;
   duration?: number;
   className?: string;
+  /** Decimal places shown for non-integer values. Defaults to 1. */
+  decimals?: number;
 }
 
 function easeOutExpo(t: number): number {
@@ -21,6 +23,7 @@ export function AnimatedCounter({
   suffix = "",
   duration = 1500,
   className,
+  decimals = 1,
 }: AnimatedCounterProps) {
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.5 });
@@ -59,7 +62,7 @@ export function AnimatedCounter({
   const formatted =
     value >= 1 && Number.isInteger(value)
       ? Math.round(displayValue).toLocaleString()
-      : displayValue.toFixed(1);
+      : displayValue.toFixed(decimals);
 
   return (
     <span

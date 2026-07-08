@@ -15,7 +15,7 @@ export function WorkSection() {
   const flagships = projects.filter((p) => p.flagship);
   const secondary = projects.filter((p) => !p.flagship);
 
-  // Flutter ERP is the origin of the shipping story — pull it out and lead with it.
+  // Flutter ERP is the origin of the whole arc — pull it out and lead with it.
   const origin = secondary.find((p) => p.id === "flutter-erp");
   const rest = secondary.filter((p) => p.id !== "flutter-erp");
 
@@ -29,47 +29,41 @@ export function WorkSection() {
           animate={headingInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
           transition={{ duration: 0.7, ease: EXPO_OUT }}
         >
-          <span className="label-mono">Selected work · 2019 — 2025</span>
+          <span className="label-mono">
+            four case studies · one origin story
+          </span>
           <h2 className="text-h1 mt-5 max-w-[20ch] text-[var(--text-primary)]">
-            Systems I&apos;ve shipped to{" "}
-            <span className="text-[var(--accent)]">production</span>.
+            The work, <span className="text-[var(--accent)]">up close</span>.
           </h2>
           <p className="text-body mt-6">
-            Not demos. Multi-tenant AI infrastructure that real people depend on
-            every day — architected, shipped, and owned end-to-end.
+            Each flagship gets the problem, the approach, and the tradeoff I
+            accepted — plus the architecture and links that don&apos;t come
+            from me.
           </p>
         </motion.div>
       </div>
 
-      {/* --- Flagship case studies --- */}
+      {/* --- Flagship case studies — all use the same in-view reveal --- */}
       <div className="flex flex-col">
         {flagships.map((project, i) => (
-          <CaseStudy
-            key={project.id}
-            project={project}
-            index={i}
-            pinned={project.id === "genie"}
-          />
+          <CaseStudy key={project.id} project={project} index={i} />
         ))}
       </div>
 
       {/* --- Secondary: editorial bento grid --- */}
       <div className="section pt-0">
         <div className="mb-12 border-t border-[var(--hairline)] pt-12">
-          <span className="label-mono">Foundations</span>
+          <span className="label-mono">foundations</span>
           <h3 className="text-h3 mt-3 max-w-[34ch] text-[var(--text-primary)]">
-            The infrastructure the flagships are built on — and where the
-            shipping habit began.
+            What the flagships are built on — reused, not rebuilt, for every
+            new tool.
           </h3>
         </div>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-6">
           {/* Origin story — Flutter ERP, given a wider, distinct slot */}
           {origin && (
-            <div className="relative md:col-span-6 lg:col-span-3">
-              <span className="label-mono absolute -top-px right-5 z-10 hidden -translate-y-1/2 bg-[var(--bg-primary)] px-2 text-[var(--accent)] md:inline">
-                where it started
-              </span>
+            <div className="md:col-span-6 lg:col-span-3">
               <ProjectCard project={origin} />
             </div>
           )}

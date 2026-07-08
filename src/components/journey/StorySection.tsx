@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { timeline } from "@/data/timeline";
 import { profile } from "@/data/profile";
@@ -18,65 +18,52 @@ const EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
  */
 
 // First-person framing for each timeline beat — Manvir-warm, confident.
+// Only the pre-AI era keeps its metric blocks here; the Burnes-era numbers
+// live once, with the case studies and the impact tally further down.
 const commitMeta: Record<
   string,
   { hash: string; rel: string; verb: string; voice: string; numbers?: NumberStat[] }
 > = {
   bangalore: {
     hash: "a1f0c2e",
-    rel: "the beginning",
-    verb: "shipped",
+    rel: "day one",
+    verb: "init",
     voice:
-      "I started in Bangalore, writing Flutter and pushing an ERP app that real students opened every morning. We dragged the rating off the floor — and I learned that software only matters when people actually depend on it.",
+      "I started in Bangalore writing Flutter — an ERP app that real students opened every morning, plus a CNN fraud-detection model built on the side for a fintech startup. We dragged the app's rating off the floor, and I learned that software only matters when people depend on it.",
     numbers: [
       { value: 20, suffix: "K+", label: "daily users" },
-      { value: 1.2, suffix: " → 4.5", label: "app rating", from: "1.2" },
-      { value: 87.34, suffix: "%", label: "fraud-model accuracy" },
+      { value: 1.2, suffix: " → 4.5", label: "app rating" },
+      { value: 87.34, suffix: "%", label: "fraud-model accuracy", decimals: 2 },
     ],
   },
   northeastern: {
     hash: "3b9d7a4",
-    rel: "crossed an ocean",
+    rel: "8,000 miles in",
     verb: "merged",
     voice:
-      "Then I packed two suitcases and moved 8,000 miles to Boston for an M.S. in AI at Northeastern. Computer vision, NLP, deep learning — and a 3.83 GPA to show I meant it.",
-    numbers: [{ value: 3.83, label: "GPA" }],
+      "Then I packed two suitcases and moved to Boston for an M.S. in AI at Northeastern — computer vision, NLP, deep learning. I treated grad school like a job I couldn't afford to lose.",
+    numbers: [{ value: 3.83, label: "GPA", decimals: 2 }],
   },
   coop: {
     hash: "c4e1b88",
     rel: "first AI at scale",
     verb: "shipped",
     voice:
-      "At the Burnes Center I launched GENIE — a secure multi-model AI sandbox that 44K state employees now reach for. A smart router across 14 models cut our costs by 40%. I got to demo it to the Governor.",
-    numbers: [
-      { value: 44, suffix: "K+", label: "state employees" },
-      { value: 40, suffix: "%", label: "cost cut" },
-      { value: 14, label: "models routed" },
-    ],
+      "At the Burnes Center I launched GENIE — a secure sandbox that gave Massachusetts state employees a safe way to use generative AI, with a router quietly picking the right model for every query. I got to demo it to the Governor.",
   },
   fulltime: {
     hash: "e7a2f31",
-    rel: "took the lead",
-    verb: "merged",
+    rel: "the step up",
+    verb: "released",
     voice:
-      "I stepped up as Technical Lead — owning A-IEP for 1,000+ families, building a Voice Survey Agent, and mentoring 50+ engineers. One-L cut legal review time by 83% and took home a NASPO Gold Award.",
-    numbers: [
-      { value: 50, suffix: "+", label: "engineers mentored" },
-      { value: 83, suffix: "%", label: "legal review cut" },
-      { value: 1000, suffix: "+", label: "families helped" },
-    ],
+      "I stepped up as Technical Lead — A-IEP, so families can read their kids' education plans in plain language; a voice agent that surveys residents over the phone; and a bench of engineers I mentored from prototype to launch. One-L turned days of legal review into hours.",
   },
   scale: {
     hash: "HEAD",
     rel: "now",
     verb: "scaling",
     voice:
-      "Today I architect a reusable RAG platform behind 26 AI tools, deployed across 20+ government agencies. It quietly serves half a million people — which is the whole point.",
-    numbers: [
-      { value: 26, label: "AI tools" },
-      { value: 20, suffix: "+", label: "agencies" },
-      { value: 500, suffix: "K+", label: "people served" },
-    ],
+      "Today I architect the reusable RAG platform the rest of the program stands on, deployed across state and municipal agencies. The numbers live below, next to the work that earned them.",
   },
 };
 
@@ -85,7 +72,8 @@ interface NumberStat {
   suffix?: string;
   prefix?: string;
   label: string;
-  from?: string;
+  /** Decimal places for non-integer values (AnimatedCounter default: 1). */
+  decimals?: number;
 }
 
 // Only the SWE→AI throughline beats (skip the VCT side-quest here).
@@ -125,6 +113,40 @@ const kindAccent: Record<string, string> = {
   ml: "var(--accent-purple)",
   ai: "var(--accent)",
 };
+
+/** A real moment attached to a commit — quiet hairline frame + mono caption.
+ *  Hides itself entirely until the photo file exists in /public/photos. */
+function CommitPhoto({
+  src,
+  alt,
+  caption,
+}: {
+  src: string;
+  alt: string;
+  caption?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+  return (
+    <figure className="mt-6 max-w-[400px]">
+      <div className="tile overflow-hidden" style={{ transform: "rotate(-0.6deg)" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          className="block w-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      </div>
+      {caption && (
+        <figcaption className="mt-2 font-mono text-[0.68rem] leading-relaxed text-[var(--text-tertiary)]">
+          {caption}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
 
 function Commit({ id }: { id: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -198,6 +220,15 @@ function Commit({ id }: { id: string }) {
       {/* First-person voice */}
       <p className="text-body mt-4 max-w-[58ch]">{meta.voice}</p>
 
+      {/* A real moment from this chapter (renders once the photo exists) */}
+      {beat.photo && (
+        <CommitPhoto
+          src={beat.photo}
+          alt={beat.photoAlt ?? beat.title}
+          caption={beat.photoCaption}
+        />
+      )}
+
       {/* Metrics row — count up */}
       {meta.numbers && (
         <div className="mt-6 flex flex-wrap gap-x-10 gap-y-5">
@@ -211,6 +242,7 @@ function Commit({ id }: { id: string }) {
                   value={n.value}
                   prefix={n.prefix}
                   suffix={n.suffix}
+                  decimals={n.decimals}
                 />
               </div>
               <div className="label-mono mt-1">{n.label}</div>
@@ -234,14 +266,14 @@ export function StorySection() {
       </RevealText>
       <RevealText direction="up" delay={0.05}>
         <h2 className="text-h2 text-[var(--text-primary)] max-w-[20ch]">
-          From a Flutter app in Bangalore to AI for{" "}
-          <span style={{ color: "var(--accent)" }}>half a million people.</span>
+          From a Flutter app in Bangalore to AI in the{" "}
+          <span style={{ color: "var(--accent)" }}>statehouse.</span>
         </h2>
       </RevealText>
       <RevealText direction="up" delay={0.1}>
         <p className="text-body mt-5 max-w-[56ch]">
-          {profile.yearsExperience} years of shipping, told as commits — each
-          one something real people came to depend on.
+          {profile.yearsExperience} years in five commits — side quests
+          omitted.
         </p>
       </RevealText>
 

@@ -37,6 +37,16 @@ export interface Project {
   approach?: string;
   tradeoff?: string;
   architecture?: Architecture;
+  /** Path under /public to a product screenshot (16:10-ish). Components render
+   *  a graceful placeholder frame until the file exists. */
+  screenshot?: string;
+  /** Demo video — a local path under /public ("/videos/x.mp4", rendered as a
+   *  native <video>) or an embeddable player URL (rendered as an iframe).
+   *  Takes precedence over the screenshot in the case-study evidence frame. */
+  video?: string;
+  /** Native videos only: silent screen-recordings can autoplay muted in a
+   *  loop (living screenshot). Narrated videos should leave this false. */
+  videoAutoplay?: boolean;
 }
 
 export const projects: Project[] = [
@@ -60,6 +70,7 @@ export const projects: Project[] = [
     ],
     sceneId: "genie",
     flagship: true,
+    screenshot: "/screenshots/genie.png",
     year: "2024",
     kind: "ai",
     accentColor: "#5DCAA5",
@@ -105,6 +116,8 @@ export const projects: Project[] = [
     ],
     sceneId: "aiep",
     flagship: true,
+    screenshot: "/screenshots/a-iep.png",
+    video: "/videos/a-iep-promo.mp4",
     year: "2024",
     kind: "ai",
     accentColor: "#E8845C",
@@ -154,13 +167,15 @@ export const projects: Project[] = [
     ],
     sceneId: "vct",
     flagship: true,
+    screenshot: "/screenshots/vct-scout.png",
+    video: "https://player.vimeo.com/video/1026644404?h=ba8c799d41",
     year: "2024",
     kind: "ai",
     accentColor: "#85B7EB",
     problem:
       "Esports managers drown in 1TB+ of match data when building rosters — the insight is buried in 4,700+ raw game-log files.",
     approach:
-      "Bedrock Agents over Athena let managers ask in plain English ('find me an aggressive duelist on Ascent') and get answers grounded in the actual logs.",
+      "Bedrock Agents over Athena let managers ask in plain English ('find me an aggressive duelist on Ascent') and get answers grounded in the actual logs — with the agent's retrieval and analysis steps streamed live in the UI, so you watch it work.",
     tradeoff:
       "Built in a hackathon sprint — we optimized for a killer demo over completeness, and it landed 2nd of 3,300+ teams.",
     architecture: {
@@ -191,6 +206,9 @@ export const projects: Project[] = [
     techStack: ["Claude via Bedrock", "AWS Step Functions", "RAGAS", "CloudWatch", "DynamoDB", "Lambda"],
     sceneId: "one-l",
     flagship: true,
+    screenshot: "/screenshots/one-l.png",
+    video: "/videos/abe-chat.mp4",
+    videoAutoplay: true,
     year: "2025",
     kind: "ai",
     accentColor: "#A78BFA",
@@ -279,6 +297,12 @@ export const projects: Project[] = [
       { label: "Years Owned", value: "2+" },
     ],
     techStack: ["Flutter", "Dart", "Firebase", "REST APIs", "Razorpay"],
+    links: [
+      {
+        label: "The 20K-user analytics",
+        url: "/photos/acharya-users.jpg",
+      },
+    ],
     sceneId: "flutter",
     flagship: false,
     kind: "swe",

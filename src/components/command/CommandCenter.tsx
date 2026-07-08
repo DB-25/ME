@@ -10,11 +10,13 @@ import {
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
 import { cn } from "@/lib/utils";
 import { prefersReducedMotion, isMobile } from "@/lib/animations/gsap-config";
 import { extractSceneTags, stripSceneTags } from "@/lib/ai/scene-detector";
 import { splitNotes } from "@/lib/ai/notes-parser";
 import { GlassBox } from "@/components/glassbox/GlassBox";
+import { getCannedNotes } from "@/components/glassbox/vault-docs";
 import { BentoTile } from "./BentoTile";
 import { useCommandKeys } from "./useCommandKeys";
 import {
@@ -36,12 +38,34 @@ import {
 
 const AREAS = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 
+// Module-level: one transport for the component's lifetime.
+const chatTransport = new DefaultChatTransport({ api: "/api/chat" });
+
 const SUGGESTIONS: { label: string; scene: SceneId }[] = [
   { label: "/ genie", scene: "genie" },
   { label: "/ impact", scene: "impact" },
   { label: "/ stack", scene: "stack" },
   { label: "/ who", scene: "story" },
 ];
+
+// ---------------------------------------------------------------------------
+// Inline run phases — the in-bento progress readout. No takeover: the bento
+// dims, the center cell narrates, and the answer lands where you asked.
+//   route     first beat after submit (question → scene routing)
+//   retrieve  until the first streamed content (or the local doc pull)
+//   generate  working notes / answer streaming
+//   done      run settled — tiles un-dim, the answer stays put
+// ---------------------------------------------------------------------------
+
+const RUN_STEPS = ["route", "retrieve", "generate", "done"] as const;
+type RunStep = (typeof RUN_STEPS)[number];
+type RunPhase = "idle" | RunStep;
+
+const ROUTE_MS = 400; // fixed "route" beat after submit
+const FALLBACK_RETRIEVE_MS = 500; // offline: brief retrieve beat
+const FALLBACK_NOTES_CPS = 72; // offline notes stream rate (chars/second)
+const FALLBACK_ANSWER_DELAY_MS = 250; // beat between notes end and answer
+const DEAD_RUN_BAIL_MS = 1200; // live stream settled empty → go local
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -104,8 +128,23 @@ export function CommandCenter() {
   const [useFallback, setUseFallback] = useState(false);
   const [fallbackStreaming, setFallbackStreaming] = useState(false);
 
-  // ---- DB-1 glass-box overlay (opens on typed/submitted questions) ----
+  // ---- DB-1 glass-box overlay (opt-in "view full trace", never automatic) ----
   const [osOpen, setOsOpen] = useState(false);
+  /** Raw text handed to the GlassBox — blanked on open so its stale-answer
+   *  baseline snapshots empty, then re-fed by the mirror effect below. */
+  const [glassRaw, setGlassRaw] = useState("");
+
+  // ---- Inline run state (the bento IS the progress UI) ----
+  const [runPhase, setRunPhase] = useState<RunPhase>("idle");
+  const [inlineNotes, setInlineNotes] = useState(""); // offline working notes
+  const [hasRun, setHasRun] = useState(false); // a run started → trace exists
+  /** Scene matched from the last question — drives offline notes/answers. */
+  const runSceneRef = useRef<SceneId>("default");
+  /** latestAssistantRaw snapshot at submit — anything equal to it is stale. */
+  const liveBaselineRef = useRef("");
+
+  const runActive =
+    runPhase === "route" || runPhase === "retrieve" || runPhase === "generate";
 
   // ---- Live AI SDK chat ----
   const {
@@ -115,11 +154,9 @@ export function CommandCenter() {
     error,
   } = useChat({
     id: "command-center",
-    transport: { api: "/api/chat" } as Parameters<
-      typeof useChat
-    >[0] extends { transport?: infer T }
-      ? T
-      : never,
+    // A real transport — the previous `{ api } as …` cast satisfied the types
+    // but wasn't a functioning transport, so sendMessage never hit the network.
+    transport: chatTransport,
     onError: () => {
       // Any failure (503 no-key, network, rate limit): switch to local mode.
       setUseFallback(true);
@@ -143,6 +180,17 @@ export function CommandCenter() {
     }
     return "";
   }, [messages, useFallback]);
+
+  const latestRawRef = useRef("");
+  useEffect(() => {
+    latestRawRef.current = latestAssistantRaw;
+  }, [latestAssistantRaw]);
+
+  // True once THIS run's stream has produced content (not a stale answer).
+  const liveFresh =
+    !useFallback &&
+    latestAssistantRaw.length > 0 &&
+    latestAssistantRaw !== liveBaselineRef.current;
 
   // ---- Live mode: reflect streamed answer + switch scene ----
   // splitNotes strips the [NOTES]…[/NOTES] scratchpad so the model's working
@@ -169,6 +217,9 @@ export function CommandCenter() {
     cancelFallbackRef.current?.();
     cancelFallbackRef.current = null;
     setFallbackStreaming(false);
+    setRunPhase("idle");
+    setInlineNotes("");
+    setHasRun(false);
     setSceneState("default");
     setAnswer("");
     setInput("");
@@ -178,7 +229,7 @@ export function CommandCenter() {
   // ---- Fallback streaming (local, no network) ----
   // Time-based (not per-tick) progression so browser timer throttling in
   // hidden/backgrounded tabs can't stall the stream — late ticks catch up.
-  const streamFallback = useCallback((text: string) => {
+  const streamFallback = useCallback((text: string, onDone?: () => void) => {
     setFallbackStreaming(true);
     setAnswer("");
     const start = performance.now();
@@ -197,6 +248,7 @@ export function CommandCenter() {
       } else {
         setFallbackStreaming(false);
         cancelFallbackRef.current = null;
+        onDone?.();
       }
     };
     setTimeout(tick, 120);
@@ -205,43 +257,116 @@ export function CommandCenter() {
     };
   }, []);
 
-  // ---- Replay a stranded question locally after a live-mode failure ----
-  // If the stream errored mid-question (e.g. first ask with no API key), the
-  // flip to fallback alone would leave the glass box stalled on a dead stream.
-  // Re-run the pending question through the local path.
+  // ---- Re-aim a stranded run locally after a live-mode failure ----
+  // If the stream errored before producing an answer (e.g. first ask with no
+  // API key), the flip to fallback alone would strand the inline run. Point
+  // the run at the local path — the phase effects below carry it to "done".
   useEffect(() => {
-    if (!useFallback || !lastQuestion) return;
+    if (!useFallback || !lastQuestion || !runActive) return;
     if (fallbackStreaming || answer) return;
     const s = matchScene(lastQuestion);
+    runSceneRef.current = s;
     setSceneState(s);
-    streamFallback(cannedAnswers[s]);
-  }, [useFallback, lastQuestion, fallbackStreaming, answer, streamFallback]);
+  }, [useFallback, lastQuestion, runActive, fallbackStreaming, answer]);
+
+  // =========================================================================
+  // Inline run phase machine — route → retrieve → generate → done.
+  // =========================================================================
+
+  // route: a fixed first beat after submit.
+  useEffect(() => {
+    if (runPhase !== "route") return;
+    const id = setTimeout(() => setRunPhase("retrieve"), ROUTE_MS);
+    return () => clearTimeout(id);
+  }, [runPhase]);
+
+  // retrieve → generate (live): the first streamed content of this run.
+  useEffect(() => {
+    if (useFallback || runPhase !== "retrieve") return;
+    if (liveFresh) setRunPhase("generate");
+  }, [useFallback, runPhase, liveFresh]);
+
+  // retrieve → generate (offline): a brief beat — nothing to actually fetch.
+  useEffect(() => {
+    if (!useFallback || runPhase !== "retrieve") return;
+    const id = setTimeout(() => setRunPhase("generate"), FALLBACK_RETRIEVE_MS);
+    return () => clearTimeout(id);
+  }, [useFallback, runPhase]);
+
+  // generate → done (live): the stream has settled.
+  useEffect(() => {
+    if (useFallback || runPhase !== "generate") return;
+    if (status === "ready") setRunPhase("done");
+  }, [useFallback, runPhase, status]);
+
+  // Live guard: stream settled with no content (and no error-driven flip) —
+  // bail to the local path instead of thinking forever.
+  useEffect(() => {
+    if (useFallback) return;
+    if (runPhase !== "route" && runPhase !== "retrieve") return;
+    if (status !== "ready" && status !== "error") return;
+    const id = setTimeout(() => setUseFallback(true), DEAD_RUN_BAIL_MS);
+    return () => clearTimeout(id);
+  }, [useFallback, runPhase, status]);
+
+  // generate (offline): stream the canned working notes inline — chars derive
+  // from elapsed time so hidden-tab timer throttling can't stall the stream —
+  // then hand off to the canned answer.
+  useEffect(() => {
+    if (!useFallback || runPhase !== "generate") return;
+    const s = runSceneRef.current;
+    const text = getCannedNotes(s);
+    const start = performance.now();
+    let answerTimer: ReturnType<typeof setTimeout> | null = null;
+    let handedOff = false;
+    const iv = setInterval(() => {
+      const shown = Math.min(
+        text.length,
+        Math.floor(((performance.now() - start) / 1000) * FALLBACK_NOTES_CPS)
+      );
+      setInlineNotes(text.slice(0, shown));
+      if (shown >= text.length && !handedOff) {
+        handedOff = true;
+        clearInterval(iv);
+        answerTimer = setTimeout(() => {
+          streamFallback(cannedAnswers[s], () => setRunPhase("done"));
+        }, FALLBACK_ANSWER_DELAY_MS);
+      }
+    }, 24);
+    return () => {
+      clearInterval(iv);
+      if (answerTimer) clearTimeout(answerTimer);
+    };
+  }, [useFallback, runPhase, streamFallback]);
 
   // ---- Submit a query ----
   const runQuery = useCallback(
     (raw: string) => {
       const q = raw.trim();
-      if (!q || isStreaming) return;
+      if (!q || isStreaming || runActive) return;
       setLastQuestion(q);
       setInput("");
+      setAnswer("");
+      setInlineNotes("");
+      setHasRun(true);
+
+      const matched = matchScene(q);
+      runSceneRef.current = matched;
 
       if (useFallback) {
-        const s = matchScene(q);
-        setSceneState(s);
-        streamFallback(cannedAnswers[s]);
+        setSceneState(matched);
       } else {
-        setAnswer("");
         // Provisionally switch scene from the question so the bento reacts
         // immediately; the scene-tag classifier refines it once streamed.
-        const provisional = matchScene(q);
-        if (provisional !== "default") setSceneState(provisional);
+        if (matched !== "default") setSceneState(matched);
+        liveBaselineRef.current = latestRawRef.current;
         sendMessage({ text: q });
       }
 
-      // Typed/submitted questions take over the screen — DB-1 OS mode.
-      setOsOpen(true);
+      // No takeover — the bento itself is the progress state.
+      setRunPhase("route");
     },
-    [isStreaming, useFallback, streamFallback, sendMessage]
+    [isStreaming, runActive, useFallback, sendMessage]
   );
 
   const submit = useCallback(() => {
@@ -257,9 +382,8 @@ export function CommandCenter() {
   );
 
   // ---- Keyboard exploration ----
-  const { showShortcuts, setShowShortcuts, eggActive } = useCommandKeys({
+  const { eggActive } = useCommandKeys({
     inputRef,
-    setScene,
     reset,
     submit,
   });
@@ -295,6 +419,22 @@ export function CommandCenter() {
     };
   }, [focusSelf]);
 
+  // ---- Opt-in full trace: open the GlassBox for the current run ----
+  // glassRaw is blanked first so useGlassBoxRun snapshots an empty baseline on
+  // open; the mirror effect then feeds it the real text (child effects run
+  // before parent effects), so the overlay replays sensibly even after the
+  // run has completed.
+  const openTrace = useCallback(() => {
+    setGlassRaw("");
+    setOsOpen(true);
+  }, []);
+
+  const rawForGlass = useFallback ? answer : latestAssistantRaw;
+  useEffect(() => {
+    if (!osOpen) return;
+    setGlassRaw(rawForGlass);
+  }, [osOpen, rawForGlass]);
+
   // ---- Current tiles ----
   const tiles = getScene(scene);
   const staticMode = reduced;
@@ -309,7 +449,28 @@ export function CommandCenter() {
     [setScene]
   );
 
-  const showCaret = !isStreaming && answer.length === 0;
+  // ---- Inline thinking readout ----
+  // Working notes: the model's scratchpad (live) or the canned notes (offline),
+  // shown only until the answer starts streaming into the same spot.
+  const runNotes = useMemo(() => {
+    if (useFallback) return inlineNotes;
+    if (!liveFresh) return "";
+    return splitNotes(latestAssistantRaw).notes;
+  }, [useFallback, inlineNotes, liveFresh, latestAssistantRaw]);
+
+  const showInlineNotes =
+    runActive && answer.length === 0 && runNotes.trim().length > 0;
+
+  const noteLines = useMemo(() => {
+    if (!showInlineNotes) return [];
+    return runNotes
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .slice(-4);
+  }, [showInlineNotes, runNotes]);
+
+  const showCaret = !runActive && !isStreaming && answer.length === 0;
 
   return (
     <section
@@ -321,21 +482,29 @@ export function CommandCenter() {
       {/* Eyebrow */}
       <div className="mb-8 flex items-center justify-between gap-4">
         <span className="label-mono">{"// ask anything"}</span>
-        <span className="label-mono hidden sm:inline">
+        <span
+          className="label-mono hidden sm:inline"
+          title={
+            useFallback
+              ? "DB-1 — my custom retrieval × routing × eval pipeline. Offline right now: answers come from a scripted demo."
+              : "DB-1 — my custom retrieval × routing × eval pipeline"
+          }
+        >
           {useFallback ? "DB-1 · offline demo" : "DB-1 · live"}
         </span>
       </div>
 
-      {/* Live region for scene-change announcements */}
+      {/* Live region for run + scene-change announcements */}
       <div className="sr-only" role="status" aria-live="polite">
-        {sceneLabels[scene]}
+        {runActive ? "Working on your answer" : sceneLabels[scene]}
       </div>
 
       {/* ============================ DESKTOP BENTO ============================ */}
       <div
         className={cn(
           "command-bento",
-          mobile ? "command-bento--mobile" : "command-bento--desktop"
+          mobile ? "command-bento--mobile" : "command-bento--desktop",
+          runActive && "command-bento--thinking"
         )}
       >
         {/* Surrounding tiles */}
@@ -373,7 +542,7 @@ export function CommandCenter() {
                 placeholder="what do you want to know?"
                 className="command-field__input"
                 aria-label="Ask Dhruv a question"
-                disabled={isStreaming}
+                disabled={isStreaming || runActive}
                 spellCheck={false}
                 autoComplete="off"
               />
@@ -386,10 +555,62 @@ export function CommandCenter() {
             </div>
           </form>
 
-          {/* Answer line (typewriter) OR suggestions */}
+          {/* Progress readout (in-run) OR answer line OR suggestions */}
           <div className="command-answer">
             <AnimatePresence mode="wait">
-              {answer || isStreaming ? (
+              {runActive ? (
+                <motion.div
+                  key="thinking"
+                  initial={reduced ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduced ? undefined : { opacity: 0, y: -6 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  className="command-thinking"
+                >
+                  <InlineTrace phase={runPhase} />
+                  <AnimatePresence mode="wait" initial={false}>
+                    {showInlineNotes ? (
+                      <motion.div
+                        key="notes"
+                        initial={reduced ? false : { opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={reduced ? undefined : { opacity: 0 }}
+                        transition={{ duration: 0.18 }}
+                        className="command-thinking__notes"
+                        aria-hidden
+                      >
+                        {noteLines.map((line, i) => (
+                          <span
+                            key={i}
+                            className="command-thinking__note"
+                            style={{
+                              opacity:
+                                0.35 + (0.65 * (i + 1)) / noteLines.length,
+                            }}
+                          >
+                            {line}
+                          </span>
+                        ))}
+                      </motion.div>
+                    ) : (
+                      <motion.p
+                        key="stream"
+                        initial={reduced ? false : { opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={reduced ? undefined : { opacity: 0 }}
+                        transition={{ duration: 0.18 }}
+                        className="command-answer__text"
+                      >
+                        {answer}
+                        <span
+                          className="command-answer__cursor"
+                          aria-hidden
+                        />
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ) : answer ? (
                 <motion.p
                   key="answer"
                   initial={reduced ? false : { opacity: 0, y: 6 }}
@@ -399,9 +620,6 @@ export function CommandCenter() {
                   className="command-answer__text"
                 >
                   {answer}
-                  {isStreaming && (
-                    <span className="command-answer__cursor" aria-hidden />
-                  )}
                 </motion.p>
               ) : (
                 <motion.div
@@ -430,10 +648,10 @@ export function CommandCenter() {
       </div>
 
       {/* ============================ FOOTER HINTS ============================ */}
+      {/* Deliberately minimal — only the keys people reach for by instinct. */}
       <div className="mt-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-3 text-[var(--text-tertiary)]">
         <HintRow keys={["/"]} label="focus" />
-        <HintRow keys={["1", "4"]} label="projects" sep="–" />
-        <HintRow keys={["?"]} label="keys" />
+        <HintRow keys={["↵"]} label="ask" />
         <HintRow keys={["esc"]} label="reset" />
         {scene !== "default" && (
           <button
@@ -444,49 +662,17 @@ export function CommandCenter() {
             ← overview
           </button>
         )}
-      </div>
-
-      {/* ============================ SHORTCUTS OVERLAY ============================ */}
-      <AnimatePresence>
-        {showShortcuts && (
-          <motion.div
-            className="command-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={() => setShowShortcuts(false)}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Keyboard shortcuts"
+        {hasRun && (
+          <button
+            type="button"
+            onClick={openTrace}
+            className="link-grow font-mono text-[0.7rem] uppercase tracking-[0.14em]"
+            title="Open the full DB-1 pipeline view for this run"
           >
-            <motion.div
-              className="command-overlay__panel"
-              initial={reduced ? false : { opacity: 0, y: 14, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={reduced ? undefined : { opacity: 0, y: 10, scale: 0.99 }}
-              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="mb-5 flex items-center justify-between">
-                <span className="label-mono">{"// keyboard"}</span>
-                <span className="label-mono">esc to close</span>
-              </div>
-              <ul className="space-y-3">
-                <ShortcutLine keys={["/"]} desc="Focus the command field" />
-                <ShortcutLine keys={["1", "2", "3", "4"]} desc="Jump to GENIE · A-IEP · VCT Scout · One-L" />
-                <ShortcutLine keys={["↵"]} desc="Ask the question" />
-                <ShortcutLine keys={["?"]} desc="Toggle this panel" />
-                <ShortcutLine keys={["esc"]} desc="Reset to overview" />
-                <ShortcutLine keys={["⌘", "K"]} desc="Jump here from anywhere" />
-              </ul>
-              <p className="mt-6 font-mono text-[0.66rem] leading-relaxed text-[var(--text-faint)]">
-                psst — there&apos;s a classic cheat code in here somewhere.
-              </p>
-            </motion.div>
-          </motion.div>
+            view full trace ↗
+          </button>
         )}
-      </AnimatePresence>
+      </div>
 
       {/* ============================ EASTER EGG ============================ */}
       <AnimatePresence>
@@ -510,11 +696,11 @@ export function CommandCenter() {
         )}
       </AnimatePresence>
 
-      {/* ============================ DB-1 GLASS BOX ============================ */}
+      {/* ============================ DB-1 GLASS BOX (opt-in trace) ============================ */}
       <GlassBox
         open={osOpen}
         question={lastQuestion}
-        raw={useFallback ? answer : latestAssistantRaw}
+        raw={glassRaw}
         streaming={isStreaming}
         fallback={useFallback}
         scene={scene}
@@ -523,6 +709,42 @@ export function CommandCenter() {
 
       <CommandCenterStyles />
     </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// InlineTrace — the compact in-bento pipeline readout. Same visual language
+// as the GlassBox PipelineTrace (pending faint, active terracotta, done teal),
+// sized for the center cell: four mono steps on one line.
+// ---------------------------------------------------------------------------
+
+function InlineTrace({ phase }: { phase: RunPhase }) {
+  const cur = (RUN_STEPS as readonly string[]).indexOf(phase); // -1 while idle
+  return (
+    <div className="command-trace" aria-label="Answer pipeline">
+      {RUN_STEPS.map((step, i) => {
+        const status: "pending" | "active" | "done" =
+          phase === "done"
+            ? "done"
+            : i < cur
+              ? "done"
+              : i === cur
+                ? "active"
+                : "pending";
+        return (
+          <span
+            key={step}
+            className={cn(
+              "command-trace__step",
+              `command-trace__step--${status}`
+            )}
+          >
+            <span className="command-trace__dot" aria-hidden />
+            {step}
+          </span>
+        );
+      })}
+    </div>
   );
 }
 
@@ -556,22 +778,6 @@ function HintRow({
   );
 }
 
-function ShortcutLine({ keys, desc }: { keys: string[]; desc: string }) {
-  return (
-    <li className="flex items-center justify-between gap-4">
-      <span className="flex items-center gap-1.5">
-        {keys.map((k) => (
-          <kbd key={k} className="kbd">
-            {k}
-          </kbd>
-        ))}
-      </span>
-      <span className="text-right text-[0.82rem] text-[var(--text-secondary)]">
-        {desc}
-      </span>
-    </li>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Confetti — a brief terracotta-forward burst, CSS-driven, no deps.
@@ -641,7 +847,7 @@ function CommandCenterStyles() {
         align-items: stretch;
       }
       .command-bento--desktop .command-bento__chat {
-        min-height: 200px;
+        min-height: 176px;
       }
       .command-bento--mobile {
         display: flex;
@@ -746,27 +952,92 @@ function CommandCenterStyles() {
         gap: 18px;
       }
 
-      /* ---- Shortcuts overlay ---- */
-      .command-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 120;
+      /* ---- In-bento thinking state ---- */
+      .command-bento .tile {
+        transition: border-color 0.35s var(--ease-hover),
+          background-color 0.35s var(--ease-hover),
+          opacity 0.6s var(--ease-out-expo);
+      }
+      .command-bento--thinking .tile {
+        opacity: 0.35;
+        animation: command-thinking-pulse 3.2s ease-in-out infinite;
+      }
+      @keyframes command-thinking-pulse {
+        0%, 100% { opacity: 0.35; }
+        50% { opacity: 0.48; }
+      }
+
+      .command-thinking {
         display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      /* Compact pipeline trace — route → retrieve → generate → done */
+      .command-trace {
+        display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        justify-content: center;
-        padding: 24px;
-        background: rgba(5, 5, 7, 0.72);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        gap: 6px 16px;
       }
-      .command-overlay__panel {
-        width: 100%;
-        max-width: 460px;
-        padding: 26px 28px;
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--hairline-strong);
-        background: var(--bg-surface);
+      .command-trace__step {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-family: var(--font-mono);
+        font-size: 0.66rem;
+        letter-spacing: 0.08em;
       }
+      .command-trace__dot {
+        width: 5px;
+        height: 5px;
+        flex-shrink: 0;
+        border-radius: 9999px;
+        background: var(--text-faint);
+        transition: background-color 0.3s var(--ease-hover);
+      }
+      .command-trace__step--pending { color: var(--text-faint); }
+      .command-trace__step--active { color: var(--text-primary); }
+      .command-trace__step--active .command-trace__dot {
+        background: var(--accent);
+        animation: command-trace-pulse 1.2s ease-in-out infinite;
+      }
+      .command-trace__step--done { color: var(--text-tertiary); }
+      .command-trace__step--done .command-trace__dot {
+        background: var(--accent-teal);
+      }
+      @keyframes command-trace-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.45; }
+      }
+
+      /* Inline working notes — dim mono scratchpad, newest line brightest */
+      .command-thinking__notes {
+        display: flex;
+        flex-direction: column;
+        font-family: var(--font-mono);
+        font-size: 0.7rem;
+        line-height: 1.65;
+        color: var(--text-tertiary);
+        max-height: calc(4 * 1.65em);
+        overflow: hidden;
+      }
+      .command-thinking__note {
+        display: block;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .command-bento .tile {
+          transition: none;
+        }
+        .command-bento--thinking .tile,
+        .command-trace__step--active .command-trace__dot {
+          animation: none;
+        }
+      }
+
 
       /* ---- Easter egg ---- */
       .command-confetti {

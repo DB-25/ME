@@ -3,8 +3,10 @@
 import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { impactMetrics, awards } from "@/data/impact";
+import { receipts } from "@/data/receipts";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { RevealText } from "@/components/ui/RevealText";
+import { ReceiptChip } from "@/components/projects/CaseStudy";
 import { cn } from "@/lib/utils";
 
 const EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -104,17 +106,31 @@ function AwardRow({
       initial={{ opacity: 0, y: 12 }}
       animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
       transition={{ duration: 0.5, ease: EXPO_OUT, delay: index * 0.08 }}
-      className="group grid grid-cols-[4.5rem_1fr] items-baseline gap-x-4 py-5 hairline-b first:hairline-t md:grid-cols-[5rem_1fr_auto]"
+      className="group grid grid-cols-[4.5rem_1fr] items-baseline gap-x-4 py-5 hairline-b first:hairline-t md:grid-cols-[5rem_1fr]"
     >
       <span className="font-mono text-[0.8rem] text-[var(--text-tertiary)]">
         {award.year}
       </span>
-      <span className="text-[var(--text-primary)] transition-colors duration-200 group-hover:text-[var(--accent-light)]">
-        {award.title}
-      </span>
-      <span className="col-start-2 mt-1 font-mono text-[0.72rem] text-[var(--text-tertiary)] md:col-start-3 md:mt-0 md:text-right">
-        {award.issuer}
-      </span>
+      <div>
+        <span className="text-[var(--text-primary)] transition-colors duration-200 group-hover:text-[var(--accent-light)]">
+          {award.title}
+        </span>
+        {/* Issuer spelled out — an award without an issuer reads fake. */}
+        <span className="mt-1 block text-sm text-[var(--text-secondary)]">
+          {award.issuer}
+        </span>
+        {/* The physical artifact — "here's the paper." */}
+        {award.artifact && (
+          <a
+            href={award.artifact}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link-grow mt-2 inline-block font-mono text-[0.7rem] uppercase tracking-[0.14em]"
+          >
+            {award.artifactLabel ?? "see the artifact"} ↗
+          </a>
+        )}
+      </div>
     </motion.div>
   );
 }
@@ -130,6 +146,11 @@ export function ImpactSection() {
           Numbers that left the building.
         </h2>
       </RevealText>
+      <RevealText direction="up" delay={0.1}>
+        <p className="text-body mt-5 max-w-[54ch]">
+          What it all adds up to — and where to check.
+        </p>
+      </RevealText>
 
       {/* Lead metric — large, breathing room */}
       <div className="mt-16 md:mt-20">
@@ -141,6 +162,23 @@ export function ImpactSection() {
         {rest.map((m, i) => (
           <Metric key={m.id} {...m} delay={i * 0.06} />
         ))}
+      </div>
+
+      {/* Sources — the third-party layer behind the claims */}
+      <div className="mt-20 md:mt-24">
+        <RevealText direction="up">
+          <p className="label-mono mb-3">don&apos;t take my word for it</p>
+        </RevealText>
+        <RevealText direction="up" delay={0.05}>
+          <p className="mb-6 max-w-[48ch] text-sm text-[var(--text-tertiary)]">
+            Hover any source to see what it verifies.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {receipts.map((r) => (
+              <ReceiptChip key={r.id} chip={r} />
+            ))}
+          </div>
+        </RevealText>
       </div>
 
       {/* Recognition — quiet hairline rows */}

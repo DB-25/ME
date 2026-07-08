@@ -3,10 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 import { prefersReducedMotion } from "@/lib/animations/gsap-config";
-import type { SceneId } from "./bento-scenes";
-
-// Number keys 1–4 jump to the four flagship project scenes.
-const NUMBER_SCENES: SceneId[] = ["genie", "aiep", "vct", "one-l"];
 
 // Konami code → easter egg.
 const KONAMI = [
@@ -24,8 +20,6 @@ const KONAMI = [
 
 export interface UseCommandKeysOptions {
   inputRef: RefObject<HTMLInputElement | null>;
-  /** Switch the bento to a scene. */
-  setScene: (scene: SceneId) => void;
   /** Reset to the default scene + clear any answer line. */
   reset: () => void;
   /** Submit the current input value (Enter while focused). */
@@ -33,9 +27,6 @@ export interface UseCommandKeysOptions {
 }
 
 export interface UseCommandKeysResult {
-  /** Whether the shortcuts overlay is visible. */
-  showShortcuts: boolean;
-  setShowShortcuts: (v: boolean) => void;
   /** Whether the easter-egg burst is currently playing. */
   eggActive: boolean;
 }
@@ -52,23 +43,20 @@ function isTypingTarget(el: EventTarget | null): boolean {
 }
 
 /**
- * Wires Bruno-Simon-style keyboard exploration for the command center:
- *  - `/`      focus the command input
- *  - `?`      toggle the shortcuts overlay
- *  - `1`–`4`  jump to [genie, aiep, vct, one-l]
- *  - `esc`    reset to default (and blur input / close overlay)
- *  - konami   terracotta confetti burst + a pani-puri / Valorant toast
+ * Minimal, human-natural keyboard wiring for the command center:
+ *  - `/`      focus the command input (the one dev-conventional extra)
+ *  - `enter`  ask (while the input is focused)
+ *  - `esc`    reset to default (and blur the input)
+ *  - konami   hidden: terracotta confetti + a pani-puri toast
  *
- * Keystrokes are ignored while typing in a field, EXCEPT Enter (submit) and
- * Escape (blur) when the command input itself is focused.
+ * Deliberately nothing else — number-jump shortcuts and a `?` cheat-sheet
+ * overlay proved to be more UI than the interaction deserved.
  */
 export function useCommandKeys({
   inputRef,
-  setScene,
   reset,
   submit,
 }: UseCommandKeysOptions): UseCommandKeysResult {
-  const [showShortcuts, setShowShortcuts] = useState(false);
   const [eggActive, setEggActive] = useState(false);
   const konamiIndex = useRef(0);
   const eggTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -129,42 +117,20 @@ export function useCommandKeys({
       }
 
       // ---- Global (not typing) shortcuts ----
-      switch (e.key) {
-        case "/": {
-          e.preventDefault();
-          inputRef.current?.focus();
-          return;
-        }
-        case "?": {
-          e.preventDefault();
-          setShowShortcuts((prev) => !prev);
-          return;
-        }
-        case "Escape": {
-          if (showShortcuts) {
-            setShowShortcuts(false);
-          } else {
-            reset();
-          }
-          return;
-        }
-        case "1":
-        case "2":
-        case "3":
-        case "4": {
-          e.preventDefault();
-          const scene = NUMBER_SCENES[Number(e.key) - 1];
-          if (scene) setScene(scene);
-          return;
-        }
-        default:
-          return;
+      if (e.key === "/") {
+        e.preventDefault();
+        inputRef.current?.focus();
+        return;
+      }
+      if (e.key === "Escape") {
+        reset();
+        return;
       }
     };
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [inputRef, setScene, reset, submit, trackKonami, showShortcuts]);
+  }, [inputRef, reset, submit, trackKonami]);
 
   // Clean up the egg timer on unmount.
   useEffect(() => {
@@ -173,5 +139,5 @@ export function useCommandKeys({
     };
   }, []);
 
-  return { showShortcuts, setShowShortcuts, eggActive };
+  return { eggActive };
 }
