@@ -1,9 +1,11 @@
 export const profile = {
   name: "Dhruv Kamalesh Kumar",
   handle: "DB25",
-  title: "Generative AI Engineer | Technical Lead",
+  title: "Software Engineer · Generative AI",
   organization: "The Burnes Center for Social Change",
-  tagline: "Building AI That Matters",
+  tagline: "Software that ships at scale.",
+  positioningLine:
+    "Software engineer, 5+ years shipping — now building AI for half a million people.",
   location: "Boston, MA",
   origin: "Bangalore, India",
   email: "dhruvbaradiya@gmail.com",
@@ -11,8 +13,54 @@ export const profile = {
   linkedin: "https://linkedin.com/in/dhruvkamaleshkumar",
   github: "https://github.com/DB-25",
   portfolio: "https://dhruvkamaleshkumar.streamlit.app",
+  yearsExperience: "5+",
   summary:
-    "Generative AI Engineer with 3+ years building production LLM systems, RAG pipelines, and multi-agent architectures on AWS. Architect of a reusable RAG platform deployed across 20+ government agencies serving 500K+ users. Technical lead mentoring 50+ engineers from prototype to production. MS in AI from Northeastern University.",
+    "Software engineer with 5+ years building and shipping production systems — from cross-platform mobile apps with 20K+ daily users to cloud-native microservices and LLM platforms on AWS. For the last 3+ years I've architected a reusable RAG platform deployed across 20+ government agencies serving 500K+ users, and led 50+ engineers from prototype to production. I care about systems that real people depend on. MS in AI from Northeastern.",
+  // Full work history — proves the SWE-first, AI-at-scale arc.
+  experience: [
+    {
+      role: "Generative AI Engineer & Technical Lead",
+      company: "The Burnes Center for Social Change",
+      location: "Boston, MA",
+      period: "Jul 2024 – Present",
+      kind: "ai",
+    },
+    {
+      role: "GenAI Product Development Co-op",
+      company: "The Burnes Center for Social Change",
+      location: "Boston, MA",
+      period: "Jan 2024 – Jun 2024",
+      kind: "ai",
+    },
+    {
+      role: "Software Engineer (Flutter)",
+      company: "Acharya Institutes",
+      location: "Bangalore, India",
+      period: "Sep 2021 – Aug 2023",
+      kind: "swe",
+    },
+    {
+      role: "Machine Learning Intern",
+      company: "We Source Company",
+      location: "Bangalore, India (Remote)",
+      period: "May 2021 – Sep 2022",
+      kind: "ml",
+    },
+    {
+      role: "Software Engineer Intern (Flutter)",
+      company: "SM Creatives",
+      location: "Bangalore, India (Remote)",
+      period: "Jan 2022 – May 2022",
+      kind: "swe",
+    },
+    {
+      role: "Software Engineer Intern (Flutter)",
+      company: "Fagnum",
+      location: "Bangalore, India (Remote)",
+      period: "Jun 2020 – Mar 2021",
+      kind: "swe",
+    },
+  ],
   interests: {
     food: "Vegetarian, loves pani puri, Indian/Italian/Mexican food, big foodie & cook",
     games: "Valorant, CS2, Fortnite",

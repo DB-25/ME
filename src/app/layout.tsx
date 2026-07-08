@@ -16,30 +16,32 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Dhruv Kamalesh Kumar — Gen AI Engineer",
+  title: "Dhruv Kamalesh Kumar — Software Engineer",
   description:
-    "Generative AI Engineer building production LLM systems for government. 26 AI tools, 20+ agencies, 500K+ users served. Explore my work through an AI-powered interactive experience.",
+    "Software engineer with 5+ years shipping production systems — from mobile apps with 20K+ daily users to AI platforms serving 500K+ people across 20+ government agencies. Explore my work through an AI command center.",
   keywords: [
     "Dhruv Kamalesh Kumar",
+    "Software Engineer",
     "Gen AI Engineer",
+    "Distributed Systems",
+    "AWS",
     "LLM",
     "RAG",
     "AWS Bedrock",
-    "AI for Impact",
     "Burnes Center",
     "Northeastern University",
   ],
   authors: [{ name: "Dhruv Kamalesh Kumar" }],
   openGraph: {
-    title: "Dhruv Kamalesh Kumar — Gen AI Engineer",
+    title: "Dhruv Kamalesh Kumar — Software Engineer",
     description:
-      "Building AI That Matters. 26 AI tools for 20+ government agencies serving 500K+ users.",
+      "5+ years shipping production software. Now building AI at scale — 500K+ people, 20+ agencies, 26 tools.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Dhruv Kamalesh Kumar — Gen AI Engineer",
-    description: "Building AI That Matters.",
+    title: "Dhruv Kamalesh Kumar — Software Engineer",
+    description: "Software that ships at scale.",
   },
 };
 
