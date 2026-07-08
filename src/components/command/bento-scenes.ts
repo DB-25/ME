@@ -211,13 +211,16 @@ const flagship = projects.find((p) => p.flagship) ?? projects[0];
 const usersMetric = metric("users");
 const naspo = award("naspo-gold");
 
+// The default bento is an INVITATION, not a stats board. The hero directly
+// above already carries the headline numbers (500K+/20+/5+ yrs) — repeating
+// them here reads as padding. These tiles say: who, what's featured, what's
+// proven, and how to play.
 const defaultScene: BentoTileData[] = [
   {
-    id: "d-reach",
-    type: "metric",
-    label: "Users Served",
-    value: usersMetric?.value ?? "500K+",
-    note: usersMetric?.description,
+    id: "d-who",
+    type: "text",
+    label: "hi, I'm Dhruv",
+    body: "I build systems people depend on — right now, AI for state government at the Burnes Center.",
     accent: "terracotta",
   },
   {
@@ -229,18 +232,10 @@ const defaultScene: BentoTileData[] = [
     accent: accentForColor(flagship.accentColor),
   },
   {
-    id: "d-agencies",
-    type: "metric",
-    label: "Government Agencies",
-    value: aiForImpact.totalAgencies,
-    note: `${aiForImpact.totalTools} AI tools shipped`,
-    accent: "none",
-  },
-  {
-    id: "d-years",
+    id: "d-try",
     type: "text",
-    label: "experience",
-    body: `${profile.yearsExperience} yrs shipping — software engineer specializing in AI at scale.`,
+    label: "try asking",
+    body: "“why should I hire you?” · “how does GENIE route models?” · “what do you do for fun?”",
     accent: "none",
   },
   {
@@ -252,10 +247,10 @@ const defaultScene: BentoTileData[] = [
     accent: "purple",
   },
   {
-    id: "d-tools",
-    type: "code",
-    label: "tools",
-    lines: [`role = "Technical Lead"`, `agencies = ${parseInt(aiForImpact.totalAgencies)}`, `engineers_mentored = 50`],
+    id: "d-now",
+    type: "text",
+    label: "currently",
+    body: "Technical Lead at the Burnes Center — shipping AI tools for state agencies and mentoring the engineers who build them.",
     accent: "none",
   },
   {
@@ -271,6 +266,13 @@ const defaultScene: BentoTileData[] = [
     label: "M.S. AI · Northeastern",
     value: String(profile.education[0].gpa ?? "3.83"),
     note: "GPA",
+    accent: "none",
+  },
+  {
+    id: "d-offduty",
+    type: "text",
+    label: "off duty",
+    body: "Valorant, cooking experiments, pani puri pilgrimages, PC builds.",
     accent: "none",
   },
 ];
@@ -467,32 +469,118 @@ export function isSceneId(value: string): value is SceneId {
 // Keyword matcher (fallback / no-API mode + post-stream classification)
 // ---------------------------------------------------------------------------
 
-interface KeywordRule {
+/** Weighted patterns per scene. Strong = names/unambiguous terms (weight 3),
+ *  medium = domain terms (2), weak = broad hints (1). Scored across ALL
+ *  scenes — best total wins — so a broad word can't hijack a specific ask. */
+interface ScoredRule {
   scene: SceneId;
-  patterns: RegExp[];
+  strong?: RegExp[];
+  medium?: RegExp[];
+  weak?: RegExp[];
 }
 
-const KEYWORD_RULES: KeywordRule[] = [
-  { scene: "genie", patterns: [/\bgenie\b/, /sandbox/, /multi[- ]?model/, /44k/, /state employee/] },
-  { scene: "aiep", patterns: [/\baiep\b/, /a-?iep/, /\biep\b/, /special ed/, /individualized education/, /families/] },
-  { scene: "vct", patterns: [/\bvct\b/, /valorant/, /riot/, /esports/, /scout/, /hackathon/, /re:?invent/] },
-  { scene: "one-l", patterns: [/one-?l\b/, /\babe\b/, /procurement/, /contract/, /legal/, /naspo/, /redline/] },
-  { scene: "knowledge-agent", patterns: [/knowledge[- ]?agent/, /reusable rag platform/, /opensearch/] },
-  { scene: "smart-model", patterns: [/smart model/, /model select/, /model rout/, /routing/] },
-  { scene: "rag", patterns: [/\brag\b/, /retrieval/, /hallucinat/, /langchain/, /pipeline/] },
-  { scene: "flutter", patterns: [/flutter/, /acharya/, /erp/, /mobile/, /bangalore/, /dart/] },
-  { scene: "impact", patterns: [/impact/, /how many/, /scale/, /numbers/, /reach/, /users/, /500k/, /metrics/, /awards?/] },
-  { scene: "stack", patterns: [/stack/, /tech/, /tools?/, /skills?/, /languages?/, /aws/, /python/, /typescript/, /technolog/] },
-  { scene: "story", patterns: [/story/, /journey/, /who are you/, /who is/, /about you/, /background/, /food|game|hobby|hobbies|trip|valorant|cs2|pani/, /from\b/] },
+const SCORED_RULES: ScoredRule[] = [
+  {
+    scene: "genie",
+    strong: [/\bgenie\b/, /44\s?k/, /state employees?/, /governor/],
+    medium: [/sandbox/, /multi[- ]?model/, /side[- ]?by[- ]?side/],
+  },
+  {
+    scene: "aiep",
+    strong: [/a-?iep/, /\biep\b/, /individualized education/, /special ed/],
+    medium: [/families/, /parents?/, /translat/, /school district/],
+  },
+  {
+    scene: "vct",
+    strong: [/\bvct\b/, /valorant/, /riot/, /re:?invent/, /esports/],
+    medium: [/hackathon/, /scout/, /game logs?/, /tournament/, /competition/],
+  },
+  {
+    scene: "one-l",
+    strong: [/one-?l\b/, /\babe\b/, /naspo/, /procurement/],
+    medium: [/contracts?/, /legal/, /redlin/, /lawyers?/, /observability/, /ragas/],
+  },
+  {
+    scene: "knowledge-agent",
+    strong: [/knowledge[- ]?agent/, /reusable rag/, /rag platform/],
+    medium: [/opensearch/, /deployments?/, /platform/],
+  },
+  {
+    scene: "smart-model",
+    strong: [/smart model/, /model select/, /model rout/],
+    medium: [/routing/, /cheapest/, /cost cut/, /14 models/],
+  },
+  {
+    scene: "rag",
+    strong: [/\brag\b/, /retrieval[- ]augmented/],
+    medium: [/retrieval/, /hallucinat/, /langchain/, /embeddings?/, /vector/],
+    weak: [/pipelines?/],
+  },
+  {
+    scene: "flutter",
+    strong: [/flutter/, /acharya/, /\berp\b/, /\bdart\b/],
+    medium: [/mobile/, /android|ios|app store|play store/, /bangalore/, /razorpay/, /firebase/],
+  },
+  {
+    scene: "impact",
+    strong: [
+      /impact/, /why (should|would).*(hire|pick|choose)/, /hire you/, /hiring/,
+      /awards?/, /recogni[sz]/, /proof|receipts?|credib/,
+    ],
+    medium: [
+      /how many/, /numbers?/, /metrics?/, /500\s?k/, /scale/, /reach/,
+      /users? (served|reached)/, /mentor/, /lead(er)?ship/, /achievements?/,
+      /accomplish/, /best work/, /proud/, /what.*(build|built|made|created|shipped)/,
+      /projects?\b/, /your work/, /portfolio/,
+    ],
+    weak: [/users?/, /results?/],
+  },
+  {
+    scene: "stack",
+    strong: [
+      /\bstack\b/, /skills?/, /technolog/, /\baws\b/, /kubernetes|k8s/, /docker/,
+      /terraform|cdk|iac/, /bedrock/, /\bclaude\b|anthropic|openai|gpt/,
+    ],
+    medium: [
+      /tech\b/, /tools?/, /languages?/, /python|typescript|javascript|java\b|c\+\+|sql/,
+      /react|next\.?js/, /cloud/, /backend|frontend|full[- ]?stack/, /devops|ci\/?cd/,
+      /lambda|dynamodb|step functions?/, /databases?|postgres|pinecone|faiss|neo4j/,
+    ],
+    weak: [/build with/, /use\b/],
+  },
+  {
+    scene: "story",
+    strong: [
+      /\bstory\b/, /journey/, /who are you/, /who is (dhruv|this)/, /about you(rself)?/,
+      /tell me about you/, /background/, /education|degree|gpa|northeastern|masters?|university/,
+    ],
+    medium: [
+      /food|cook|pani ?puri|vegetarian/, /gam(e|ing)|cs2|fortnite/, /hobb/,
+      /fun|personal|off[- ]?duty/, /boston/, /india/, /experience\b/, /career/,
+      /grow(th| up)/, /where (are|did) you/,
+    ],
+  },
 ];
 
-/** Map a free-text question to the best scene id (local, no network). */
+/** Map a free-text question to the best scene id (local, no network).
+ *  Scores every scene and returns the top hit; "default" only when nothing
+ *  matches at all. */
 export function matchScene(query: string): SceneId {
   const q = query.toLowerCase();
-  for (const rule of KEYWORD_RULES) {
-    if (rule.patterns.some((re) => re.test(q))) return rule.scene;
+  let best: SceneId = "default";
+  let bestScore = 0;
+
+  for (const rule of SCORED_RULES) {
+    let score = 0;
+    rule.strong?.forEach((re) => re.test(q) && (score += 3));
+    rule.medium?.forEach((re) => re.test(q) && (score += 2));
+    rule.weak?.forEach((re) => re.test(q) && (score += 1));
+    if (score > bestScore) {
+      bestScore = score;
+      best = rule.scene;
+    }
   }
-  return "default";
+  return best;
 }
 
 // ---------------------------------------------------------------------------
@@ -502,7 +590,8 @@ export function matchScene(query: string): SceneId {
 const flagshipUsers = usersMetric?.value ?? "500K+";
 
 export const cannedAnswers: Record<SceneId, string> = {
-  default: `I'm Dhruv — a software engineer (${profile.yearsExperience} yrs shipping) who now builds AI for ${flagshipUsers} people across government.`,
+  // Honest no-match: offline mode shouldn't pretend it understood.
+  default: `Offline demo — I can't field that exact one without my API brain. Try asking about GENIE, the hackathon win, my stack, or my story.`,
   genie: "GENIE is a secure multi-model AI sandbox I shipped to 44K+ state employees — 14 models, smart routing, 40% lower cost.",
   aiep: "A-IEP turns 50-100 page special-education plans into something families actually understand — a 7-stage pipeline, 4 languages, co-designed with parents.",
   vct: "VCT Scout placed 2nd of 3,300+ teams at AWS re:Invent — Bedrock Agents over 1TB+ of Valorant logs to help managers build rosters.",
@@ -511,7 +600,7 @@ export const cannedAnswers: Record<SceneId, string> = {
   "smart-model": "The Smart Model Selector routes each query across 14 models by task, cost, and tokens — cutting model spend 40%.",
   rag: "I built a reusable CI/CD RAG pipeline with LangChain — +20% retrieval accuracy, 40% fewer hallucinations.",
   flutter: "Acharya ERP is where the shipping started — a Flutter app I grew from 100 to 20K+ daily users, 1.2 to 4.5 stars.",
-  impact: `The numbers: ${flagshipUsers} users, 26 AI tools, 20+ agencies, $5.4M+ in federal benefits unlocked, 83% faster legal review.`,
+  impact: `Judge me by what shipped: ${flagshipUsers} users across 20+ agencies, 83% faster legal review, a NASPO Gold Award — and 50+ engineers I've mentored along the way. That's the case for hiring me.`,
   stack: "Core stack is Python + TypeScript on AWS — Bedrock, Claude, RAG, Step Functions, CDK, Lambda. Frontend in React/Next.",
   story: "Bangalore to Boston: from a Flutter app with 20K+ users, to an M.S. in AI at Northeastern, to building AI for half a million people.",
 };

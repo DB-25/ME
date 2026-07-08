@@ -8,6 +8,17 @@ interface ProjectCardProps {
   project: Project;
 }
 
+// What each card IS in the system — beats stamping "ai systems" on every tile.
+const CARD_EYEBROW: Record<string, string> = {
+  "knowledge-agent": "the platform layer",
+  "smart-model": "the cost lever",
+  "rag-pipeline": "the quality gate",
+  "flutter-erp": "the origin story",
+};
+
+// GENIE's case study owns 14 models / 40% — don't re-headline them here.
+const HIDE_LEAD_METRIC = new Set(["smart-model"]);
+
 /**
  * Editorial secondary-project tile. Hairline `.tile`, mono labels,
  * `.num-display` metric, `.link-grow` links, tech as understated mono
@@ -21,7 +32,10 @@ export function ProjectCard({ project }: ProjectCardProps) {
       : project.kind === "ml"
         ? "machine learning"
         : "ai systems";
-  const lead = project.metrics[0];
+  const eyebrow = CARD_EYEBROW[project.id] ?? kindLabel;
+  const lead = HIDE_LEAD_METRIC.has(project.id)
+    ? undefined
+    : project.metrics[0];
 
   return (
     <article
@@ -31,7 +45,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
     >
       {/* eyebrow */}
       <div className="mb-5 flex items-center justify-between gap-3">
-        <span className="label-mono">{kindLabel}</span>
+        <span className="label-mono">{eyebrow}</span>
         <span
           className="inline-block h-[6px] w-[6px] rounded-full opacity-70 transition-opacity duration-300 group-hover:opacity-100"
           style={{ background: accent }}

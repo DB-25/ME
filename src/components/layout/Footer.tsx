@@ -1,12 +1,27 @@
 "use client";
 
-import Image from "next/image";
-import { useRef, type MouseEvent as ReactMouseEvent } from "react";
+import { useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { Mail } from "lucide-react";
 import { profile } from "@/data/profile";
 import { RevealText } from "@/components/ui/RevealText";
 import { cn } from "@/lib/utils";
+
+/** Prefers the real photo at /photos/dhruv.jpg; falls back to the memoji
+ *  until that file is dropped into /public/photos/. Plain <img> on purpose —
+ *  next/image has no graceful path for a file that may not exist yet. */
+function ProfilePhoto() {
+  const [src, setSrc] = useState("/photos/dhruv.jpg");
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={profile.name}
+      className="h-full w-full object-cover"
+      onError={() => setSrc((s) => (s === "/memoji.png" ? s : "/memoji.png"))}
+    />
+  );
+}
 
 interface MagneticIconProps {
   children: React.ReactNode;
@@ -86,17 +101,10 @@ export function Footer() {
           </RevealText>
         </div>
 
-        {/* Real-photo slot — currently the memoji placeholder */}
+        {/* Real photo (drop /public/photos/dhruv.jpg) — memoji until it exists */}
         <RevealText direction="up" delay={0.15}>
-          {/* TODO: swap memoji.png for a real photo when provided */}
           <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full tile md:h-32 md:w-32">
-            <Image
-              src="/memoji.png"
-              alt={profile.name}
-              fill
-              sizes="128px"
-              className="object-cover"
-            />
+            <ProfilePhoto />
           </div>
         </RevealText>
       </div>

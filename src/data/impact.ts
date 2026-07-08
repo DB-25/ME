@@ -13,6 +13,9 @@ export interface Award {
   title: string;
   year: string;
   issuer: string;
+  /** Path/URL to the physical artifact (scan/photo) — "here's the paper." */
+  artifact?: string;
+  artifactLabel?: string;
 }
 
 export const impactMetrics: ImpactMetric[] = [
@@ -89,8 +92,11 @@ export const awards: Award[] = [
   },
   {
     id: "governor",
-    title: "Governor's Presentation",
+    title: "Governor's Citation — InnovateMA",
     year: "2024",
-    issuer: "Commonwealth of Massachusetts",
+    issuer:
+      "Commonwealth of Massachusetts — signed by Gov. Maura Healey & Lt. Gov. Kim Driscoll",
+    artifact: "/photos/governors-citation.jpg",
+    artifactLabel: "see the citation",
   },
 ];

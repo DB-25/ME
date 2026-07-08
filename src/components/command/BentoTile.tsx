@@ -300,7 +300,9 @@ function BentoTileImpl({
   );
 
   const sharedClass = cn(
-    "tile relative min-h-[112px] w-full overflow-hidden text-left",
+    // h-full: fill the stretched grid cell — otherwise tiles hug the top of
+    // their row and leave dead space whenever a neighbor makes the row taller.
+    "tile relative h-full min-h-[112px] w-full overflow-hidden text-left",
     interactive && "cursor-pointer",
     className
   );
