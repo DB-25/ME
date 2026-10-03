@@ -374,6 +374,7 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "vct-scout",
+    film: { src: "/films/vct-scout.mp4", poster: "/films/vct-scout.jpg", title: "VCT Scout launch film" },
     name: "VCT Scout",
     tagline: "Ask in plain English, get a Valorant roster. Second place worldwide.",
     year: "2024",
