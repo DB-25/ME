@@ -5,12 +5,13 @@
   "type": "module",
   "description": "The Director: Cloudflare Worker that drives the portfolio site with a tool-calling OpenAI model.",
   "scripts": {
-    "knowledge": "node scripts/build-knowledge.mjs",
+    "knowledge": "node scripts/build-knowledge.mjs && node scripts/build-voice.mjs",
     "dev": "wrangler dev",
     "typecheck": "tsc --noEmit",
     "build": "wrangler deploy --dry-run --outdir dist",
     "deploy": "npm run knowledge && wrangler deploy",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "test": "node scripts/test.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

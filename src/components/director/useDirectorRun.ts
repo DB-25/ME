@@ -7,13 +7,21 @@ import { isDirectorConfigured, remember, streamDirector } from "@/lib/director/c
 import { explainMatch, offlineDirector } from "@/lib/director/offline";
 import { signalStore } from "@/lib/signal-store";
 import { runAction, releaseStage, sleep } from "./executor";
-import { Narrator } from "./narrator";
+import { Narrator, type Caption } from "./narrator";
+import { shouldPlayVoice } from "@/lib/director/voice";
+import { findLine } from "@/lib/director/voice-library";
 import { INITIAL_STATE, type DirectorState } from "./types";
 
 const OUTRO_HOLD_MS = 2400;
-const ENERGY_FLOOR = 0.14;
-const ENERGY_DECAY = 0.9;
-const ENERGY_TICK_MS = 70;
+/**
+ * The field's turbulence follows `energy`. It is a slow envelope, never a pulse:
+ * a step in energy shows up as the whole field shuddering, so it only ever eases
+ * between a resting level and a slightly higher one while a line is spoken.
+ */
+const ENERGY_REST = 0.14;
+const ENERGY_SPEAKING = 0.2;
+const ENERGY_EASE = 0.06;
+const ENERGY_TICK_MS = 50;
 const MAX_LOG_LINES = 5;
 
 /** The model may chain many tool calls; cap the run so a loop can never trap the visitor. */
@@ -39,7 +47,15 @@ export function useDirectorRun() {
   }, []);
 
   useEffect(() => {
-    narratorRef.current = new Narrator((words) => patch({ words }));
+    narratorRef.current = new Narrator((caption: Caption | null) => {
+      const prev = stateRef.current.caption;
+      const fresh = caption?.id !== prev?.id;
+      patch({
+        caption,
+        // Screen readers get each new caption once.
+        ...(fresh ? { spoken: caption ? caption.words.join(" ") : "" } : {}),
+      });
+    }, shouldPlayVoice);
     return () => {
       abortRef.current?.abort();
       narratorRef.current?.dispose();
@@ -66,6 +82,7 @@ export function useDirectorRun() {
 
       const ctrl = new AbortController();
       const { signal } = ctrl;
+      signal.addEventListener("abort", () => narrator.halt(), { once: true });
       abortRef.current = ctrl;
       takeRef.current += 1;
       figRef.current = 0;
@@ -88,7 +105,7 @@ export function useDirectorRun() {
         mode: live ? "live" : "offline",
         take: takeRef.current,
         prompt,
-        words: [],
+        caption: null,
         spoken: "",
         log: [],
         figure: null,
@@ -98,7 +115,8 @@ export function useDirectorRun() {
 
       const energy = setInterval(() => {
         const { energy: e, set } = signalStore.getState();
-        set({ energy: Math.max(ENERGY_FLOOR, e * ENERGY_DECAY) });
+        const target = narrator.isPlaying ? ENERGY_SPEAKING : ENERGY_REST;
+        set({ energy: e + (target - e) * ENERGY_EASE });
       }, ENERGY_TICK_MS);
 
       async function* source(): AsyncGenerator<DirectorEvent> {
@@ -139,21 +157,29 @@ export function useDirectorRun() {
         let actions = 0;
         const act = async (action: DirectorAction) => {
           done.push(action.name === "goto_chapter" ? `goto ${action.args.chapter}` : action.name);
+          if (action.name === "speak") {
+            // A recorded line from the library: show its text and play it to the end. Unknown id: skip.
+            const line = findLine(action.args.lineId);
+            if (!line) return;
+            narrator.push(`${line.text}\n`);
+            transcript += `${line.text} `;
+            await narrator.idle(signal);
+            return;
+          }
           await runAction(action, exec);
-          narrator.markBreak();
         };
         for await (const event of source()) {
           if (signal.aborted) break;
           if (event.type === "text") {
             narrator.push(event.delta);
             transcript += event.delta;
-            const set = signalStore.getState().set;
-            set({ energy: Math.min(1, signalStore.getState().energy + event.delta.length * 0.04) });
           } else if (event.type === "action") {
             if (event.action.name === "end_scene") break;
             if (++actions > MAX_ACTIONS) break;
-            await narrator.idle(8, signal);
-            patch({ spoken: narrator.caption });
+            // The line before an action is played out, in full, before the action starts.
+            narrator.flush();
+            await narrator.idle(signal);
+            if (signal.aborted) break;
             await act(event.action);
           } else if (event.type === "done") {
             break;
@@ -161,8 +187,8 @@ export function useDirectorRun() {
         }
 
         if (!signal.aborted) {
-          await narrator.idle(0, signal);
-          patch({ spoken: narrator.caption });
+          narrator.flush();
+          await narrator.idle(signal);
           await sleep(OUTRO_HOLD_MS, signal);
         }
 

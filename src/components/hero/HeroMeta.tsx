@@ -1,6 +1,7 @@
 import { metrics, profile } from "@/content";
 import type { Metric } from "@/content";
 import { assetUrl } from "@/lib/asset";
+import { ReelButton } from "@/components/reel";
 
 /** First app shipped to real users in 2021 (see timeline). A year, not a "years of experience" claim. */
 const SHIPPING_SINCE = 2021;
@@ -52,6 +53,9 @@ export function HeroLinks() {
   ];
   return (
     <ul className="-ml-0.5 flex flex-wrap gap-x-3.5 gap-y-0">
+      <li className="w-full">
+        <ReelButton className="hero-cta" labelClassName="hero-cta-text" />
+      </li>
       {items
         .filter((i) => i.href)
         .map((i) => (

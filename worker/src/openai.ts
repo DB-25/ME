@@ -6,10 +6,12 @@ import { TOOLS } from "./tools";
 export type OpenAIConfig = { apiKey: string; model: string; reasoningEffort: string };
 
 const OPENAI_URL = "https://api.openai.com/v1/responses";
+/** Visual actions per turn, end_scene included. speak calls have their own cap. */
 const MAX_ACTIONS = 6;
-const MAX_NARRATION_CHARS = 1200;
-/** Narration (about 90 words) plus up to six tool calls, one of them a small SVG. Reasoning tokens count too. */
-const MAX_OUTPUT_TOKENS = 800;
+const MAX_SPEAKS = 4;
+const MAX_NARRATION_CHARS = 600;
+/** Subtitles, up to six visual tool calls (one a small SVG) and four short speak calls. Reasoning tokens count too. */
+const MAX_OUTPUT_TOKENS = 1000;
 
 /**
  * Open the streaming Responses API call. Returns null on any upstream failure
@@ -61,6 +63,7 @@ export async function* directorEvents(upstream: Response): AsyncGenerator<Direct
   let buffer = "";
   let narration = 0;
   let actionCount = 0;
+  const spoken = new Set<string>();
   let sawEnd = false;
   let failed = false;
   let finished = false;
@@ -82,6 +85,13 @@ export async function* directorEvents(upstream: Response): AsyncGenerator<Direct
           console.warn("dropped action:", reason),
         );
         if (!action) return;
+        if (action.name === "speak") {
+          // One recorded line per id per turn, and a bounded number of lines.
+          if (spoken.has(action.args.lineId) || spoken.size >= MAX_SPEAKS) return;
+          spoken.add(action.args.lineId);
+          yield { type: "action", action };
+          return;
+        }
         if (action.name !== "end_scene" && actionCount >= MAX_ACTIONS - 1) return; // always leave room for end_scene
         actionCount += 1;
         if (action.name === "end_scene") sawEnd = true;

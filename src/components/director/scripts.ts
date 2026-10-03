@@ -1,12 +1,14 @@
 import type { DirectorAction } from "@/lib/director/protocol";
-import { metrics, profile, projects } from "@/content";
+import { metrics, projects } from "@/content";
+import { LINE, OWNED_LINE, PROJECT_INTRO, metricLine, type VoiceLine } from "@/lib/director/voice-library";
 import { ART, type ArtId } from "./art";
-import type { Intent, Match, ProjectHit } from "./match";
+import type { Intent, Match } from "./match";
 
 /**
- * The scripted cuts. Every line is written by hand from @/content: nothing here
- * is generated. Numbers are read from the content so they cannot drift, and
- * the director speaks about DB in the third person, as the live one does.
+ * The scripted cuts. Nothing here is generated, and no sentence is written here:
+ * every spoken line is one of DB's recorded lines in the voice library
+ * (@/lib/director/voice-library), referenced by name, so the script, the captions
+ * and the recordings cannot drift apart. The cuts only decide order and actions.
  */
 
 export type Step = { say: string } | { act: DirectorAction };
@@ -15,49 +17,14 @@ export type Step = { say: string } | { act: DirectorAction };
 
 const project = (slug: string) => projects.find((p) => p.slug === slug);
 const has = (slug: string) => Boolean(project(slug));
-const metric = (label: RegExp) => metrics.find((m) => label.test(m.label));
-const offDuty = (label: string) => profile.offDuty.find((o) => o.label === label)?.value;
 
 /** The headline numbers that point at a project, in the order the content ranks them. */
 const proven = () => metrics.filter((m) => m.projectSlug && has(m.projectSlug));
 
-const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
-
-/** Content is written by DB in the first person; the director narrates him in the third. */
-export function thirdPerson(text: string): string {
-  return text
-    .replace(/\bI'm\b/g, "he is")
-    .replace(/(^|[.:;!?]\s+)I\b/g, "$1He")
-    .replace(/\bI\b/g, "he")
-    .replace(/\bhe have\b/g, "he has")
-    .replace(/\bhe am\b/g, "he is")
-    .replace(/\bmy\b/g, "his")
-    .replace(/\bMy\b/g, "His")
-    .replace(/\bme\b/g, "him");
-}
-
-const OWNED_CAP = 150;
-
-/** What DB personally owned on a project, as one spoken sentence. Empty when the content has none. */
-function ownedLine(slug: string, brief = false): string {
-  const owned = project(slug)?.owned?.trim();
-  if (!owned) return "";
-  const text = thirdPerson(owned);
-  // Brief keeps the claim and drops the receipts; long ones lose everything after the first semicolon.
-  const cutAt = brief ? text.search(/[:;]/) : text.length > OWNED_CAP ? text.indexOf(";") : -1;
-  const clipped = cutAt > 0 ? text.slice(0, cutAt) : text;
-  return clipped.endsWith(".") ? clipped : `${clipped}.`;
-}
-
-/** "1,000+ families using A-IEP." from a headline metric. */
-function claim(m: { value: string; label: string }): string {
-  return `${m.value} ${lowerFirst(thirdPerson(m.label))}.`;
-}
-
 /* ---------- step builders ---------- */
 
-const say = (text: string): Step => ({ say: text });
-const sayIf = (text: string): Step[] => (text.trim() ? [say(text)] : []);
+const say = (line: VoiceLine | string): Step => ({ say: typeof line === "string" ? line : line.text });
+const sayAll = (...lines: Array<VoiceLine | undefined>): Step[] => lines.filter((l): l is VoiceLine => Boolean(l)).map(say);
 const go = (chapter: Extract<DirectorAction, { name: "goto_chapter" }>["args"]["chapter"]): Step => ({
   act: { name: "goto_chapter", args: { chapter } },
 });
@@ -72,38 +39,32 @@ const end: Step = { act: { name: "end_scene", args: {} } };
 
 /* ---------- keyword composition ---------- */
 
-const listOf = (items: string[]) =>
-  items.length < 3 ? items.join(" and ") : `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+/*
+ * What the visitor typed shows up in the HUD log and in which projects are chosen,
+ * never inside a narrated sentence, so every spoken line has a recording.
+ */
 
-/** One project, introduced by the words in the request that led to it. */
-function hitBeat(hit: ProjectHit): Step[] {
-  const p = project(hit.slug);
-  if (!p) return [];
-  const why = hit.stack.length ? `${p.name} uses ${listOf(hit.stack.slice(0, 3))}.` : `${p.name} matches "${hit.words[0]}".`;
-  return [...show(hit.slug), say(`${why} ${p.tagline}`)];
+/** One project, introduced by what it is. */
+function projectBeat(slug: string): Step[] {
+  return [...show(slug), ...sayAll(PROJECT_INTRO[slug])];
 }
 
-/** "You said React." followed by where it shows up, or nothing when no stack entry matched. */
+/** A project the request pointed at, with what I owned on it. Nothing when no technology matched. */
 function techBeat(match: Match): Step[] {
-  const strong = match.tech.hits.filter((h) => h.stack.length);
-  if (!strong.length) return [];
-  const [first] = strong;
-  return [
-    say(`You mentioned ${listOf(match.tech.techWords.slice(0, 3))}.`),
-    ...hitBeat(first),
-    ...sayIf(ownedLine(first.slug)),
-  ];
+  const first = match.tech.hits.find((h) => h.stack.length);
+  if (!first) return [];
+  return [...sayAll(LINE.techPoint), ...projectBeat(first.slug), ...sayAll(OWNED_LINE[first.slug])];
 }
 
 /** Nothing matched an intent, but the request named things the content knows about. */
 function composed(match: Match): Step[] {
-  const words = match.tech.words.slice(0, 3);
+  const first = match.tech.hits[0];
   return [
-    say(`This is a scripted tour, so I read keywords. You said ${listOf(words)}. Here is where that shows up.`),
-    ...match.tech.hits.flatMap(hitBeat),
-    ...sayIf(match.tech.hits[0] ? ownedLine(match.tech.hits[0].slug) : ""),
+    say(LINE.composedOpen),
+    ...match.tech.hits.flatMap((h) => projectBeat(h.slug)),
+    ...sayAll(first && OWNED_LINE[first.slug]),
     draw("lightbulb", "cut from your keywords"),
-    say("The rest is one email away."),
+    say(LINE.composedClose),
     go("contact"),
     end,
   ];
@@ -112,45 +73,40 @@ function composed(match: Match): Step[] {
 /* ---------- the cuts ---------- */
 
 function founder(): Step[] {
-  const families = metric(/families/i);
-  const daily = metric(/daily users/i);
-  const tools = metric(/tools/i);
   return [
-    say("A founder. The useful question is whether one engineer can ship it and keep it running."),
+    say(LINE.founderOpen),
     ...show("a-iep"),
-    say(
-      `A-IEP, shipped end to end. ${families?.value ?? "1,000+"} families read their child's special-education plan in plain language, in four languages.`,
-    ),
-    ...sayIf(ownedLine("a-iep", true)),
+    say(LINE.founderAiep),
+    ...sayAll(OWNED_LINE["a-iep"]),
     draw("bridge", "prototype to production"),
     ...show("acharya-erp"),
-    say(
-      `Before that, a Flutter app with ${daily?.value ?? "20,000+"} daily users. He owned it from design to deployment, and the store rating went from 1.2 to 4.5.`,
-    ),
+    say(LINE.founderAcharya),
+    say(LINE.acharyaRating),
     ...show("arc-control-mcp"),
-    say(`And a tool of his own: arc-control-mcp, an MCP server with ${tools?.value ?? "26"} tools, published on npm.`),
+    say(LINE.founderArc),
     go("contact"),
-    say("If that is the engineer you need, the email is the large link."),
+    say(LINE.founderClose),
     end,
   ];
 }
 
 function hiring(match: Match): Step[] {
   const results = proven().slice(0, 3);
-  const spend = metric(/spend/i);
+  const spend = metrics.find((m) => /spend/i.test(m.label));
   return [
-    say(`Hiring. The short version is what ${profile.shortName} owned and what it measured.`),
+    say(LINE.hiringOpen),
     ...results.flatMap((m, i) => [
       ...show(m.projectSlug!),
-      say(`${claim(m)}${/access/i.test(m.label) ? " That counts access, not daily use." : ""}`),
-      ...(i < 2 ? sayIf(ownedLine(m.projectSlug!)) : []),
+      say(metricLine(m)),
+      ...(/access/i.test(m.label) ? [say(LINE.accessCaveat)] : []),
+      ...(i < 2 ? sayAll(OWNED_LINE[m.projectSlug!]) : []),
     ]),
-    say("He audits his own work too. He found that A-IEP's only automated check was a schema check, and started a benchmark."),
-    ...(spend ? [say(`${spend.value} ${lowerFirst(spend.label)}: ${thirdPerson(spend.context)}`)] : []),
+    ...sayAll(LINE.hiringAudit, LINE.hiringAuditDetail),
+    ...(spend ? [say(metricLine(spend))] : []),
     draw("chart", "results, with receipts"),
     ...techBeat(match),
     go("proof"),
-    say("Awards and press are listed with their sources."),
+    say(LINE.hiringProof),
     go("contact"),
     end,
   ];
@@ -159,22 +115,20 @@ function hiring(match: Match): Step[] {
 function engineer(match: Match): Step[] {
   const rag = match.rag || match.tech.hits.some((h) => h.slug === "knowledge-agent-for-impact" && h.stack.length);
   return [
-    say(rag ? "Retrieval and infrastructure. Two problems, one stack." : "The hardest problem is private data."),
+    say(rag ? LINE.engineerRagOpen : LINE.engineerOpen),
     go("systems"),
-    say("A-IEP: upload, OCR, redact, analyze, translate, on Step Functions."),
+    say(LINE.engineerPipeline),
     draw("documents", "documents in, plain language out"),
     ...show("a-iep"),
-    say("PII is redacted before the model sees a word, and the original upload is deleted. Any failure purges the unredacted artifacts."),
+    ...sayAll(LINE.engineerPii, LINE.engineerPurge),
     ...(rag && has("knowledge-agent-for-impact")
       ? [
           ...show("knowledge-agent-for-impact"),
-          say(
-            "For RAG across agencies he set the technical direction on knowledge-agent-for-impact: OpenSearch Serverless, Lambda, DynamoDB and Cognito. The code was mostly a teammate's, so technical lead is the honest word.",
-          ),
+          ...sayAll(LINE.engineerRag, LINE.engineerRagStack, LINE.engineerRagHonest),
         ]
       : []),
     draw("stack", "infrastructure that stays up"),
-    say("Then measurement. He found that A-IEP's only automated check was a schema check, and started a synthetic benchmark with a public RFC."),
+    ...sayAll(LINE.engineerMeasure, LINE.engineerBenchmark),
     ...open("a-iep"),
     end,
   ];
@@ -182,12 +136,12 @@ function engineer(match: Match): Step[] {
 
 function designer(): Step[] {
   return [
-    say("A designer. Worth knowing the engineer holds the stylus too."),
+    say(LINE.designerOpen),
     go("hero"),
     form("signal"),
-    say("This page is one field of particles that rearranges itself per chapter."),
+    say(LINE.designerField),
     draw("bezier", "a curve, handles showing"),
-    say("The shapes you just watched are SVG, sampled into particles."),
+    say(LINE.designerSvg),
     go("work"),
     end,
   ];
@@ -195,12 +149,11 @@ function designer(): Step[] {
 
 function student(): Step[] {
   return [
-    say("A student. The path, briefly."),
+    say(LINE.studentOpen),
     go("origin"),
-    say("Bangalore: a B.E. in Computer Science, then a Flutter app for thousands of students."),
+    say(LINE.studentBangalore),
     draw("stairs", "one step at a time"),
-    say("Then Boston: an M.S. in AI at Northeastern, GPA 3.83. Co-op from January 2024, full-time since July."),
-    say("His own lesson from the Flutter app: if it breaks, a real person has a bad day."),
+    ...sayAll(LINE.studentBoston, LINE.studentCoop, LINE.studentLesson),
     go("contact"),
     end,
   ];
@@ -208,70 +161,69 @@ function student(): Step[] {
 
 function gamer(): Step[] {
   return [
-    say(`${offDuty("Games") ?? "Valorant and CS2"}.`),
+    say(LINE.gamerOpen),
     go("human"),
     form("crosshair"),
     hue("#ff4655"),
     draw("crosshair", "crosshair, head height"),
-    say("It is also how VCT Scout came about: second place at the AWS and Riot Games hackathon."),
+    say(LINE.gamerVct),
     ...show("vct-scout"),
-    say("Ask in plain English, get a roster, built on 4,700+ match files."),
+    say(LINE.gamerScout),
     end,
   ];
 }
 
 function food(): Step[] {
   return [
-    say("Pani puri. A reasonable thing to draw."),
+    say(LINE.foodOpen),
     hue("#ffa94d"),
     draw("paniPuri", "pani puri, mid-pour"),
-    say(`${offDuty("Eats") ?? "Vegetarian. Pani puri is the favorite dish"}.`),
+    say(LINE.foodVegetarian),
     go("human"),
-    say(`${offDuty("Kitchen") ?? "Cooks Indian, Italian and Mexican"}.`),
+    say(LINE.foodKitchen),
     end,
   ];
 }
 
 function offDutyCut(): Step[] {
-  const trip = offDuty("Favorite trip");
   return [
-    say("Off duty. Black and purple, mostly."),
+    say(LINE.offDutyOpen),
     go("human"),
     form("crosshair"),
-    say(`${offDuty("Games") ?? "Valorant and CS2"}, and a plate of pani puri.`),
+    say(LINE.offDutyGames),
     draw("paniPuri", "pani puri, mid-pour"),
-    ...sayIf(trip ? `Favorite trip: ${trip}.` : ""),
+    say(LINE.offDutyTrip),
     end,
   ];
 }
 
 function intro(): Step[] {
   return [
-    say(`${profile.shortName}, also known as DB.`),
+    say(LINE.introName),
     go("hero"),
     form("signal"),
-    say(`${profile.title} at the Burnes Center, from ${profile.origin.split(",")[0]} to ${profile.location.split(",")[0]}.`),
-    say(profile.oneLiner),
+    say(LINE.introRole),
+    say(LINE.introOneLiner),
     go("origin"),
-    say("It started with a Flutter app for thousands of students. It now ships to families and state agencies."),
+    say(LINE.introStart),
     end,
   ];
 }
 
 /** The short tour: used for "surprise me" and when nothing at all matched. */
-function shortTour(opening: string): Step[] {
+function shortTour(opening: VoiceLine): Step[] {
   const [a, b] = proven();
   return [
     say(opening),
     go("origin"),
-    say("Bangalore to Boston."),
+    say(LINE.tourBangalore),
     go("systems"),
-    say("A pipeline that treats private data as a design input."),
+    say(LINE.tourPipeline),
     draw("signal", "noise, resolving into signal"),
     go("impact"),
-    ...(a && b ? [say(`${claim(a)} ${claim(b)}`)] : []),
+    ...(a && b ? [say(metricLine(a)), say(metricLine(b))] : []),
     go("proof"),
-    say("Sources are on the page."),
+    say(LINE.tourSources),
     end,
   ];
 }
@@ -298,12 +250,10 @@ export function buildScript(match: Match): Step[] {
     case "intro":
       return intro();
     case "contact":
-      return [say("The email is the large link. The resume is beside it."), go("contact"), end];
+      return [say(LINE.contactLine), go("contact"), end];
     case "surprise":
-      return shortTour("No brief. A short tour, then.");
+      return shortTour(LINE.surpriseOpen);
     default:
-      return match.tech.hits.length
-        ? composed(match)
-        : shortTour("This is a scripted tour: it matches keywords, and none of yours matched. Here is the short version.");
+      return match.tech.hits.length ? composed(match) : shortTour(LINE.noMatchOpen);
   }
 }

@@ -2,8 +2,10 @@ import { CHAPTER_IDS, FORMATIONS } from "./protocol";
 import type { ChapterId, DirectorAction, FormationId } from "./protocol";
 import { PROJECT_SLUGS } from "./knowledge";
 import { sanitizeSvg } from "./svg";
+import { VOICE_LINES } from "./voice";
 
 const SLUGS = new Set(PROJECT_SLUGS);
+export const VOICE_IDS: ReadonlySet<string> = new Set(VOICE_LINES.map((l) => l.id));
 const MAX_LABEL = 60;
 const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
@@ -18,7 +20,12 @@ function expandHex(hex: string): string {
  * Validate one model tool call. Returns the DirectorAction, or null (and the
  * reason via `onDrop`) when it should be silently dropped.
  */
-export function toAction(name: string, rawArgs: string, onDrop: (reason: string) => void): DirectorAction | null {
+export function toAction(
+  name: string,
+  rawArgs: string,
+  onDrop: (reason: string) => void,
+  voiceIds: ReadonlySet<string> = VOICE_IDS,
+): DirectorAction | null {
   let args: unknown;
   try {
     args = rawArgs.trim() === "" ? {} : JSON.parse(rawArgs);
@@ -60,6 +67,11 @@ export function toAction(name: string, rawArgs: string, onDrop: (reason: string)
       // eslint-disable-next-line no-control-regex
       const label = typeof args.label === "string" ? args.label.replace(/[\u0000-\u001f<>]/g, "").trim().slice(0, MAX_LABEL) : "";
       return { name, args: { svg: result.svg, label } };
+    }
+    case "speak": {
+      const lineId = args.lineId;
+      if (typeof lineId !== "string" || !voiceIds.has(lineId)) return drop(onDrop, `unknown voice line ${String(lineId).slice(0, 40)}`);
+      return { name, args: { lineId } };
     }
     case "end_scene":
       return { name, args: {} };

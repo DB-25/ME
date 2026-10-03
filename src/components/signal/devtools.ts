@@ -3,11 +3,13 @@
  * Every entry point is gated on NODE_ENV so production bundles carry none of it.
  */
 import { signalStore } from "@/lib/signal-store";
+import { fieldMotion } from "./readingMode";
 
 declare global {
   interface Window {
     __signal?: typeof signalStore;
     __signalFps?: number;
+    __signalMotion?: typeof fieldMotion;
     __signalTools?: { sampleSvg: typeof import("./fromSvg").sampleSvg; count: number };
   }
 }
@@ -25,6 +27,7 @@ export function devFlag(name: string): boolean {
 export function installDevHooks(count: number) {
   if (process.env.NODE_ENV === "production") return;
   window.__signal = signalStore;
+  window.__signalMotion = fieldMotion;
   import("./fromSvg").then((m) => {
     window.__signalTools = { sampleSvg: m.sampleSvg, count };
   });

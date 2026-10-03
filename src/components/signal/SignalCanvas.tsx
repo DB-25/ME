@@ -6,6 +6,7 @@ import { Bloom, EffectComposer, ToneMapping, Vignette } from "@react-three/postp
 import { ToneMappingMode, type BloomEffect } from "postprocessing";
 import { signalStore } from "@/lib/signal-store";
 import { SignalField, type FieldQuality } from "./SignalField";
+import { fieldMotion } from "./readingMode";
 import { CHAPTER_BLOOM, DEFAULT_BLOOM, OVERRIDE_BLOOM } from "./look";
 
 const ORBIT_SPEED = 0.11;
@@ -15,6 +16,10 @@ const PARALLAX = 0.45;
 const BLOOM_BASE = 0.65;
 const BLOOM_FOLLOW_RATE = 4;
 const BLOOM_SETTLED = 0.002;
+/** Bloom removed at full reading mode. */
+const BLOOM_READING_CUT = 0.25;
+/** Orbit and parallax fade this much at full reading mode. */
+const MOTION_READING_CUT = 0.55;
 const MAX_DT = 0.25;
 const FIRST_FRAMES = 3;
 
@@ -22,12 +27,13 @@ const FIRST_FRAMES = 3;
 function CameraRig({ reducedMotion, coarse, bloom }: { reducedMotion: boolean; coarse: boolean; bloom: React.RefObject<BloomEffect | null> }) {
   const camera = useThree((s) => s.camera);
   const [bloomScale] = useState({ w: 1 });
+  const [orbit] = useState({ t: 0 });
   const pointer = useThreePointer(reducedMotion || coarse);
 
   useFrame((frame, delta) => {
     const sig = signalStore.getState();
     const drawing = sig.override?.kind === "points";
-    const bloomTarget = drawing ? OVERRIDE_BLOOM : (CHAPTER_BLOOM[sig.chapter] ?? DEFAULT_BLOOM);
+    const bloomTarget = (drawing ? OVERRIDE_BLOOM : (CHAPTER_BLOOM[sig.chapter] ?? DEFAULT_BLOOM)) * (1 - BLOOM_READING_CUT * fieldMotion.reading);
     bloomScale.w += (bloomTarget - bloomScale.w) * Math.min(1, Math.min(delta, MAX_DT) * BLOOM_FOLLOW_RATE);
     if (bloom.current) bloom.current.intensity = BLOOM_BASE * bloomScale.w;
     // On-demand rendering must not stall halfway through an ease.
@@ -39,15 +45,18 @@ function CameraRig({ reducedMotion, coarse, bloom }: { reducedMotion: boolean; c
       camera.lookAt(0, 0, 0);
       return;
     }
-    const t = frame.clock.elapsedTime;
+    // The orbit clock slows with the field, so reading is never against a drifting camera.
+    orbit.t += Math.min(delta, MAX_DT) * fieldMotion.timeScale;
+    const t = orbit.t;
+    const calm = 1 - MOTION_READING_CUT * fieldMotion.reading;
     const dist = camera.position.z;
     const k = Math.min(1, Math.min(delta, MAX_DT) * 3);
     pointer.sx += (pointer.x - pointer.sx) * k;
     pointer.sy += (pointer.y - pointer.sy) * k;
-    const yaw = Math.sin(t * ORBIT_SPEED) * ORBIT_YAW + pointer.sx * 0.12;
-    const pitch = Math.sin(t * ORBIT_SPEED * 0.7 + 1.3) * ORBIT_PITCH + pointer.sy * 0.06;
-    camera.position.x = Math.sin(yaw) * dist + pointer.sx * PARALLAX * 0.3;
-    camera.position.y = Math.sin(pitch) * dist + pointer.sy * PARALLAX * 0.3;
+    const yaw = (Math.sin(t * ORBIT_SPEED) * ORBIT_YAW + pointer.sx * 0.12) * calm;
+    const pitch = (Math.sin(t * ORBIT_SPEED * 0.7 + 1.3) * ORBIT_PITCH + pointer.sy * 0.06) * calm;
+    camera.position.x = Math.sin(yaw) * dist + pointer.sx * PARALLAX * 0.3 * calm;
+    camera.position.y = Math.sin(pitch) * dist + pointer.sy * PARALLAX * 0.3 * calm;
     camera.lookAt(0, 0, 0);
   });
   return null;

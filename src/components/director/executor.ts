@@ -94,6 +94,8 @@ export async function runAction(action: DirectorAction, ctx: ExecContext): Promi
       ctx.log(action.args.hex ? `tint ${action.args.hex}` : "tint reset");
       store.set({ hue: action.args.hex });
       return beat(HUE_MS, ctx.signal);
+    case "speak":
+      return; // played by the run loop, which owns the Narrator
     case "end_scene":
       return;
   }

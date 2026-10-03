@@ -21,11 +21,11 @@ export type ChapterLook = {
 export const CHAPTER_LOOK: Record<ChapterId, ChapterLook> = {
   hero: { brightness: 0.8, x: 0, y: 0.03, z: 0, scale: 1, rightDim: 0.4 },
   origin: { brightness: 0.85, x: 0.22, y: 0, z: 0, scale: 0.85, rightDim: 0 },
-  systems: { brightness: 0.75, x: 0.22, y: 0, z: 0, scale: 1, rightDim: 0 },
+  systems: { brightness: 0.55, x: 0.22, y: 0, z: 0, scale: 1, rightDim: 0 },
   work: { brightness: 0.22, x: 0, y: 0, z: -5, scale: 1.25, rightDim: 0 },
-  impact: { brightness: 0.55, x: 0, y: -0.32, z: 0, scale: 1, rightDim: 0 },
-  proof: { brightness: 0.6, x: 0.16, y: 0.08, z: 0, scale: 0.88, rightDim: 0 },
-  director: { brightness: 0.35, x: 0, y: 0, z: -1, scale: 1.1, rightDim: 0 },
+  impact: { brightness: 0.42, x: 0, y: -0.32, z: 0, scale: 1, rightDim: 0 },
+  proof: { brightness: 0.42, x: 0.16, y: 0.08, z: 0, scale: 0.88, rightDim: 0 },
+  director: { brightness: 0.26, x: 0, y: 0, z: -1, scale: 1.1, rightDim: 0 },
   human: { brightness: 0.9, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
   contact: { brightness: 1, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
 };
@@ -41,7 +41,7 @@ export const CHAPTER_LOOK_MOBILE: Record<ChapterId, ChapterLook> = {
   work: { brightness: 0.3, x: 0, y: 0, z: -3, scale: 1, rightDim: 0 },
   impact: { brightness: 0.4, x: 0, y: -0.2, z: 0, scale: 0.75, rightDim: 0 },
   proof: { brightness: 0.4, x: 0, y: 0, z: 0, scale: 0.75, rightDim: 0 },
-  director: { brightness: 0.4, x: 0, y: 0, z: -1, scale: 0.75, rightDim: 0 },
+  director: { brightness: 0.3, x: 0, y: 0, z: -1, scale: 0.75, rightDim: 0 },
   human: { brightness: 0.6, x: 0, y: 0.12, z: 0, scale: 0.6, rightDim: 0 },
   contact: { brightness: 1, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
 };
@@ -49,23 +49,25 @@ export const CHAPTER_LOOK_MOBILE: Record<ChapterId, ChapterLook> = {
 /** Shown when the route has no chapters (case studies): a dim, calm drift. */
 export const NO_CHAPTER_LOOK: ChapterLook = { brightness: 0.28, x: 0, y: 0, z: -3, scale: 1.25, rightDim: 0 };
 
+export type FormationSprite = { size: number; alpha: number; fog: number; fit: number; density: number; spark: number };
+
 /** fit: world half-width that must stay on screen (portrait phones pull the camera back for it).
  * size: sprite size multiplier; alpha: per-point opacity. Dense formations get lower alpha. */
-export const FORMATION_LOOK: Record<FormationId, { size: number; alpha: number; fog: number; fit: number }> = {
-  noise: { size: 1, alpha: 0.2, fog: 0.09, fit: 3.2 },
-  signal: { size: 0.31, alpha: 0.8, fog: 0.05, fit: 1.2 },
-  globe: { size: 0.68, alpha: 0.32, fog: 0.09, fit: 2.15 },
-  network: { size: 0.85, alpha: 0.32, fog: 0.09, fit: 2.85 },
-  crowd: { size: 0.55, alpha: 0.6, fog: 0.3, fit: 3.0 },
-  constellation: { size: 0.85, alpha: 0.32, fog: 0.09, fit: 2.6 },
-  crosshair: { size: 0.5, alpha: 0.2, fog: 0.09, fit: 1.8 },
-  singularity: { size: 0.75, alpha: 0.08, fog: 0.09, fit: 1.1 },
+export const FORMATION_LOOK: Record<FormationId, FormationSprite> = {
+  noise: { size: 0.9, alpha: 0.2, fog: 0.09, fit: 3.2, density: 0.45, spark: 0.2 },
+  signal: { size: 0.31, alpha: 0.8, fog: 0.05, fit: 1.2, density: 1, spark: 0.8 },
+  globe: { size: 0.68, alpha: 0.32, fog: 0.09, fit: 2.15, density: 1, spark: 0.5 },
+  network: { size: 0.85, alpha: 0.32, fog: 0.09, fit: 2.85, density: 1, spark: 0.4 },
+  crowd: { size: 0.5, alpha: 0.42, fog: 0.3, fit: 3.0, density: 0.45, spark: 0.25 },
+  constellation: { size: 0.8, alpha: 0.27, fog: 0.09, fit: 2.6, density: 0.65, spark: 0.35 },
+  crosshair: { size: 0.5, alpha: 0.2, fog: 0.09, fit: 1.8, density: 1, spark: 0.15 },
+  singularity: { size: 0.75, alpha: 0.08, fog: 0.09, fit: 1.1, density: 1, spark: 0.5 },
 };
 
-export const OVERRIDE_LOOK = { size: 0.38, alpha: 0.3, brightness: 0.95, fit: 2.6, fog: 0.09 };
+export const OVERRIDE_LOOK = { size: 0.38, alpha: 0.3, brightness: 0.95, fit: 2.6, fog: 0.09, density: 1, spark: 0.3 };
 
 /** Bloom multiplier per chapter: hairlines (signal field, crosshair) stay crisp, glows keep the full bloom. */
-export const CHAPTER_BLOOM: Partial<Record<ChapterId, number>> = { hero: 0.4, origin: 0.6, human: 0.3 };
+export const CHAPTER_BLOOM: Partial<Record<ChapterId, number>> = { hero: 0.4, impact: 0.7, systems: 0.6, proof: 0.65, director: 0.6, origin: 0.6, human: 0.3 };
 export const DEFAULT_BLOOM = 1;
 
 /** Bloom multiplier while a Director drawing is held: line art must stay crisp, not glow. */

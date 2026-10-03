@@ -3,6 +3,7 @@ import { CHAPTERS, chapterById } from "@/lib/chapters";
 import type { SignalState, SignalOverride } from "@/lib/signal-store";
 import { CHAPTER_LOOK, CHAPTER_LOOK_MOBILE, FORMATION_LOOK, NO_CHAPTER_LOOK, OVERRIDE_LOOK, type ChapterLook } from "./look";
 import { SETTLE_EPSILON, Tween, clamp01, easeInOut, easeOut, mix, smoothstep01 } from "./ease";
+import { READING_DIM } from "./readingMode";
 
 /**
  * Pure per-frame steps for the field. SignalField's useFrame calls them in order:
@@ -18,7 +19,9 @@ const INTRO_CONVERGE_SECONDS = 1.4;
 /** Noise before the morph sits at half of the chapter's final brightness so it does not swamp the hero copy. */
 const INTRO_WAIT_BRIGHTNESS_SHARE = 0.5;
 const REDUCED_SETTLE_RATE = 7;
+/** Position and scale follow quickly; light (brightness, alpha, density, sparks) eases over about a second. */
 const LOOK_SMOOTH_RATE = 6;
+const LIGHT_SMOOTH_RATE = 2.6;
 const ENERGY_SMOOTH_RATE = 4;
 const ENERGY_BRIGHTNESS_GAIN = 1.5;
 const HUE_SMOOTH_RATE = 2.5;
@@ -41,6 +44,8 @@ export type Scene = {
   fog: number;
   sizeMul: number;
   fit: number;
+  density: number;
+  spark: number;
 };
 
 export type Smooth = {
@@ -56,6 +61,8 @@ export type Smooth = {
   lz: number;
   lscale: number;
   hueMix: number;
+  density: number;
+  spark: number;
   /** Reduced-motion morph (swaps settle quickly instead of scrubbing). */
   morph: number;
 };
@@ -98,11 +105,13 @@ export function createScene(): Scene {
     fog: 0.09,
     sizeMul: 1,
     fit: 3,
+    density: 1,
+    spark: 1,
   };
 }
 
 export function createSmooth(): Smooth {
-  return { energy: 0, brightness: 0, rightDim: 0, alpha: 0.5, sizeMul: 1, fit: 3, fog: 0.09, lx: 0, ly: 0, lz: 0, lscale: 1, hueMix: 0, morph: 0 };
+  return { energy: 0, brightness: 0, rightDim: 0, alpha: 0.5, sizeMul: 1, fit: 3, fog: 0.09, lx: 0, ly: 0, lz: 0, lscale: 1, hueMix: 0, density: 1, spark: 1, morph: 0 };
 }
 
 export function createIntro(now: number): IntroState {
@@ -199,7 +208,7 @@ export function settleReduced(smooth: Smooth, out: Scene, dt: number): number {
 }
 
 /** Per-formation sprite look, chapter look under intro and Director override. `ov` is the override mix. */
-export function blendLook(out: Scene, smooth: Smooth, ov: number, reduced: boolean) {
+export function blendLook(out: Scene, smooth: Smooth, ov: number, reduced: boolean, reading: number) {
   const lookA = FORMATION_LOOK[out.fromId];
   const lookB = FORMATION_LOOK[out.toId];
   const mm = reduced ? out.m : smoothstep01(out.m);
@@ -211,6 +220,8 @@ export function blendLook(out: Scene, smooth: Smooth, ov: number, reduced: boole
   look.y *= calm;
   look.z *= calm;
   look.scale = 1 + (look.scale - 1) * calm;
+  // Reading mode: back off while text is being read, but never dim a Director drawing.
+  look.brightness *= 1 - READING_DIM * reading * (1 - ov);
   // The Director (override or streaming energy) brings the field up to full light.
   look.brightness += (1 - look.brightness) * Math.min(1, smooth.energy * ENERGY_BRIGHTNESS_GAIN);
   look.brightness = mix(look.brightness, OVERRIDE_LOOK.brightness, ov);
@@ -220,11 +231,14 @@ export function blendLook(out: Scene, smooth: Smooth, ov: number, reduced: boole
   out.fog = mix(mix(lookA.fog, lookB.fog, mm), OVERRIDE_LOOK.fog, ov);
   out.sizeMul = mix(mix(lookA.size, lookB.size, mm), OVERRIDE_LOOK.size, ov);
   out.fit = mix(mix(lookA.fit, lookB.fit, mm), OVERRIDE_LOOK.fit, ov);
+  out.density = mix(mix(lookA.density, lookB.density, mm), OVERRIDE_LOOK.density, ov);
+  out.spark = mix(mix(lookA.spark, lookB.spark, mm), OVERRIDE_LOOK.spark, ov);
 }
 
 /** Light smoothing keeps look changes from flickering on jumpy scroll input. Returns the largest remaining gap. */
 export function smoothLook(smooth: Smooth, out: Scene, energyTarget: number, dt: number): number {
   const k = Math.min(1, dt * LOOK_SMOOTH_RATE);
+  const kLight = Math.min(1, dt * LIGHT_SMOOTH_RATE);
   const look = out.look;
   let gap = 0;
   const follow = (cur: number, target: number, rate: number) => {
@@ -233,9 +247,11 @@ export function smoothLook(smooth: Smooth, out: Scene, energyTarget: number, dt:
     if (g > gap) gap = g;
     return next;
   };
-  smooth.brightness = follow(smooth.brightness, look.brightness, k);
-  smooth.rightDim = follow(smooth.rightDim, look.rightDim, k);
-  smooth.alpha = follow(smooth.alpha, out.alpha, k);
+  smooth.brightness = follow(smooth.brightness, look.brightness, kLight);
+  smooth.rightDim = follow(smooth.rightDim, look.rightDim, kLight);
+  smooth.alpha = follow(smooth.alpha, out.alpha, kLight);
+  smooth.density = follow(smooth.density, out.density, kLight);
+  smooth.spark = follow(smooth.spark, out.spark, kLight);
   smooth.sizeMul = follow(smooth.sizeMul, out.sizeMul, k);
   smooth.fit = follow(smooth.fit, out.fit, k);
   smooth.fog = follow(smooth.fog, out.fog, k);

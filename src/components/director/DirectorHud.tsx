@@ -4,8 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { prefersReducedMotion } from "@/lib/motion";
 import type { DirectorState } from "./types";
+import { VoiceToggle } from "./VoiceToggle";
 
 const BAR_EXIT_MS = 1000;
+/** The log always occupies this many rows, so adding a line never changes the bar's layout. */
+const LOG_ROWS = 3;
 
 type Props = {
   state: DirectorState;
@@ -66,29 +69,35 @@ export function DirectorHud({ state, onCut, showAnotherTake, onAnotherTake }: Pr
             <p className="label ml-auto hidden text-muted md:block">
               {state.mode === "live" ? "Live" : "Scripted tour"}
             </p>
-            <button
-              type="button"
-              onClick={onCut}
-              className="label ml-auto border border-hairline-strong px-3 py-2 text-ink transition-colors duration-300 hover:border-accent hover:text-accent-hot md:ml-0"
-            >
-              Stop <span className="ml-1 text-dim">Esc</span>
-            </button>
+            <div className="ml-auto flex items-center gap-3 md:ml-0">
+              <VoiceToggle />
+              <button
+                type="button"
+                onClick={onCut}
+                className="label border border-hairline-strong px-3 py-2 text-ink transition-colors duration-300 hover:border-accent hover:text-accent-hot"
+              >
+                Stop <span className="ml-1 text-dim">Esc</span>
+              </button>
+            </div>
           </div>
         </div>
 
+        <div className="dir-scrim" aria-hidden />
         <div
           className="dir-sub-wrap"
           style={{ bottom: "var(--dir-bottom)", paddingBottom: "clamp(16px, 3vh, 36px)" }}
           aria-hidden
         >
           <div className="dir-sub">
-            <p>
-              {state.words.map((w) => (
-                <span key={w.id} className="dir-word">
-                  {w.text}
-                </span>
-              ))}
-            </p>
+            {state.caption && (
+              <p key={state.caption.id} className="dir-cap">
+                {state.caption.words.map((w, i) => (
+                  <span key={i} className={i < state.caption!.active ? "dir-w is-said" : i === state.caption!.active ? "dir-w is-now" : "dir-w"}>
+                    {w}{" "}
+                  </span>
+                ))}
+              </p>
+            )}
           </div>
         </div>
 
@@ -97,13 +106,22 @@ export function DirectorHud({ state, onCut, showAnotherTake, onAnotherTake }: Pr
           style={{ height: "var(--dir-bottom)" }}
         >
           <div className="shell flex items-end justify-between gap-6">
-            <ul className="label min-w-0 space-y-1" aria-label="Actions taken">
-              {state.log.slice(-3).map((line) => (
-                <li key={line.id} className="dir-log-line truncate text-muted">
-                  <span className="text-accent">&rarr;</span> {line.text}
-                </li>
-              ))}
-            </ul>
+            <div className="dir-log label min-w-0">
+              <ul key={state.log.at(-1)?.id ?? 0} className="dir-log-roll" aria-label="Actions taken">
+                {Array.from({ length: LOG_ROWS }, (_, row) => {
+                  const line = state.log.slice(-LOG_ROWS)[row - (LOG_ROWS - Math.min(LOG_ROWS, state.log.length))];
+                  return (
+                    <li key={row} className="dir-log-line truncate text-muted">
+                      {line && (
+                        <>
+                          <span className="text-accent">&rarr;</span> {line.text}
+                        </>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
             {state.figure && (
               <p key={state.figure.n} className="label dir-fig hidden max-w-[40ch] text-right text-ink sm:block">
                 <span className="text-accent">Fig. {state.figure.n}</span>

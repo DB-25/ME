@@ -1,19 +1,10 @@
+import type { Env, WorkerContext } from "./env";
+import { clientKey, createRateLimiter, json } from "./http";
 import { directorEvents, openUpstream } from "./openai";
 import type { DirectorEvent, DirectorMessage } from "./protocol";
+import { handleTts } from "./tts";
 
-/** Cloudflare Rate Limiting binding (see [[ratelimits]] in wrangler.toml). */
-export interface RateLimiter {
-  limit(options: { key: string }): Promise<{ success: boolean }>;
-}
-
-export interface Env {
-  OPENAI_API_KEY?: string;
-  OPENAI_MODEL: string;
-  OPENAI_REASONING_EFFORT?: string;
-  ALLOWED_ORIGINS?: string;
-  /** Optional: absent in local dev, where the in-memory limiter alone applies. */
-  DIRECTOR_LIMITER?: RateLimiter;
-}
+export type { Env, RateLimiter } from "./env";
 
 /** Visitor turns kept per request. Assistant turns are never forwarded (see parseMessages). */
 const MAX_USER_TURNS = 4;
@@ -21,26 +12,9 @@ const MAX_CHARS = 1500;
 const MAX_BODY_BYTES = 16 * 1024;
 const RATE_LIMIT = 15;
 const RATE_WINDOW_MS = 10 * 60 * 1000;
-const MAX_TRACKED_CLIENTS = 5000;
-const CLIENT_KEY_HEX_CHARS = 32;
 const LOCAL_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"];
 
-// In-memory and per isolate: a fallback layer behind the rate limit binding, not a hard guarantee.
-const hits = new Map<string, number[]>();
-
-function rateLimited(ip: string, now = Date.now()): boolean {
-  const recent = (hits.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
-  if (recent.length >= RATE_LIMIT) {
-    hits.set(ip, recent);
-    return true;
-  }
-  recent.push(now);
-  hits.set(ip, recent);
-  if (hits.size > MAX_TRACKED_CLIENTS) {
-    for (const [key, times] of hits) if (times.every((t) => now - t >= RATE_WINDOW_MS)) hits.delete(key);
-  }
-  return false;
-}
+const isDirectorRateLimited = createRateLimiter(RATE_LIMIT, RATE_WINDOW_MS);
 
 function allowedOrigins(env: Env): string[] {
   const configured = (env.ALLOWED_ORIGINS ?? "")
@@ -59,13 +33,6 @@ function corsHeaders(origin: string | null, env: Env): Record<string, string> {
     "access-control-max-age": "86400",
     vary: "Origin",
   };
-}
-
-function json(body: unknown, status: number, cors: Record<string, string>): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json", "cache-control": "no-store", ...cors },
-  });
 }
 
 /**
@@ -91,28 +58,6 @@ function parseMessages(body: unknown): DirectorMessage[] | null {
   return visitorTurns.slice(-MAX_USER_TURNS);
 }
 
-/** Stable, non-reversible key for a client IP: raw addresses are never stored or logged. */
-async function clientKey(ip: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ip));
-  return [...new Uint8Array(digest)]
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("")
-    .slice(0, CLIENT_KEY_HEX_CHARS);
-}
-
-async function isRateLimited(env: Env, key: string): Promise<boolean> {
-  if (rateLimited(key)) return true;
-  if (!env.DIRECTOR_LIMITER) return false;
-  try {
-    const { success } = await env.DIRECTOR_LIMITER.limit({ key });
-    return !success;
-  } catch (err) {
-    // Fail open on the binding only: the in-memory layer above already ran.
-    console.error("rate limit binding failed", err);
-    return false;
-  }
-}
-
 async function handleDirector(request: Request, env: Env, cors: Record<string, string>): Promise<Response> {
   if (!env.OPENAI_API_KEY) return json({ error: "director_offline" }, 503, cors);
 
@@ -120,7 +65,7 @@ async function handleDirector(request: Request, env: Env, cors: Record<string, s
   // (a shared bucket would let one client lock out everyone), so refuse.
   const ip = request.headers.get("cf-connecting-ip");
   if (!ip) return json({ error: "client_unidentified" }, 400, cors);
-  if (await isRateLimited(env, await clientKey(ip))) {
+  if (await isDirectorRateLimited(env.DIRECTOR_LIMITER, await clientKey(ip))) {
     return json({ error: "rate_limited" }, 429, { ...cors, "retry-after": "600" });
   }
 
@@ -180,7 +125,7 @@ async function handleDirector(request: Request, env: Env, cors: Record<string, s
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: WorkerContext): Promise<Response> {
     const url = new URL(request.url);
     const origin = request.headers.get("origin");
     const cors = corsHeaders(origin, env);
@@ -196,6 +141,11 @@ export default {
       // POST needs an Origin from the allow list: browsers always send one, so a missing header means a script.
       if (Object.keys(cors).length === 0) return json({ error: "origin_not_allowed" }, 403, {});
       return handleDirector(request, env, cors);
+    }
+    if (url.pathname === "/tts") {
+      if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405, { ...cors, allow: "POST, OPTIONS" });
+      if (Object.keys(cors).length === 0) return json({ error: "origin_not_allowed" }, 403, {});
+      return handleTts(request, env, ctx, cors);
     }
     return json({ error: "not_found" }, 404, cors);
   },

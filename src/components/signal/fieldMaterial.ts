@@ -56,6 +56,8 @@ export function createFieldBuffers(count: number): FieldBuffers {
       uEnergy: { value: 0 },
       uStagger: { value: 0.45 },
       uTurb: { value: 1 },
+      uDensity: { value: 1 },
+      uSpark: { value: 1 },
       uSpread: { value: 1 },
       uPointer: { value: new THREE.Vector2(9, 9) },
       uPointerStrength: { value: 0 },

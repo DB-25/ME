@@ -50,6 +50,12 @@ export type DirectorAction =
   | { name: "form"; args: { formation: FormationId } }
   /** Tint the field (hex). Reset with null. */
   | { name: "set_hue"; args: { hex: string | null } }
+  /**
+   * Say one line from DB's pre-recorded voice library (see public/voice/manifest.json and
+   * src/lib/director/voice-library). Free-form narration text is shown as subtitles only;
+   * spoken words always come from lines DB actually recorded (unless server TTS is enabled).
+   */
+  | { name: "speak"; args: { lineId: string } }
   /** Hand control back to the visitor. */
   | { name: "end_scene"; args: Record<string, never> };
 

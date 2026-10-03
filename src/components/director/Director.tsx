@@ -7,6 +7,8 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { isDirectorConfigured } from "@/lib/director/client";
 import { scrollToTarget } from "@/lib/motion";
 import { DirectorHud } from "./DirectorHud";
+import { lineAudio } from "./lineAudio";
+import { VoiceToggle } from "./VoiceToggle";
 import "./director.css";
 import { useDirectorRun } from "./useDirectorRun";
 
@@ -48,6 +50,8 @@ export function Director() {
     if (!prompt || running) return;
     setValue("");
     inputRef.current?.blur();
+    // Still inside the visitor's gesture: unlock audio playback before the first line.
+    lineAudio.prime();
     void run(prompt);
   };
 
@@ -140,6 +144,7 @@ export function Director() {
               <span className="text-accent">Enter</span> to begin <span className="mx-2 text-dim">/</span>{" "}
               <span className="text-accent">Esc</span> to stop
             </p>
+            <VoiceToggle className="ml-auto" />
             <button
               type="submit"
               disabled={empty || running}

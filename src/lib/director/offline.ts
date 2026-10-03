@@ -1,5 +1,6 @@
 import type { DirectorEvent } from "@/lib/director/protocol";
 import { matchIntent, type Match } from "@/components/director/match";
+import { lineAudio } from "@/components/director/lineAudio";
 import { buildScript } from "@/components/director/scripts";
 import { projects } from "@/content";
 
@@ -10,8 +11,6 @@ import { projects } from "@/content";
  * request is routed by a keyword matcher (components/director/match.ts). The
  * UI says so.
  */
-
-const WORD_MS = 22;
 
 const nameOf = (slug: string) => projects.find((p) => p.slug === slug)?.name ?? slug;
 
@@ -25,38 +24,29 @@ export function explainMatch(prompt: string): string {
   return "scripted tour: no keyword matched";
 }
 
-/* ---------- stream ---------- */
-
-const sleep = (ms: number, signal: AbortSignal) =>
-  new Promise<void>((resolve) => {
-    if (signal.aborted) return resolve();
-    const timer = setTimeout(resolve, ms);
-    signal.addEventListener("abort", () => (clearTimeout(timer), resolve()), { once: true });
-  });
-
 /**
- * Emit a line word by word on the wall clock. The count is derived from
- * elapsed time, so a throttled background tab catches up in one step.
+ * Each narration line is sent whole, ended by a newline: the Narrator plays a
+ * line's recording (or times its caption) as one unit. While a step plays, the
+ * next spoken line is already being fetched.
  */
-async function* speak(text: string, signal: AbortSignal): AsyncGenerator<DirectorEvent> {
-  const words = text.split(/\s+/).filter(Boolean);
-  const start = performance.now();
-  let sent = 0;
-  while (sent < words.length && !signal.aborted) {
-    const due = Math.min(words.length, Math.floor((performance.now() - start) / WORD_MS) + 1);
-    if (due > sent) {
-      yield { type: "text", delta: words.slice(sent, due).join(" ") + " " };
-      sent = due;
-    }
-    if (sent < words.length) await sleep(WORD_MS, signal);
-  }
-}
-
 export async function* offlineDirector(prompt: string, signal: AbortSignal): AsyncGenerator<DirectorEvent> {
-  for (const step of buildScript(matchIntent(prompt))) {
+  const steps = buildScript(matchIntent(prompt));
+  const nextLine = (from: number) => {
+    for (let i = from; i < steps.length; i++) {
+      const step = steps[i];
+      if ("say" in step && step.say.trim()) return step.say;
+    }
+    return null;
+  };
+
+  const first = nextLine(0);
+  if (first) lineAudio.preload(first);
+  for (const [i, step] of steps.entries()) {
     if (signal.aborted) return;
+    const ahead = nextLine(i + 1);
+    if (ahead) lineAudio.preload(ahead);
     if ("say" in step) {
-      if (step.say.trim()) yield* speak(step.say, signal);
+      if (step.say.trim()) yield { type: "text", delta: `${step.say}\n` };
     } else {
       yield { type: "action", action: step.act };
     }

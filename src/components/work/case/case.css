@@ -92,17 +92,50 @@
 .cs-stack li:last-child::after { content: ""; }
 .cs-stack li:hover { color: var(--color-accent-hot); }
 
-/* Gallery */
-.cs-gallery { margin-top: clamp(40px, 6vw, 88px); row-gap: clamp(40px, 6vw, 88px); }
-.cs-fig { margin: 0; grid-column: 1 / -1; }
-@media (min-width: 768px) {
-  .cs-fig { grid-column: var(--col); }
-  .cs-fig[data-offset] { margin-top: clamp(40px, 9vw, 140px); }
+/* Gallery: stills sit in a dark frame at their native aspect ratio. Nothing is cropped, scaled or tinted. */
+.cs-gal { margin-top: clamp(40px, 6vw, 88px); display: grid; row-gap: clamp(56px, 8vw, 128px); }
+.cs-row { display: flex; flex-direction: column; gap: clamp(56px, 8vw, 96px); }
+.cs-fig { margin: 0; min-width: 0; }
+
+.cs-shot {
+  position: relative; display: block; width: 100%; padding: 0; cursor: pointer; overflow: hidden;
+  aspect-ratio: var(--ar); max-width: min(calc(var(--ar) * 78svh), calc(var(--w) * 1.08px));
+  background: var(--color-void-2) center / 100% 100% no-repeat; border: 1px solid var(--color-hairline-strong); border-radius: 6px; color: inherit;
+  box-shadow: 0 40px 110px -50px rgb(139 123 255 / 0.4), 0 0 0 1px rgb(139 123 255 / 0.03);
+  transition: border-color 0.4s var(--cs-ease), box-shadow 0.6s var(--cs-ease);
 }
-.cs-frame { position: relative; overflow: hidden; width: 100%; background: var(--color-void-2); border: 1px solid var(--color-hairline); }
-.cs-frame-in { position: absolute; inset: 0; will-change: transform; }
-.cs-frame-in img, .cs-frame-in video { display: block; width: 100%; height: 100%; object-fit: cover; }
-.cs-fig figcaption { display: flex; gap: 14px; margin-top: 14px; max-width: 62ch; text-transform: none; letter-spacing: 0.02em; }
+.cs-shot img { display: block; width: 100%; height: 100%; object-fit: contain; }
+/* Light UI glare is tamed at the edges only: a faint inner vignette over the frame, never a tint on the content. */
+.cs-shot::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(238 234 246 / 0.05), inset 0 0 48px 2px rgb(6 5 9 / 0.2);
+}
+.cs-shot:hover { border-color: color-mix(in oklab, var(--color-accent) 55%, var(--color-hairline-strong)); box-shadow: 0 40px 120px -44px rgb(139 123 255 / 0.55), 0 0 0 1px rgb(139 123 255 / 0.08); }
+.cs-shot:focus-visible { outline: 2px solid var(--color-accent-hot); outline-offset: 4px; }
+.cs-shot-hint {
+  position: absolute; right: 12px; bottom: 12px; z-index: 1; padding: 6px 10px; color: var(--color-ink); letter-spacing: 0.08em;
+  background: rgb(6 5 9 / 0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--color-hairline-strong); border-radius: 2px; opacity: 0; transform: translateY(4px);
+  transition: opacity 0.3s var(--cs-ease), transform 0.4s var(--cs-ease);
+}
+.cs-shot-hint span { color: var(--color-accent-hot); }
+.cs-shot:hover .cs-shot-hint, .cs-shot:focus-visible .cs-shot-hint { opacity: 1; transform: none; }
+@media (hover: none) { .cs-shot-hint { opacity: 0.9; transform: none; padding: 4px 8px; } }
+
+.cs-cap { display: flex; gap: 14px; margin-top: 16px; max-width: 58ch; color: var(--color-muted); text-transform: none; letter-spacing: 0.02em; line-height: 1.6; text-wrap: pretty; }
+.cs-cap-n { color: var(--pa); flex: none; }
+
+@media (min-width: 768px) {
+  .cs-row[data-kind="pair"] { flex-direction: row; align-items: flex-start; gap: var(--gutter); }
+  /* Equal heights: each still takes width in proportion to its aspect ratio. */
+  .cs-row[data-kind="pair"] .cs-fig { flex: var(--grow) 1 0; }
+  .cs-row[data-kind="pair"] .cs-shot { max-width: none; }
+  /* Inset: the frame leads and the caption sits beside it on the baseline. */
+  .cs-row[data-kind="inset"] .cs-fig { display: flex; align-items: flex-end; gap: clamp(24px, 3vw, 48px); }
+  .cs-row[data-kind="inset"][data-flip] .cs-fig { flex-direction: row-reverse; }
+  .cs-row[data-kind="inset"] .cs-shot { flex: 1 1 0; min-width: 0; }
+  .cs-row[data-kind="inset"] .cs-cap { flex: 0 0 clamp(220px, 22%, 300px); margin-top: 0; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid var(--pa); }
+}
 
 /* Links */
 .cs-links { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--color-hairline-strong); }

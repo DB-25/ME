@@ -73,22 +73,7 @@ export const moreProjects: Project[] = [
     ],
     stack: ["React", "Vite", "AWS Lambda", "CloudFront", "CDK", "Weaviate", "OpenAI"],
     links: [{ label: "coach.innovate-us.org", href: "https://coach.innovate-us.org", kind: "live" }],
-    media: [
-      {
-        src: "/media/coaching-tool/coach-landing.jpg",
-        alt: "The Public Engagement Coach landing page with suggested questions",
-        kind: "image",
-        width: 1600,
-        height: 900,
-      },
-      {
-        src: "/media/coaching-tool/coach-chat.jpg",
-        alt: "The Public Engagement Coach answering how to reach people who skip public meetings",
-        kind: "image",
-        width: 1600,
-        height: 900,
-      },
-    ],
+    media: [],
   },
   {
     slug: "course-delivery",
@@ -125,16 +110,7 @@ export const moreProjects: Project[] = [
     ],
     stack: ["Hono", "AWS Lambda", "AWS CDK", "DynamoDB", "EventBridge", "End User Messaging SMS", "SES", "React", "Vite"],
     links: [],
-    media: [
-      {
-        src: "/media/course-delivery/quiz.jpg",
-        alt: "Course Delivery knowledge check question about how generative AI works",
-        kind: "image",
-        width: 1440,
-        height: 1782,
-        caption: "The one-question quiz that gates the certificate.",
-      },
-    ],
+    media: [],
   },
   {
     slug: "arc-control-mcp",

@@ -16,6 +16,14 @@ OPENAI_REASONING_EFFORT = "low"
 # "https://example.dev,https://db-25.github.io". http://localhost:3000 is always allowed.
 ALLOWED_ORIGINS = ""
 
+# Option B: runtime cloned-voice TTS (ElevenLabs). OFF unless TTS_PROVIDER = "elevenlabs" and the
+# secrets ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID exist. See docs/voice-plan.md.
+TTS_PROVIDER = ""
+# New (uncached) characters of speech allowed per UTC day. Over it, POST /tts answers 429.
+TTS_DAILY_CHAR_BUDGET = "20000"
+# Optional model override. Default eleven_flash_v2_5 (lowest latency, cheapest).
+# TTS_MODEL = "eleven_flash_v2_5"
+
 # Rate limiting binding (Cloudflare Workers Rate Limiting; `period` must be 10 or 60 seconds).
 # Counts per hashed client IP, per Cloudflare location. The Worker also keeps a small in-memory
 # limiter, which is the only one in effect when this binding is missing (e.g. `wrangler dev`).
@@ -26,3 +34,19 @@ namespace_id = "1001"
 simple = { limit = 6, period = 60 }
 
 # Secret (never put in this file):  npx wrangler secret put OPENAI_API_KEY
+
+# TTS rate limit (per hashed client IP, per location). Optional, same rules as DIRECTOR_LIMITER.
+[[ratelimits]]
+name = "TTS_LIMITER"
+namespace_id = "1002"
+simple = { limit = 20, period = 60 }
+
+# Optional global TTS budget counter (the Cache API is the fallback, per data center). To use KV:
+#   npx wrangler kv namespace create TTS_KV      then paste the printed id below and uncomment.
+# [[kv_namespaces]]
+# binding = "TTS_KV"
+# id = "<namespace id>"
+
+# Secrets (never put in this file):
+#   npx wrangler secret put ELEVENLABS_API_KEY
+#   npx wrangler secret put ELEVENLABS_VOICE_ID

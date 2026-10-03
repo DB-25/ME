@@ -1,5 +1,6 @@
 import { CHAPTER_IDS, FORMATIONS } from "./protocol";
 import { PROJECT_SLUGS } from "./knowledge";
+import { VOICE_LINES } from "./voice";
 
 /** One OpenAI Responses API function tool (strict mode). */
 export type FunctionTool = {
@@ -20,7 +21,23 @@ const object = (properties: Record<string, unknown>): Record<string, unknown> =>
 const chapterEnum = { type: "string", enum: [...CHAPTER_IDS] };
 const slugEnum = { type: "string", enum: [...PROJECT_SLUGS] };
 
+/** Present only when DB has recorded a library. The line texts live in the system prompt (see prompt.ts). */
+const SPEAK_TOOL: FunctionTool[] =
+  VOICE_LINES.length === 0
+    ? []
+    : [
+        {
+          type: "function",
+          name: "speak",
+          description:
+            "Say one pre-recorded line aloud in DB's own voice. lineId is the id of a line in the VOICE LIBRARY. This is the only way the visitor hears anything. 1 to 4 calls per turn.",
+          strict: true,
+          parameters: object({ lineId: { type: "string", enum: VOICE_LINES.map((l) => l.id) } }),
+        },
+      ];
+
 export const TOOLS: FunctionTool[] = [
+  ...SPEAK_TOOL,
   {
     type: "function",
     name: "goto_chapter",

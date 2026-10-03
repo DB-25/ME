@@ -64,3 +64,7 @@ Without the secret the Worker returns 503 `{"error":"director_offline"}` and the
 3. Optional: serve the Worker on `director.example.dev` (Worker > Settings > Domains & Routes > Add custom domain), then use that as `DIRECTOR_URL` and in `ALLOWED_ORIGINS` if needed.
 
 Rate limit: 15 requests per 10 minutes per IP (in memory, per Worker instance). Set a monthly spend cap in the OpenAI dashboard as the real backstop.
+
+## f) Voice
+
+The Director speaks only lines DB recorded (`public/voice/<id>.mp3`), chosen by the model through the `speak` tool. `npm run knowledge` in `worker/` regenerates `worker/src/voice.ts` from `src/lib/director/voice-library.ts`, so re-run it and redeploy whenever lines change. Runtime cloned-voice TTS (`POST /tts`) is off by default; see `docs/voice-plan.md` for the design, enable steps and cost. Worker tests: `cd worker && npm test`.

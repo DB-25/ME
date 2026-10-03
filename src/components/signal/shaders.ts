@@ -60,6 +60,8 @@ uniform float uTime;
 uniform float uEnergy;
 uniform float uStagger;
 uniform float uTurb;
+uniform float uDensity; // share of particles drawn (by seed); the rest fade out
+uniform float uSpark;   // 0..1 saffron spark rate multiplier
 uniform float uSpread;
 uniform vec2 uPointer;
 uniform float uPointerStrength;
@@ -80,6 +82,7 @@ varying float vHeat;
 varying float vSpark;
 varying float vDepth;
 varying float vNear;
+varying float vFade; // density cull and mid-morph dip
 varying float vRight; // 0 on the left of the screen, 1 on the far right
 varying vec4 vSig; // x: signal weight, y: noise->signal (weighted), z: crest (weighted), w: edge fade (weighted)
 
@@ -146,7 +149,16 @@ void main(){
 
   // Turbulence peaks mid-journey for each particle.
   float bump = max(sin(3.14159265 * pm.y), max(sin(3.14159265 * po.y), sin(3.14159265 * pc.y)));
-  float amp = uTurb * (0.95 * bump + 0.35 * uEnergy);
+  bump = bump * bump * bump; // a short burst, not a long boil
+  float amp = uTurb * (0.95 * bump + 0.25 * uEnergy);
+  // Particles in flight dim a little so converging points do not flash, and density-culled ones fade out.
+  float keep = clamp((uDensity - aRand.x) * 8., 0., 1.);
+  vFade = keep * (1. - 0.5 * bump);
+  if (keep <= 0.) {
+    gl_Position = vec4(2., 2., 2., 1.);
+    gl_PointSize = 0.;
+    return;
+  }
   if (amp > 0.001) {
     vec3 q = p * 0.85 + vec3(uTime * 0.18);
     vec3 curl = vec3(snoise(q), snoise(q + 31.4), snoise(q + 71.7));
@@ -181,7 +193,7 @@ void main(){
   vRight = smoothstep(0., 0.95, clip.x / max(clip.w, 0.0001));
 
   float dist = -mv.z;
-  float spark = mix(step(0.988, aRand.z), step(0.9994, aRand.z), sigW);
+  float spark = mix(step(1. - 0.012 * uSpark, aRand.z), step(0.9994, aRand.z), sigW);
   float px = uSize * aRand.y * (1. + spark * 0.25) * uPixelRatio * uScale / max(dist, 0.1);
   gl_PointSize = max(px, mix(0., 1.05, sigW) * uPixelRatio);
 
@@ -205,6 +217,7 @@ varying float vSpark;
 varying float vDepth;
 varying float vNear;
 varying float vRight;
+varying float vFade;
 varying vec4 vSig;
 
 const vec3 DEEP = vec3(0.3569, 0.2784, 0.8784);  // #5B47E0
@@ -224,6 +237,7 @@ void main(){
   float a = (core + halo) * uAlpha * uBrightness * vDepth;
   a *= 1. + vNear * 0.6;
   a *= 1. - uRightDim * vRight;
+  a *= vFade;
 
   float heat = clamp(smoothstep(0.6, 1., vHeat) * 0.55 + core * 0.4 + vNear * 0.3, 0., 1.);
   vec3 col = heat < 0.5 ? mix(DEEP, UV, heat * 2.) : mix(UV, HOT, (heat - 0.5) * 2.);
@@ -240,7 +254,7 @@ void main(){
   col = mix(col, SAFFRON, vSpark * (1. - uHueMix));
   vec3 tint = uHueColor * (0.55 + 0.6 * core);
   col = mix(col, tint, uHueMix * 0.85);
-  a *= 1. + vSpark * 1.4;
+  a *= 1. + vSpark * 0.7;
 
   gl_FragColor = vec4(col, a);
 }

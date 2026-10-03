@@ -1,4 +1,4 @@
-import type { CaptionWord } from "./narrator";
+import type { Caption } from "./narrator";
 
 export type RunPhase = "idle" | "running" | "outro";
 export type DirectorMode = "live" | "offline";
@@ -11,9 +11,9 @@ export type DirectorState = {
   mode: DirectorMode;
   take: number;
   prompt: string;
-  /** Words of the caption currently on screen. */
-  words: CaptionWord[];
-  /** Completed caption text for screen readers (aria-live). */
+  /** The caption on screen: laid out whole, with the spoken word highlighted. */
+  caption: Caption | null;
+  /** Caption text for screen readers (aria-live). Empty while the voice is speaking it. */
   spoken: string;
   log: LogLine[];
   figure: Figure | null;
@@ -28,7 +28,7 @@ export const INITIAL_STATE: DirectorState = {
   mode: "offline",
   take: 0,
   prompt: "",
-  words: [],
+  caption: null,
   spoken: "",
   log: [],
   figure: null,

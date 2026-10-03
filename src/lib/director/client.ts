@@ -14,6 +14,7 @@ const ACTION_NAMES = new Set([
   "draw",
   "form",
   "set_hue",
+  "speak",
   "end_scene",
 ]);
 
@@ -42,11 +43,17 @@ function parseEvent(line: string): DirectorEvent | null {
     return null;
   }
   if (!raw || typeof raw !== "object") return null;
-  const e = raw as { type?: unknown; delta?: unknown; message?: unknown; action?: { name?: unknown } };
+  const e = raw as {
+    type?: unknown;
+    delta?: unknown;
+    message?: unknown;
+    action?: { name?: unknown; args?: { lineId?: unknown } };
+  };
   if (e.type === "text" && typeof e.delta === "string") return raw as DirectorEvent;
   if (e.type === "done") return { type: "done" };
   if (e.type === "error") return { type: "error", message: typeof e.message === "string" ? e.message : "director error" };
   if (e.type === "action" && e.action && typeof e.action.name === "string" && ACTION_NAMES.has(e.action.name)) {
+    if (e.action.name === "speak" && typeof e.action.args?.lineId !== "string") return null;
     return raw as DirectorEvent;
   }
   return null;

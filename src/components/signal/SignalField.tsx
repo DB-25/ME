@@ -28,6 +28,7 @@ import {
   type Smooth,
 } from "./fieldFrame";
 import { BASE_PARTICLE_SIZE, createFieldBuffers } from "./fieldMaterial";
+import { createReading, fieldMotion, stepReading, timeScaleFor, type ReadingState } from "./readingMode";
 import { getFormation, prepareCustomPoints, warmFormations } from "./formations";
 
 export type FieldQuality = { count: number; sizeBoost: number; reducedMotion: boolean; coarse: boolean; maxDpr: number };
@@ -41,6 +42,10 @@ const CAMERA_FOV = 38;
 const BASE_CAMERA_Z = 7;
 const MAX_PULLBACK = 2.8;
 const HALF_TAN_FOV = Math.tan((CAMERA_FOV * Math.PI) / 360);
+/** Mid-morph turbulence ceiling (the shader's burst is already short); reading mode and case pages lower it. */
+const TURBULENCE = 0.5;
+const TURBULENCE_READING_SHARE = 0.5;
+const TURBULENCE_STILL = 0.12;
 const POINTER_STRENGTH = 0.2;
 const POINTER_FOLLOW_RATE = 9;
 const POINTER_FADE_RATE = 5;
@@ -48,6 +53,7 @@ const POINTER_FADE_RATE = 5;
 const REDUCED_SHADER_TIME = 3;
 /** Formations generated ahead of the visitor: the current chapter's and the next two. */
 const WARM_AHEAD = 2;
+const SPARK_READING_CUT = 0.6;
 
 function parseHex(hex: string, out: THREE.Color): boolean {
   if (!/^#?[0-9a-f]{3}([0-9a-f]{3})?$/i.test(hex.trim())) return false;
@@ -70,6 +76,7 @@ type Rig = {
   t: number;
   /** True when the previous frame asked for this one, so `delta` is a real step. */
   chained: boolean;
+  reading: ReadingState;
   pointer: { x: number; y: number; tx: number; ty: number; active: number };
   intro: ReturnType<typeof createIntro>;
   override: OverrideState;
@@ -89,7 +96,7 @@ function writeUniforms(
   camera: THREE.PerspectiveCamera,
   size: { width: number; height: number },
   r: Rig,
-  opts: { reduced: boolean; sizeBoost: number },
+  opts: { reduced: boolean; sizeBoost: number; reading: number; still: boolean },
 ) {
   const { scene, smooth, ov } = r;
   u.uSigA.value = scene.fromId === "signal" ? 1 : 0;
@@ -98,7 +105,9 @@ function writeUniforms(
   u.uOverride.value = ov.value;
   u.uOverrideMix.value = ov.mix;
   u.uStagger.value = opts.reduced ? 0 : 0.45;
-  u.uTurb.value = opts.reduced ? 0 : 1;
+  u.uTurb.value = opts.reduced ? 0 : opts.still ? TURBULENCE_STILL : TURBULENCE * (1 - TURBULENCE_READING_SHARE * opts.reading);
+  u.uDensity.value = smooth.density;
+  u.uSpark.value = smooth.spark * (1 - SPARK_READING_CUT * opts.reading);
   u.uSpread.value = scene.spread * smooth.lscale;
   u.uFog.value = smooth.fog;
   u.uEnergy.value = smooth.energy;
@@ -159,6 +168,7 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     return {
       t: 0,
       chained: false,
+      reading: createReading(),
       pointer: { x: 9, y: 9, tx: 9, ty: 9, active: 0 },
       intro: createIntro(now),
       override: createOverrideState(),
@@ -280,7 +290,11 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     const aspect = size.width / size.height;
     const { scene, smooth } = r;
 
-    if (!reducedMotion) r.t += dt;
+    const still = !chapterPresence.present;
+    const reading = reducedMotion ? 1 : stepReading(r.reading, window.scrollY, dt, still);
+    fieldMotion.reading = reading;
+    fieldMotion.timeScale = timeScaleFor(reading, still);
+    if (!reducedMotion) r.t += dt * fieldMotion.timeScale;
     u.uTime.value = reducedMotion ? REDUCED_SHADER_TIME : r.t;
     recordFrame();
 
@@ -303,13 +317,13 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
 
     bindFormations(scene, r);
     stepOverride(r.override, s, now, r.ov);
-    blendLook(scene, smooth, r.ov.value, reducedMotion);
+    blendLook(scene, smooth, r.ov.value, reducedMotion, reading);
     const lookGap = smoothLook(smooth, scene, s.energy, dt);
 
     const hasHue = !!s.hue && parseHex(s.hue, u.uHueColor.value as THREE.Color);
     const hueGap = stepHue(smooth, hasHue, dt);
     stepPointer(u, r.pointer, !reducedMotion && !coarse, dt);
-    writeUniforms(u, camera, size, r, { reduced: reducedMotion, sizeBoost });
+    writeUniforms(u, camera, size, r, { reduced: reducedMotion, sizeBoost, reading, still });
 
     // Frame loop is on demand: keep it going while anything moves, and always when motion is allowed.
     const keepGoing = !reducedMotion || isSettling({ look: lookGap, reducedMorph: reducedGap, hue: hueGap }, r.intro, r.override);
