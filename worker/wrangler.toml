@@ -1,0 +1,19 @@
+name = "director"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[observability]
+enabled = true
+
+[vars]
+# Model is swappable without a code change. gpt-6.1-sol is the default;
+# gpt-6-luna is the ~20x cheaper fallback.
+OPENAI_MODEL = "gpt-6.1-sol"
+# Reasoning effort for the Responses API: low keeps latency down. Empty string omits the field.
+OPENAI_REASONING_EFFORT = "low"
+# Comma-separated site origins allowed to call the Worker, e.g.
+# "https://example.dev,https://db-25.github.io". http://localhost:3000 is always allowed.
+ALLOWED_ORIGINS = ""
+
+# Secret (never put in this file):  npx wrangler secret put OPENAI_API_KEY

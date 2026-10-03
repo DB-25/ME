@@ -48,3 +48,10 @@ next-env.d.ts
 
 # local archive of previous portfolio versions
 .archive/
+
+# v3
+worker/node_modules/
+worker/dist/
+.wrangler/
+worker/.wrangler/
+worker/.dev.vars

@@ -1,0 +1,129 @@
+/* Director: input caret, letterbox, subtitles. Tokens come from globals.css. */
+
+.director-caret {
+  animation: director-blink 1.05s steps(1, end) infinite;
+}
+@keyframes director-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+
+.director-input {
+  caret-color: var(--color-accent-hot);
+  caret-shape: block;
+}
+
+/* Letterbox */
+.dir-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 85;
+  background: var(--color-void);
+  transition: transform 1s var(--ease-out-expo);
+  will-change: transform;
+}
+.dir-bar-top { top: 0; transform: translateY(-101%); }
+.dir-bar-bottom { bottom: 0; transform: translateY(101%); }
+.dir-on .dir-bar-top,
+.dir-on .dir-bar-bottom { transform: none; }
+.dir-still .dir-bar { transition: none; }
+
+.dir-hairline-top { border-bottom: 1px solid var(--color-hairline-strong); }
+.dir-hairline-bottom { border-top: 1px solid var(--color-hairline-strong); }
+
+/* REC dot */
+.dir-rec {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 8px var(--color-accent);
+  animation: dir-rec 2.6s ease-in-out infinite;
+}
+@keyframes dir-rec {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* Subtitles */
+.dir-sub-wrap {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 84;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  padding-inline: var(--gutter);
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-out-expo);
+}
+.dir-on .dir-sub-wrap { opacity: 1; }
+.dir-sub-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -40px 0 0;
+  background: linear-gradient(to top, rgb(6 5 9 / 0.78), rgb(6 5 9 / 0.5) 55%, transparent);
+  z-index: -1;
+}
+.dir-sub {
+  max-width: 26ch;
+  text-align: center;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  font-size: clamp(1.25rem, 3.4vw, 2.75rem);
+  text-wrap: balance;
+  min-height: 2.24em;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+@media (min-width: 900px) {
+  .dir-sub { max-width: 34ch; }
+}
+.dir-sub p { margin: 0; }
+.dir-word {
+  display: inline-block;
+  margin-right: 0.26em;
+  animation: dir-word-in 0.7s var(--ease-out-expo) both, dir-word-cool 1.6s ease-out both;
+}
+@keyframes dir-word-in {
+  from { opacity: 0; transform: translateY(0.35em); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+@keyframes dir-word-cool {
+  from { color: var(--color-accent-hot); }
+  to { color: var(--color-ink); }
+}
+
+/* Log + figure caption */
+.dir-log-line { animation: dir-log-in 0.5s var(--ease-out-expo) both; }
+@keyframes dir-log-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: none; }
+}
+.dir-fig { animation: dir-log-in 0.7s var(--ease-out-expo) both; }
+
+/* "Another take" after a run */
+.dir-again {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 70;
+  transform: translateX(-50%);
+  animation: dir-again-in 0.9s var(--ease-out-expo) both;
+}
+@keyframes dir-again-in {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dir-bar { transition: none; }
+  .dir-word { animation: none; }
+  .dir-rec { animation: none; }
+}
+
+[data-director-hud] { --dir-bottom: clamp(76px, 12vh, 112px); }

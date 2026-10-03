@@ -4,8 +4,25 @@
     {
       "name": "dev",
       "runtimeExecutable": "/opt/homebrew/bin/node",
-      "runtimeArgs": ["node_modules/.bin/next", "dev"],
+      "runtimeArgs": [
+        "node_modules/.bin/next",
+        "dev"
+      ],
       "port": 3000,
+      "env": {
+        "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    },
+    {
+      "name": "v3",
+      "runtimeExecutable": "/opt/homebrew/bin/node",
+      "runtimeArgs": [
+        "node_modules/.bin/next",
+        "dev",
+        "-p",
+        "3100"
+      ],
+      "port": 3100,
       "env": {
         "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
       }

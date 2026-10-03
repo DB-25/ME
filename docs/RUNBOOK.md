@@ -1,0 +1,66 @@
+# Runbook: deploy the site and The Director
+
+The site is a Next.js static export (`out/`). The Director is a separate Cloudflare Worker in `worker/` that streams NDJSON to the site. Both are free tier. Not Vercel, not AWS.
+
+Prerequisite for any deploy: `next.config.ts` must set `output: "export"`, `images: { unoptimized: true }` and `basePath: process.env.NEXT_PUBLIC_BASE_PATH || ""`.
+
+## a) Interim: GitHub Pages (no Cloudflare login needed)
+
+The repo `DB-25/ME` is public, so Pages is free. There is no `DB-25/DB-25.github.io` repo, so the site lives at `https://db-25.github.io/ME/` (a project site, needs a base path).
+
+1. Repo Settings > Pages > Source: **GitHub Actions**.
+2. Repo Settings > Secrets and variables > Actions > Variables:
+   - `BASE_PATH` = `/ME`
+   - `DIRECTOR_URL` = the Worker URL from step c (add it later if the Worker is not deployed yet; the site falls back to offline mode).
+3. Push to `v3` or `main`, or run the workflow by hand: `gh workflow run deploy-pages.yml --ref v3`.
+4. Watch it: `gh run watch`. Live at `https://db-25.github.io/ME/`.
+
+When a custom domain is attached to Pages, set `BASE_PATH` to empty (delete the variable) and redeploy.
+
+## b) Cloudflare Pages
+
+One time: `npx wrangler login` (personal Cloudflare account).
+
+```bash
+export NEXT_PUBLIC_BASE_PATH=""
+export NEXT_PUBLIC_DIRECTOR_URL="https://director.<subdomain>.workers.dev"
+npm ci && npm run build
+npx wrangler pages deploy out --project-name db-portfolio
+```
+
+The first run asks to create the project (production branch: `main`). The site is at `https://db-portfolio.pages.dev`. Redeploy with the same last command after each build.
+
+## c) Director Worker
+
+```bash
+cd worker
+npm i
+npm run knowledge            # regenerates src/knowledge.ts from src/content (or src/data)
+npx tsc --noEmit
+npx wrangler secret put OPENAI_API_KEY    # paste the key when prompted
+npx wrangler deploy
+```
+
+Wrangler prints the URL, `https://director.<subdomain>.workers.dev`. Test it:
+
+```bash
+node scripts/smoke.mjs https://director.<subdomain>.workers.dev "I am a recruiter hiring for infra"
+```
+
+Without the secret the Worker returns 503 `{"error":"director_offline"}` and the site runs its scripted offline cuts. Change the model with `OPENAI_MODEL` in `worker/wrangler.toml` (default `gpt-6.1-sol`, cheaper fallback `gpt-6-luna`), then redeploy. Re-run `npm run knowledge` and redeploy whenever site content changes.
+
+## d) Buy the domain on Cloudflare and attach it to Pages
+
+1. Dashboard > Domain Registration > Register Domains. Search the name, buy it (at cost, no markup, WHOIS privacy included).
+2. Dashboard > Workers & Pages > `db-portfolio` > Custom domains > Set up a custom domain. Enter the apex (`example.dev`), confirm. Cloudflare creates the DNS record and certificate. Repeat for `www` if wanted.
+3. Wait a few minutes for the certificate. Check `curl -I https://example.dev`.
+
+## e) Wire the site to the Worker
+
+1. Allow the site origin in the Worker: edit `worker/wrangler.toml`:
+   `ALLOWED_ORIGINS = "https://example.dev,https://www.example.dev,https://db-portfolio.pages.dev,https://db-25.github.io"`
+   Then `cd worker && npx wrangler deploy`. (`http://localhost:3000` is always allowed.)
+2. Point the site at the Worker: set `NEXT_PUBLIC_DIRECTOR_URL` to the Worker URL at build time (GitHub: the `DIRECTOR_URL` repo variable; Cloudflare Pages: the `export` line in step b). It is baked into the static build, so rebuild and redeploy after changing it.
+3. Optional: serve the Worker on `director.example.dev` (Worker > Settings > Domains & Routes > Add custom domain), then use that as `DIRECTOR_URL` and in `ALLOWED_ORIGINS` if needed.
+
+Rate limit: 15 requests per 10 minutes per IP (in memory, per Worker instance). Set a monthly spend cap in the OpenAI dashboard as the real backstop.

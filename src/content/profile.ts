@@ -1,0 +1,52 @@
+import type { Profile } from "./types";
+
+export const profile: Profile = {
+  name: "Dhruv Kamalesh Kumar",
+  shortName: "Dhruv",
+  handle: "DB",
+  title: "AI Engineer",
+  employer: "The Burnes Center for Social Change, Northeastern University",
+  location: "Boston, MA",
+  origin: "Bangalore, India",
+  oneLiner: "I build AI that governments and families actually use, from prototype to production.",
+  manifesto: [
+    "Software is finished when someone who is not an engineer can rely on it.",
+    "I show people the prompts, the pipeline and the numbers, then let them argue with me.",
+    "Privacy is a design input. I redact personal details before the analysis model reads a word.",
+    "I measure the model before I trust it, and I say so when I cannot yet.",
+    "I learned this shipping a Flutter app to thousands of students: if it breaks, a real person has a bad day.",
+  ],
+  bio: [
+    "I am the lead AI engineer on A-IEP, an open source platform that turns dense special-education plans into plain language for parents, in their own language. At the Burnes Center for Social Change I also help lead the technical side of the AI for Impact co-op program, where student teams ship AI tools for state and city agencies. I joined as a co-op in January 2024 to build the Generative AI Sandbox for Massachusetts state employees, and I have been full-time since July 2024.",
+    "Before that I was a mobile engineer in Bangalore, building a Flutter app for thousands of students at Acharya Institutes. I moved to Boston for an M.S. in Artificial Intelligence at Northeastern (GPA 3.83, December 2024). I like work where the user is a parent, a buyer or a caseworker, the data is sensitive, and quality has to be measured, not assumed.",
+  ].join("\n\n"),
+  email: "dhruvbaradiya@gmail.com",
+  links: [
+    { label: "GitHub", href: "https://github.com/DB-25", kind: "code" },
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/dhruvkamaleshkumar/" },
+    { label: "Burnes Center profile", href: "https://burnes.northeastern.edu/people/dhruv-kamalesh-kumar-2/", kind: "doc" },
+    { label: "YouTube", href: "https://www.youtube.com/@DhruvBaradiya", kind: "video" },
+    { label: "Instagram", href: "https://www.instagram.com/dhruvbaradiya/" },
+    { label: "arc-control-mcp on npm", href: "https://www.npmjs.com/package/arc-control-mcp", kind: "code" },
+  ],
+  resumeHref: "/resume.pdf",
+  offDuty: [
+    { label: "Colors", value: "Black and purple" },
+    { label: "Games", value: "Valorant and CS2" },
+    { label: "Past life", value: "Streamed Valorant and PC builds on YouTube. 181 videos, 1.27K subscribers, sponsored by Epic Games, GeForce NOW and Colorful" },
+    { label: "Eats", value: "Vegetarian. Pani puri is the favorite dish" },
+    { label: "Kitchen", value: "Cooks Indian, Italian and Mexican" },
+    { label: "From", value: "Bangalore, India" },
+    { label: "Lives", value: "Boston, MA" },
+    { label: "Favorite trip", value: "Acadia National Park" },
+    { label: "Desk", value: "Builds PCs and mechanical keyboards, always retuning the setup" },
+    { label: "Reading", value: "One Piece. A whole wall of manga panels, one day at a time" },
+    { label: "Workshop", value: "3D printing whatever the desk needs next" },
+  ],
+  currentlyBuilding: [
+    "A synthetic IEP benchmark, so A-IEP can report accuracy instead of hoping",
+    "Course Delivery SMS: an 8-day, text-paced video course for InnovateUS",
+    "Public Voice, a no-login voice survey that asks one smart follow-up",
+    "arc-control-mcp, a 26-tool MCP server that lets agents drive the Arc browser",
+  ],
+};

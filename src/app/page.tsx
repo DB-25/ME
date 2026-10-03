@@ -1,27 +1,29 @@
-import { SmoothScroll } from "@/components/layout/SmoothScroll";
-import { Navigation } from "@/components/layout/Navigation";
-import { HeroSection } from "@/components/hero/HeroSection";
-import { CommandCenter } from "@/components/command/CommandCenter";
-import { StorySection } from "@/components/journey/StorySection";
-import { WorkSection } from "@/components/projects/WorkSection";
-import { StackSection } from "@/components/skills/StackSection";
-import { ImpactSection } from "@/components/impact/ImpactSection";
-import { Footer } from "@/components/layout/Footer";
+import { Hero } from "@/components/hero/Hero";
+import { Origin } from "@/components/sections/origin/Origin";
+import { Systems } from "@/components/sections/systems/Systems";
+import { WorkIndex } from "@/components/work/WorkIndex";
+import { Impact } from "@/components/sections/impact/Impact";
+import { Proof } from "@/components/sections/proof/Proof";
+import { Director } from "@/components/director/Director";
+import { OffDuty } from "@/components/sections/human/OffDuty";
+import { Contact } from "@/components/sections/contact/Contact";
 
+/**
+ * Every section renders <section id={chapter} data-chapter={chapter}>.
+ * The particle field reads those to decide its formation.
+ */
 export default function Home() {
   return (
-    <SmoothScroll>
-      <Navigation />
-
-      <main>
-        <HeroSection />
-        <CommandCenter />
-        <StorySection />
-        <WorkSection />
-        <StackSection />
-        <ImpactSection />
-        <Footer />
-      </main>
-    </SmoothScroll>
+    <>
+      <Hero />
+      <Origin />
+      <Systems />
+      <WorkIndex />
+      <Impact />
+      <Proof />
+      <Director />
+      <OffDuty />
+      <Contact />
+    </>
   );
 }

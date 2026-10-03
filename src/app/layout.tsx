@@ -1,63 +1,45 @@
-import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
-import { GrainOverlay } from "@/components/layout/GrainOverlay";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { profile } from "@/content";
+import { SmoothScroll } from "@/components/providers/SmoothScroll";
+import { SignalMount } from "@/components/signal/SignalMount";
+import { Chrome } from "@/components/chrome/Chrome";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const geist = Geist({ variable: "--font-geist", subsets: ["latin"], display: "swap" });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
+const instrument = Instrument_Serif({
+  variable: "--font-instrument",
   subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains",
-  subsets: ["latin"],
-  display: "swap",
-});
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://db25.dev";
+const TITLE = `${profile.name}, ${profile.title}`;
 
 export const metadata: Metadata = {
-  title: "Dhruv Kamalesh Kumar — Software Engineer",
-  description:
-    "Software engineer with 5+ years shipping production systems — from mobile apps with 20K+ daily users to AI platforms serving 500K+ people across 20+ government agencies. Explore my work through an AI command center.",
-  keywords: [
-    "Dhruv Kamalesh Kumar",
-    "Software Engineer",
-    "Gen AI Engineer",
-    "Distributed Systems",
-    "AWS",
-    "LLM",
-    "RAG",
-    "AWS Bedrock",
-    "Burnes Center",
-    "Northeastern University",
-  ],
-  authors: [{ name: "Dhruv Kamalesh Kumar" }],
-  openGraph: {
-    title: "Dhruv Kamalesh Kumar — Software Engineer",
-    description:
-      "5+ years shipping production software. Now building AI at scale — 500K+ people, 20+ agencies, 26 tools.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Dhruv Kamalesh Kumar — Software Engineer",
-    description: "Software that ships at scale.",
-  },
+  metadataBase: new URL(SITE_URL),
+  title: { default: TITLE, template: `%s | ${profile.shortName}` },
+  description: profile.oneLiner,
+  authors: [{ name: profile.name }],
+  openGraph: { title: TITLE, description: profile.oneLiner, type: "website", url: SITE_URL },
+  twitter: { card: "summary_large_image", title: TITLE, description: profile.oneLiner },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export const viewport: Viewport = { themeColor: "#060509", colorScheme: "dark" };
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
-    >
-      <body className="min-h-screen bg-background text-foreground">
-        {children}
-        <GrainOverlay />
+    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${instrument.variable}`}>
+      <body>
+        <SmoothScroll />
+        <SignalMount />
+        <Chrome />
+        <main id="main" className="relative z-10">
+          {children}
+        </main>
       </body>
     </html>
   );

@@ -1,0 +1,141 @@
+import type { Project } from "../types";
+import { SRC } from "../sources";
+
+// Featured: Public Voice and the mobile origin story.
+export const featuredMoreProjects: Project[] = [
+  {
+    slug: "public-voice",
+    name: "Public Voice",
+    tagline: "A voice survey that asks one smart follow-up, then lets you go.",
+    year: "2026",
+    role: "Technical lead",
+    org: "InnovateUS",
+    featured: true,
+    category: "gov-ai",
+    accent: "#7C5CFF",
+    problem:
+      "After-course surveys return six-word answers. Interviews are rich but too slow to run after every course. InnovateUS needed something in between.",
+    approach: [
+      "A no-login link opens a short survey. People answer by voice or text, and every question can be skipped.",
+      "When an answer is vague, an AI asks one targeted follow-up, never more than two. Then it extracts the task, the workflow, the outcome and the public benefit.",
+      "Privacy is the product: no stored audio, PII redaction in the backend, and results reviewed at the cohort level.",
+      "It grew from a voice survey prototype I built in July 2025 on OpenAI's realtime API. I set the technical direction while two teammates did most of the build.",
+    ],
+    architecture: {
+      nodes: [
+        "Participant browser",
+        "Next.js proxy",
+        "FastAPI",
+        "PostgreSQL",
+        "OpenAI voice and judgment",
+        "PII redaction",
+        "Admin dashboard",
+      ],
+      flow: "The browser only talks to Next.js, which proxies to FastAPI. The backend redacts PII, asks the model whether an answer is specific enough, stores structured extractions, and feeds a cohort dashboard with exports.",
+    },
+    outcomes: [
+      {
+        value: "3 min",
+        numeric: 3,
+        suffix: " min",
+        label: "To finish a survey",
+        context: "Design target from the README, not a measured median.",
+        source: SRC.publicVoiceReadme,
+        projectSlug: "public-voice",
+      },
+      {
+        value: "2",
+        numeric: 2,
+        label: "Languages",
+        context: "English and Spanish.",
+        source: SRC.publicVoiceReadme,
+        projectSlug: "public-voice",
+      },
+    ],
+    stack: [
+      "Next.js 16",
+      "React 19",
+      "Tailwind CSS",
+      "FastAPI",
+      "PostgreSQL",
+      "SQLAlchemy",
+      "OpenAI",
+      "Render",
+    ],
+    links: [{ label: "publicvoice.innovate-us.org", href: "https://publicvoice.innovate-us.org", kind: "live" }],
+    media: [
+      {
+        src: "/media/public-voice/voice-answer.jpg",
+        alt: "Public Voice question screen with a voice answer being recorded",
+        kind: "image",
+        width: 1100,
+        height: 700,
+        caption: "Answer by voice or by typing.",
+      },
+      {
+        src: "/media/public-voice/what-we-heard.jpg",
+        alt: "Public Voice thank-you screen summarizing what we heard",
+        kind: "image",
+        width: 1100,
+        height: 700,
+        caption: "The participant sees what we heard before they leave.",
+      },
+    ],
+  },
+  {
+    slug: "acharya-erp",
+    name: "Acharya ERP",
+    tagline: "Where the shipping started: one Flutter app, thousands of students.",
+    year: "2021 to 2023",
+    role: "Software Engineer (Flutter)",
+    org: "Acharya Institutes",
+    featured: true,
+    category: "mobile",
+    accent: "#F0997B",
+    problem:
+      "Students and staff at Acharya Institutes needed attendance, marks and payments in one place. The app's store rating had sunk to 1.2 stars.",
+    approach: [
+      "I built a cross-platform Flutter app and owned it from design to deployment.",
+      "Attendance, internal assessment marks and payments (via Razorpay) run on one codebase for Android and iOS.",
+      "I trained interns to take over the codebase when I moved on.",
+    ],
+    outcomes: [
+      {
+        value: "15,000+",
+        numeric: 15000,
+        suffix: "+",
+        label: "Users",
+        context: "From the project's analytics slide, which says almost 15,000. The same slide shows about 2,000 more on iOS. Total users, not daily.",
+        source: SRC.acharyaUsers,
+        projectSlug: "acharya-erp",
+      },
+      {
+        value: "1.2 to 4.5",
+        label: "App store rating",
+        context: "Self-reported in my resume.",
+        source: SRC.resume,
+        projectSlug: "acharya-erp",
+      },
+    ],
+    stack: ["Flutter", "Dart", "Firebase", "REST APIs", "Razorpay"],
+    links: [],
+    media: [
+      {
+        src: "/photos/acharya-erp.jpg",
+        alt: "Acharya ERP app screens for attendance and internal assessment marks",
+        kind: "image",
+        width: 1400,
+        height: 787,
+        caption: "Attendance and marks screens.",
+      },
+      {
+        src: "/photos/acharya-users.jpg",
+        alt: "Analytics slide showing the Acharya ERP user base by country",
+        kind: "image",
+        width: 1400,
+        height: 787,
+        caption: "The analytics behind the user count.",
+      },
+    ],
+  },
+];
