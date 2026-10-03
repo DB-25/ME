@@ -18,14 +18,15 @@ const instrument = Instrument_Serif({
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://db25.dev";
 const TITLE = `${profile.name}, ${profile.title}`;
+const OG_IMAGE = { url: "/og.png", width: 1200, height: 630, alt: TITLE };
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: TITLE, template: `%s | ${profile.shortName}` },
   description: profile.oneLiner,
   authors: [{ name: profile.name }],
-  openGraph: { title: TITLE, description: profile.oneLiner, type: "website", url: SITE_URL },
-  twitter: { card: "summary_large_image", title: TITLE, description: profile.oneLiner },
+  openGraph: { title: TITLE, description: profile.oneLiner, type: "website", url: SITE_URL, images: [OG_IMAGE] },
+  twitter: { card: "summary_large_image", title: TITLE, description: profile.oneLiner, images: [OG_IMAGE.url] },
 };
 
 export const viewport: Viewport = { themeColor: "#060509", colorScheme: "dark" };

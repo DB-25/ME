@@ -52,6 +52,7 @@ export function Preloader() {
     const finishReady = () => signalStore.getState().set({ ready: true });
 
     if (alreadySeen()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sessionStorage is client-only, so the skip decision can only be made after mount
       setMounted(false);
       finishReady();
       return;

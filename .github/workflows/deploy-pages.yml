@@ -30,6 +30,7 @@ jobs:
           # BASE_PATH: "" for a user site or custom domain, "/ME" for DB-25.github.io/ME.
           NEXT_PUBLIC_BASE_PATH: ${{ vars.BASE_PATH }}
           NEXT_PUBLIC_DIRECTOR_URL: ${{ vars.DIRECTOR_URL }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: out

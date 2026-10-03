@@ -29,6 +29,7 @@ export function DirectorHud({ state, onCut, showAnotherTake, onAnotherTake }: Pr
   // Mount the overlay, then slide the bars in on the next frame; reverse on exit.
   useEffect(() => {
     if (running) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- matchMedia is client-only; staged mount/exit is intentional
       setStill(prefersReducedMotion());
       setMounted(true);
       const raf = requestAnimationFrame(() => requestAnimationFrame(() => setOn(true)));

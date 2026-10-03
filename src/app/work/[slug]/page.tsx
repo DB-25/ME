@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { profile, projects } from "@/content";
 import { CaseStudy } from "@/components/work/case/CaseStudy";
-import { assetUrl } from "@/components/work/asset";
 
 type Params = { slug: string };
 
@@ -18,10 +17,10 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!project) return {};
   const title = `${project.name}: ${project.tagline}`;
   const image = project.media.find((m) => m.kind === "image");
-  // Projects without a screenshot fall back to the site-wide card from opengraph-image.tsx.
+  // Projects without a screenshot fall back to the site-wide card (public/og.png).
   const images = image
-    ? [{ url: assetUrl(image.src), alt: image.alt }]
-    : [{ url: assetUrl("/opengraph-image"), width: 1200, height: 630, alt: `${profile.name}, ${profile.title}` }];
+    ? [{ url: image.src, alt: image.alt }]
+    : [{ url: "/og.png", width: 1200, height: 630, alt: `${profile.name}, ${profile.title}` }];
   return {
     title: project.name,
     description: project.tagline,
