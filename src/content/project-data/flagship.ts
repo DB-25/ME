@@ -7,6 +7,7 @@ const BURNES = "The Burnes Center for Social Change";
 export const flagshipProjects: Project[] = [
   {
     slug: "a-iep",
+    film: { src: "/films/a-iep.mp4", poster: "/films/a-iep.jpg", title: "A-IEP launch film" },
     name: "A-IEP",
     tagline: "A special-education plan, in words a parent actually uses.",
     year: "2025 to now",

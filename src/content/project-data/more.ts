@@ -137,6 +137,7 @@ export const moreProjects: Project[] = [
   },
   {
     slug: "arc-control-mcp",
+    film: { src: "/films/arc-control-mcp.mp4", poster: "/films/arc-control-mcp.jpg", title: "arc-control-mcp launch film" },
     name: "arc-control-mcp",
     tagline: "An MCP server that lets agents drive the Arc browser.",
     year: "2026",
