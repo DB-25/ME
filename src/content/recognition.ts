@@ -6,7 +6,12 @@ export const recognition: Recognition[] = [
     issuer: "Commonwealth of Massachusetts, signed by Gov. Maura Healey and Lt. Gov. Kimberley Driscoll",
     year: "2024",
     kind: "award",
-    href: "/photos/governors-citation.jpg",
+    image: {
+      src: "/photos/governors-citation.jpg",
+      alt: "The Governor's Citation from the Commonwealth of Massachusetts awarded to Dhruv Kamalesh Kumar, signed by Governor Maura Healey and Lieutenant Governor Kimberley Driscoll.",
+      width: 1600,
+      height: 1236,
+    },
     note: "For developing and iterating on AI-based solutions to advance state services. Dated June 26, 2024.",
   },
   {
@@ -128,7 +133,12 @@ export const recognition: Recognition[] = [
     issuer: "AWS, Boston Seaport",
     year: "2024",
     kind: "talk",
-    href: "/photos/aws-talk.jpg",
+    image: {
+      src: "/photos/aws-talk.jpg",
+      alt: "Dhruv presenting at a podium beside a projected slide titled This is my Architecture, MassHealth Helper, at the AWS Boston Seaport office.",
+      width: 2000,
+      height: 1305,
+    },
     note: "I walked through the MassHealth Helper design using the Well-Architected principles at the AWS Boston Seaport office on September 6, 2024, alongside the AWS account team.",
   },
 ];

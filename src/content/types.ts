@@ -11,7 +11,20 @@ export type Metric = {
 };
 
 /** A short launch film for a project (rendered with /brag, encoded by scripts/encode-film.sh). */
-export type Film = { src: string; poster: string; title: string };
+export type Film = {
+  src: string;
+  /** Raw frame from the film. Prefer `thumb` wherever a designed still is shown. */
+  poster: string;
+  title: string;
+  /** Designed 16:9 key art (1600x900) from scripts/thumbs: work list, cursor preview, case poster, OG. */
+  thumb?: string;
+  /** Designed 4:3 key art (1200x900) for mobile cards. */
+  thumb43?: string;
+  /** 9:16 cut for phones. */
+  vertical?: { src: string; poster: string };
+  /** Plain text: beats with timecodes, on-screen text and a short visual description. */
+  transcript?: string;
+};
 
 export type Media = {
   src: string;
@@ -59,8 +72,10 @@ export type Recognition = {
   issuer: string;
   year: string;
   kind: "award" | "press" | "talk";
+  /** External source. Local evidence (photos) goes in `image` and opens in place. */
   href?: string;
   note?: string;
+  image?: { src: string; alt: string; width: number; height: number };
 };
 
 export type StackGroup = { name: string; items: string[] };

@@ -1,5 +1,8 @@
+"use client";
+
 import type { Recognition } from "@/content";
 import { assetUrl } from "@/lib/asset";
+import { EvidenceThumb } from "@/components/ui/Lightbox";
 import { Scrim } from "../Scrim";
 
 const KIND_LABEL: Record<Recognition["kind"], string> = { award: "Award", press: "Press", talk: "Talk" };
@@ -22,6 +25,15 @@ export function PressIndex({ items }: { items: Recognition[] }) {
               <div className="col-span-12 md:col-span-7">
                 <p className="group-hover:text-accent-hot group-focus-visible:text-accent-hot text-[clamp(1.0625rem,1.5vw,1.375rem)] leading-[1.3] tracking-[-0.02em] text-ink transition-colors duration-300">{r.title}</p>
                 {r.note && <p className="mt-2 max-w-[34rem] text-[0.9375rem] leading-[1.5] text-ink/70">{r.note}</p>}
+                {r.image && (
+                  <EvidenceThumb
+                    image={r.image}
+                    title={r.title}
+                    meta={`${r.issuer} · ${r.year}`}
+                    note={r.note}
+                    className="mt-4 aspect-[16/10] w-full max-w-[20rem] [text-shadow:none]"
+                  />
+                )}
               </div>
               {r.href && (
                 <span aria-hidden className="label col-span-1 hidden justify-self-end !text-[14px] md:block">

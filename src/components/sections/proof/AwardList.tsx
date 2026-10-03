@@ -1,5 +1,8 @@
+"use client";
+
 import type { Recognition } from "@/content";
 import { assetUrl } from "@/lib/asset";
+import { EvidenceThumb } from "@/components/ui/Lightbox";
 import { Scrim } from "../Scrim";
 
 const LEGIBLE = "[text-shadow:0_0_24px_rgb(6_5_9/0.9),0_0_3px_rgb(6_5_9/0.5)]";
@@ -43,6 +46,15 @@ function Row({ item }: { item: Recognition }) {
                 <p className={`col-span-12 mt-3 max-w-[34rem] text-[1rem] leading-[1.55] text-ink/80 md:col-span-8 md:mt-0 ${LEGIBLE}`}>
                   {item.note}
                 </p>
+              )}
+              {item.image && (
+                <EvidenceThumb
+                  image={item.image}
+                  title={item.title}
+                  meta={`${item.issuer} · ${item.year}`}
+                  note={item.note}
+                  className="col-span-12 mt-5 aspect-[16/10] w-full max-w-[22rem] md:col-span-6 md:col-start-5"
+                />
               )}
             </div>
           </div>
