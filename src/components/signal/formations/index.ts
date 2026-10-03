@@ -3,23 +3,20 @@ import { constellationFormation } from "./constellation";
 import { crosshairFormation } from "./crosshair";
 import { crowdFormation } from "./crowd";
 import { globeFormation } from "./globe";
-import { monogramFormation } from "./monogram";
 import { networkFormation } from "./network";
 import { noiseFormation } from "./noise";
-import { loadPortrait } from "./portrait";
 import { gauss, mulberry32, shufflePoints } from "./rng";
+import { signalFormation } from "./signal";
 import { singularityFormation } from "./singularity";
 
 export { sampleSvg, sampleSvgPath } from "../fromSvg";
+export { signalAttributes, signalLayout, signalRotation } from "./signal";
 
 type Generator = (count: number) => Float32Array;
 
-/** Formations that load asynchronously (images). Until ready they show the noise cloud. */
-const ASYNC_FORMATIONS: FormationId[] = ["portrait"];
-
-const GENERATORS: Record<Exclude<FormationId, "portrait">, Generator> = {
+const GENERATORS: Record<FormationId, Generator> = {
   noise: noiseFormation,
-  monogram: monogramFormation,
+  signal: signalFormation,
   globe: globeFormation,
   network: networkFormation,
   crowd: crowdFormation,
@@ -29,65 +26,23 @@ const GENERATORS: Record<Exclude<FormationId, "portrait">, Generator> = {
 };
 
 /** Idle warm-up order: what the user meets first is generated first. */
-const WARM_ORDER: FormationId[] = ["noise", "monogram", "portrait", "globe", "network", "crowd", "constellation", "crosshair", "singularity"];
+const WARM_ORDER: FormationId[] = ["noise", "signal", "globe", "network", "crowd", "constellation", "crosshair", "singularity"];
 
 const cache = new Map<string, Float32Array>();
 
-type AsyncEntry = { positions: Float32Array; tint: Float32Array; cell: Float32Array; loading: boolean };
-const asyncCache = new Map<string, AsyncEntry>();
-const readyListeners = new Set<(id: FormationId) => void>();
-
-/** Subscribe to async formations finishing (the field re-uploads the buffers). */
-export function onFormationReady(cb: (id: FormationId) => void): () => void {
-  readyListeners.add(cb);
-  return () => readyListeners.delete(cb);
-}
-
-/** Per-particle tint (rgb + brightness) for the portrait. Before it loads: plain ultraviolet. */
-export function getPortraitTint(count: number): Float32Array {
-  return ensureAsync("portrait", count).tint;
-}
-
-/** Per-particle grid cell size (1 = torso, smaller = finer face grid). */
-export function getPortraitCell(count: number): Float32Array {
-  return ensureAsync("portrait", count).cell;
-}
-
-function ensureAsync(id: FormationId, count: number): AsyncEntry {
-  const key = `${id}:${count}`;
-  const hit = asyncCache.get(key);
-  if (hit) return hit;
-  const tint = new Float32Array(count * 4);
-  for (let i = 0; i < count; i++) {
-    tint[i * 4] = 0.545;
-    tint[i * 4 + 1] = 0.482;
-    tint[i * 4 + 2] = 1;
-    tint[i * 4 + 3] = 1;
-  }
-  const cell = new Float32Array(count).fill(1);
-  const entry: AsyncEntry = { cell, positions: new Float32Array(getFormation("noise", count)), tint, loading: true };
-  asyncCache.set(key, entry);
-  loadPortrait(count).then((data) => {
-    entry.loading = false;
-    if (!data) return;
-    entry.positions.set(data.positions);
-    entry.tint.set(data.tint);
-    entry.cell.set(data.cell);
-    readyListeners.forEach((cb) => cb(id));
-  });
-  return entry;
-}
+/** Formations whose particle index carries meaning (line / slot) must keep their order. */
+const UNSHUFFLED: FormationId[] = ["signal"];
 
 /**
  * Cached formation positions. Generated once per (id, count). Points are
  * shuffled so any prefix is an unbiased subset (used for adaptive quality).
  */
 export function getFormation(id: FormationId, count: number): Float32Array {
-  if (ASYNC_FORMATIONS.includes(id)) return ensureAsync(id, count).positions;
   const key = `${id}:${count}`;
   const hit = cache.get(key);
   if (hit) return hit;
-  const made = shufflePoints(GENERATORS[id as Exclude<FormationId, "portrait">](count), mulberry32(count + id.length * 7919));
+  const raw = GENERATORS[id](count);
+  const made = UNSHUFFLED.includes(id) ? raw : shufflePoints(raw, mulberry32(count + id.length * 7919));
   cache.set(key, made);
   return made;
 }

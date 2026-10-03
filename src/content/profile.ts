@@ -8,7 +8,7 @@ export const profile: Profile = {
   employer: "The Burnes Center for Social Change, Northeastern University",
   location: "Boston, MA",
   origin: "Bangalore, India",
-  oneLiner: "I build AI that governments and families actually use, from prototype to production.",
+  oneLiner: "I ship AI products end to end, from first prototype to thousands of real users.",
   manifesto: [
     "Software is finished when someone who is not an engineer can rely on it.",
     "I show people the prompts, the pipeline and the numbers, then let them argue with me.",

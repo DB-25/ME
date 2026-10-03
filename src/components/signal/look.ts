@@ -17,7 +17,7 @@ export type ChapterLook = {
  * Everything interpolates with the scrubbed morph.
  */
 export const CHAPTER_LOOK: Record<ChapterId, ChapterLook> = {
-  hero: { brightness: 1, x: 0.12, y: -0.1, z: 0, scale: 1.3 },
+  hero: { brightness: 0.9, x: 0, y: 0.03, z: 0, scale: 1 },
   origin: { brightness: 0.85, x: 0.22, y: 0, z: 0, scale: 0.85 },
   systems: { brightness: 0.9, x: 0, y: 0, z: 0, scale: 1 },
   work: { brightness: 0.35, x: 0, y: 0, z: -3, scale: 1.25 },
@@ -33,7 +33,7 @@ export const CHAPTER_LOOK: Record<ChapterId, ChapterLook> = {
  * so the formation sits in the gaps between text blocks instead of under the body copy.
  */
 export const CHAPTER_LOOK_MOBILE: Record<ChapterId, ChapterLook> = {
-  hero: { brightness: 0.75, x: 0, y: -0.05, z: 0, scale: 0.85 },
+  hero: { brightness: 0.85, x: 0, y: 0, z: 0, scale: 1 },
   origin: { brightness: 0.4, x: 0, y: 0, z: 0, scale: 0.75 },
   systems: { brightness: 0.4, x: 0, y: 0, z: 0, scale: 0.75 },
   work: { brightness: 0.3, x: 0, y: 0, z: -3, scale: 1 },
@@ -51,13 +51,12 @@ export const NO_CHAPTER_LOOK: ChapterLook = { brightness: 0.28, x: 0, y: 0, z: -
  * size: sprite size multiplier; alpha: per-point opacity. Dense formations get lower alpha. */
 export const FORMATION_LOOK: Record<FormationId, { size: number; alpha: number; fog: number; fit: number }> = {
   noise: { size: 1, alpha: 0.2, fog: 0.09, fit: 3.2 },
-  monogram: { size: 0.9, alpha: 0.28, fog: 0.09, fit: 1.9 },
+  signal: { size: 0.31, alpha: 0.8, fog: 0.05, fit: 1.2 },
   globe: { size: 0.85, alpha: 0.26, fog: 0.09, fit: 2.15 },
   network: { size: 0.85, alpha: 0.32, fog: 0.09, fit: 2.85 },
   crowd: { size: 0.55, alpha: 0.6, fog: 0.3, fit: 3.0 },
   constellation: { size: 0.85, alpha: 0.32, fog: 0.09, fit: 2.6 },
   crosshair: { size: 0.85, alpha: 0.3, fog: 0.09, fit: 1.8 },
-  portrait: { size: 0.36, alpha: 0.85, fog: 0.09, fit: 1.6 },
   singularity: { size: 0.75, alpha: 0.08, fog: 0.09, fit: 1.1 },
 };
 

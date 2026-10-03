@@ -10,7 +10,7 @@ import { useChapterScroll } from "./useChapterScroll";
 
 const SignalCanvas = dynamic(() => import("./SignalCanvas"), { ssr: false });
 
-const COUNT_DESKTOP = 60_000;
+const COUNT_DESKTOP = 96_000;
 const COUNT_MOBILE = 18_000;
 const LOW_CORES = 4;
 

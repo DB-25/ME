@@ -51,8 +51,7 @@ attribute vec3 aB;
 attribute vec3 aC;
 attribute vec3 aD;
 attribute vec4 aRand; // x seed, y size jitter, z heat, w phase
-attribute float aCell; // portrait grid cell size (1 = torso, <1 = finer face grid)
-attribute vec4 aTint; // portrait colour (rgb) and halftone tone (a)
+attribute vec4 aSig;  // x u along line, y line (0..1), zw gaussian jitter
 
 uniform float uMorph;
 uniform float uOverride;
@@ -69,34 +68,77 @@ uniform float uScale;
 uniform float uSize;
 uniform float uPixelRatio;
 uniform vec3 uOffset;
-uniform float uTintA;
-uniform float uTintB;
 uniform float uFog;
+// SIGNAL field: which morph ends are the animated waveform field, and its layout.
+uniform float uSigA;
+uniform float uSigB;
+uniform vec4 uSigDims;   // width, depth, wavelength, signal amplitude
+uniform vec4 uSigParam;  // noise amplitude, phase per line
+uniform mat3 uSigRot;
 
-varying vec4 vTint;
-varying float vTintW;
-varying float vCell;
 varying float vHeat;
 varying float vSpark;
 varying float vDepth;
 varying float vNear;
+varying vec4 vSig; // x: signal weight, y: noise->signal (weighted), z: crest (weighted), w: edge fade (weighted)
 
 ${SNOISE}
 
 // Per-particle staggered progress. Returns x = eased, y = raw (for turbulence bump).
-vec2 stagger(float m, float seed){
-  float raw = clamp(m * (1. + uStagger) - seed * uStagger, 0., 1.);
+vec2 stagger(float m, float key){
+  float raw = clamp(m * (1. + uStagger) - key * uStagger, 0., 1.);
   return vec2(smoothstep(0., 1., raw), raw);
+}
+
+// The animated waveform field. info = (noise->signal weight, crest, edge fade).
+vec3 signalPos(vec4 sg, float t, out vec3 info){
+  float u = sg.x;
+  float v = sg.y;
+  float x = (u - 0.5) * uSigDims.x;
+  float z = (v - 0.5) * uSigDims.y;
+  // Resolve over the middle third.
+  float s = smoothstep(0.3, 0.68, u);
+
+  // Noise: three octaves, boiling in time, decorrelated between lines at the fine scale.
+  float n = snoise(vec3(x * 1.1, z * 0.6, t * 0.30)) * 0.55
+          + snoise(vec3(x * 3.4, z * 2.5, t * 0.62 + 7.)) * 0.30
+          + snoise(vec3(x * 9.0, z * 9.0, t * 1.25 + 13.)) * 0.20;
+
+  // Signal: waves travelling left to right, phase-aligned so crests form regular diagonal ridges.
+  float k = 6.2831853 / uSigDims.z;
+  float ph = k * x - t * 0.85 + v * uSigParam.y;
+  float swell = 0.86 + 0.14 * sin(x * 0.35 - t * 0.18 + v * 2.0);
+  float wave = sin(ph) + 0.12 * sin(ph * 0.5 + t * 0.2 + v * 4.);
+  float crest = smoothstep(0.55, 1., wave);
+
+  float scatter = pow(1. - s, 1.5);
+  float h = mix(n * uSigParam.x, wave * uSigDims.w * swell, s);
+  vec3 local = vec3(x + sg.z * scatter * 0.08, h + sg.w * scatter * 0.12, z);
+
+  float edge = smoothstep(0.08, 0.3, u) * smoothstep(0.94, 0.72, u);
+  float depthFade = pow(max(sin(3.14159265 * v), 0.), 0.55);
+  info = vec3(s, crest * s, edge * depthFade);
+  return uSigRot * local;
 }
 
 void main(){
   float seed = aRand.x;
-  vec2 pm = stagger(uMorph, seed);
+  // Into / out of the signal field the morph sweeps left to right along the lines.
+  float keyM = mix(seed, aSig.x, 0.8 * max(uSigA, uSigB));
+  vec2 pm = stagger(uMorph, keyM);
   vec2 po = stagger(uOverride, seed);
   vec2 pc = stagger(uOverrideMix, seed);
-  float tintW = mix(uTintA, uTintB, pm.x) * (1. - po.x);
+  float sigW = mix(uSigA, uSigB, pm.x) * (1. - po.x);
 
-  vec3 base = mix(position, aB, pm.x);
+  vec3 pa = position;
+  vec3 pb = aB;
+  vec3 infoA = vec3(0.);
+  vec3 infoB = vec3(0.);
+  if (uSigA > 0.5) pa = signalPos(aSig, uTime, infoA);
+  if (uSigB > 0.5) pb = signalPos(aSig, uTime, infoB);
+  vec3 info = mix(infoA * uSigA, infoB * uSigB, pm.x) * (1. - po.x);
+
+  vec3 base = mix(pa, pb, pm.x);
   vec3 over = mix(aC, aD, pc.x);
   vec3 p = mix(base, over, po.x);
   p *= uSpread;
@@ -110,17 +152,17 @@ void main(){
     p += curl * amp;
   }
 
-  // Constant breathing drift.
+  // Constant breathing drift (hairlines must stay hairlines, so it fades out on the signal field).
   float t = uTime;
   float ph = aRand.w * 6.2831853;
-  // The halftone portrait must hold its grid: breathing drift all but stops while it is formed.
-  p += uTurb * 0.022 * (1. - 0.92 * tintW) * vec3(sin(t * 0.55 + ph), sin(t * 0.43 + ph * 2.3), cos(t * 0.37 + ph * 1.7));
+  p += uTurb * 0.022 * (1. - 0.95 * sigW) * vec3(sin(t * 0.55 + ph), sin(t * 0.43 + ph * 2.3), cos(t * 0.37 + ph * 1.7));
   p += uOffset;
 
   vec4 mv = modelViewMatrix * vec4(p, 1.);
   vec4 clip = projectionMatrix * mv;
 
-  // Pointer repulsion in screen space: push away from the cursor, spring back as it leaves.
+  // Pointer: push away from the cursor in screen space (spring back as it leaves). On the signal
+  // field the cursor also sends a soft ripple through the lines.
   float near = 0.;
   if (uPointerStrength > 0.001) {
     vec2 ndc = clip.xy / clip.w;
@@ -129,22 +171,22 @@ void main(){
     float f = 1. - smoothstep(0., 0.42, dist);
     near = f;
     vec2 dir = d / max(dist, 0.0001);
-    vec2 push = dir * f * f * uPointerStrength;
+    float strength = uPointerStrength * (1. - 0.45 * sigW);
+    vec2 push = dir * f * f * strength;
+    push.y += sigW * f * f * sin(dist * 24. - uTime * 3.2) * uPointerStrength * 0.1;
     clip.xy += vec2(push.x / uAspect, push.y) * clip.w;
   }
   gl_Position = clip;
 
   float dist = -mv.z;
-  float spark = step(0.988, aRand.z);
-  float sizeMul = mix(1., mix(0.35, 1., aTint.a) * aCell, tintW);
-  gl_PointSize = uSize * sizeMul * mix(aRand.y, 1., tintW) * (1. + spark * 0.25) * uPixelRatio * uScale / max(dist, 0.1);
+  float spark = mix(step(0.988, aRand.z), step(0.9994, aRand.z), sigW);
+  float px = uSize * aRand.y * (1. + spark * 0.25) * uPixelRatio * uScale / max(dist, 0.1);
+  gl_PointSize = max(px, mix(0., 1.05, sigW) * uPixelRatio);
 
-  vTint = vec4(aTint.rgb, aTint.a);
-  vCell = mix(1., aCell, tintW);
-  vTintW = tintW;
   vHeat = aRand.z;
   vSpark = spark;
   vNear = near;
+  vSig = vec4(sigW, info);
   vDepth = clamp(1.25 - (dist - 5.5) * uFog, 0.1, 1.25);
 }
 `;
@@ -155,36 +197,45 @@ uniform float uBrightness;
 uniform vec3 uHueColor;
 uniform float uHueMix;
 
-varying vec4 vTint;
-varying float vTintW;
-varying float vCell;
 varying float vHeat;
 varying float vSpark;
 varying float vDepth;
 varying float vNear;
+varying vec4 vSig;
 
 const vec3 DEEP = vec3(0.3569, 0.2784, 0.8784);  // #5B47E0
 const vec3 UV = vec3(0.5451, 0.4824, 1.0);       // #8B7BFF
 const vec3 HOT = vec3(0.7882, 0.7451, 1.0);      // #C9BEFF
 const vec3 SAFFRON = vec3(1.0, 0.6627, 0.3020);  // #FFA94D
+const vec3 NOISE_VIOLET = vec3(0.36, 0.28, 0.84);
 
 void main(){
   vec2 c = gl_PointCoord - 0.5;
   float d = length(c) * 2.;
   if (d > 1.) discard;
-  float core = exp(-d * d * 10.);
-  float halo = exp(-d * d * 3.) * 0.45;
+  float sigW = vSig.x;
+  // Tiny hairline sprites need a flatter profile than the soft glows of the other formations.
+  float core = exp(-d * d * mix(10., 3.2, sigW));
+  float halo = exp(-d * d * 3.) * 0.45 * (1. - sigW);
   float a = (core + halo) * uAlpha * uBrightness * vDepth;
   a *= 1. + vNear * 0.6;
 
   float heat = clamp(smoothstep(0.6, 1., vHeat) * 0.55 + core * 0.4 + vNear * 0.3, 0., 1.);
   vec3 col = heat < 0.5 ? mix(DEEP, UV, heat * 2.) : mix(UV, HOT, (heat - 0.5) * 2.);
+
+  // Waveform field: deep violet noise, ultraviolet signal, hot core only on crests.
+  float s = vSig.y / max(sigW, 0.001);
+  float crest = vSig.z / max(sigW, 0.001);
+  float fade = vSig.w / max(sigW, 0.001);
+  vec3 sigCol = mix(NOISE_VIOLET, UV * 0.92, s);
+  sigCol = mix(sigCol, HOT, crest * crest * 0.9);
+  col = mix(col, sigCol, sigW);
+  a *= mix(1., fade * mix(0.7, 1., s) * (0.5 + 1.0 * crest), sigW);
+
   col = mix(col, SAFFRON, vSpark * (1. - uHueMix));
-  col = mix(col, vTint.rgb, vTintW);
-  a *= mix(1., (2.3 * pow(vTint.a, 1.2) + 0.03) / pow(vCell, 1.3), vTintW);
   vec3 tint = uHueColor * (0.55 + 0.6 * core);
   col = mix(col, tint, uHueMix * 0.85);
-  a *= 1. + vSpark * 0.8;
+  a *= 1. + vSpark * 1.4;
 
   gl_FragColor = vec4(col, a);
 }

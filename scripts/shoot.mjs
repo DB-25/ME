@@ -56,7 +56,7 @@ page.on("pageerror", (e) => console.log("[pageerror]", e.message));
 const sep = base.includes("?") ? "&" : "?";
 await page.goto(`${base}${sep}fps&noadapt${args.intro ? "&introhold" : ""}`, { waitUntil: "load" });
 if (args.intro) {
-  // Capture the preloader hold (noise converging into the monogram) before ready/timeout fires.
+  // Capture the preloader hold (dim noise) before ready/timeout fires.
   await page.waitForTimeout(Number(args.intro));
   await page.screenshot({ path: `${OUT}/${name}-intro.png` });
   await page.evaluate(() => window.__signal?.getState().set({ ready: true }));
@@ -85,6 +85,12 @@ for (const id of chapters) {
   await page.waitForTimeout(wait);
   const st = await page.evaluate(() => ({ s: window.__signal?.getState(), fps: window.__signalFps }));
   console.log(id, "store:", st.s?.chapter, st.s?.morph?.toFixed(2), "fps:", st.fps);
+  if (args.pair && id === only?.[0]) {
+    // Two frames ~1s apart (real time) to confirm the field animates.
+    await page.screenshot({ path: `${OUT}/${name}-${id}-t0.png` });
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: `${OUT}/${name}-${id}-t1.png` });
+  }
   await page.screenshot({ path: `${OUT}/${name}-${id}.png`, ...(args.clip ? { clip: Object.fromEntries(String(args.clip).split(",").map((v, i) => [["x", "y", "width", "height"][i], Number(v)])) } : {}) });
 }
 

@@ -15,9 +15,8 @@ const PARALLAX = 0.45;
 const BLOOM_BASE = 0.65;
 
 /** Slow idle orbit plus mouse parallax. Nothing allocates per frame. */
-/** The hero halftone portrait only tolerates a few degrees of orbit; other chapters get the full sweep. */
-const HERO_ORBIT_SCALE = 0.4;
-const HERO_BLOOM_SCALE = 0.35;
+/** The signal field wants crisp hairlines: bloom stays low while it is on screen. */
+const HERO_BLOOM_SCALE = 0.4;
 
 function CameraRig({ reducedMotion, coarse, bloom }: { reducedMotion: boolean; coarse: boolean; bloom: React.RefObject<BloomEffect | null> }) {
   const camera = useThree((s) => s.camera);
@@ -36,16 +35,15 @@ function CameraRig({ reducedMotion, coarse, bloom }: { reducedMotion: boolean; c
     const heroTarget = sig.chapter === "hero" ? 1 : 0;
     hero.w += (heroTarget - hero.w) * Math.min(1, Math.min(delta, 0.25) * 4);
     if (bloom.current) bloom.current.intensity = BLOOM_BASE * (1 - (1 - HERO_BLOOM_SCALE) * hero.w);
-    const orbit = 1 - (1 - HERO_ORBIT_SCALE) * hero.w;
     const t = frame.clock.elapsedTime;
     const dist = camera.position.z;
     const k = Math.min(1, Math.min(delta, 0.25) * 3);
     pointer.sx += (pointer.x - pointer.sx) * k;
     pointer.sy += (pointer.y - pointer.sy) * k;
-    const yaw = (Math.sin(t * ORBIT_SPEED) * ORBIT_YAW + pointer.sx * 0.12) * orbit;
-    const pitch = (Math.sin(t * ORBIT_SPEED * 0.7 + 1.3) * ORBIT_PITCH + pointer.sy * 0.06) * orbit;
-    camera.position.x = Math.sin(yaw) * dist + pointer.sx * PARALLAX * 0.3 * orbit;
-    camera.position.y = Math.sin(pitch) * dist + pointer.sy * PARALLAX * 0.3 * orbit;
+    const yaw = (Math.sin(t * ORBIT_SPEED) * ORBIT_YAW + pointer.sx * 0.12);
+    const pitch = (Math.sin(t * ORBIT_SPEED * 0.7 + 1.3) * ORBIT_PITCH + pointer.sy * 0.06);
+    camera.position.x = Math.sin(yaw) * dist + pointer.sx * PARALLAX * 0.3;
+    camera.position.y = Math.sin(pitch) * dist + pointer.sy * PARALLAX * 0.3;
     camera.lookAt(0, 0, 0);
   });
   void state;

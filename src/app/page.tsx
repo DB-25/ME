@@ -16,10 +16,10 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <Impact />
+      <WorkIndex />
       <Origin />
       <Systems />
-      <WorkIndex />
-      <Impact />
       <Proof />
       <Director />
       <OffDuty />

@@ -71,7 +71,7 @@ const end: Step = { act: { name: "end_scene", args: {} } };
 function script(intent: Intent, matched: boolean, infra: boolean): Step[] {
   const sandbox = metric(/state employees/i) ?? "44,000+";
   const languages = metric(/languages/i) ?? "4";
-  const acharya = metric(/first big app/i) ?? "15,000+";
+  const acharya = metric(/first app/i) ?? "20,000+";
 
   switch (intent) {
     case "hiring":
@@ -124,7 +124,7 @@ function script(intent: Intent, matched: boolean, infra: boolean): Step[] {
       return [
         say("A designer. Worth knowing the engineer holds the stylus too."),
         go("hero"),
-        form("monogram"),
+        form("signal"),
         say("This page is one field of particles that rearranges itself per chapter."),
         draw("bezier", "a curve, handles showing"),
         say("The shapes you just watched are SVG, sampled into particles."),
@@ -183,7 +183,7 @@ function script(intent: Intent, matched: boolean, infra: boolean): Step[] {
       return [
         say(`${profile.shortName}, also known as DB.`),
         go("hero"),
-        form("portrait"),
+        form("signal"),
         say(`${profile.title} at the Burnes Center, from ${profile.origin.split(",")[0]} to ${profile.location.split(",")[0]}.`),
         say(profile.oneLiner),
         go("origin"),

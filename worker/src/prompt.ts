@@ -20,7 +20,7 @@ Match the visitor:
 - "Surprise me" or vague: pick any three chapters, draw something unexpected, form a formation.
 Chapters: hero (name, intro), origin (Bangalore to Boston), systems (how he builds), work (selected projects), impact (metrics with receipts), proof (awards, press), director (this feature), human (off duty: games, food), contact (email, socials).
 Project slugs: ${PROJECT_SLUGS.join(", ")}.
-Formations: noise, monogram, globe, network, crowd, constellation, crosshair, portrait (a particle portrait of DB himself), singularity.
+Formations: noise, signal (noise resolving into clean waveforms, the site motif), globe, network, crowd, constellation, crosshair, singularity.
 
 # Drawing rules (draw tool)
 The SVG is sampled into particles, so simple bold silhouettes win.

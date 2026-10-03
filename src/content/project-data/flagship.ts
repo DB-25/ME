@@ -40,6 +40,15 @@ export const flagshipProjects: Project[] = [
     },
     outcomes: [
       {
+        value: "1,000+",
+        numeric: 1000,
+        suffix: "+",
+        label: "Families served",
+        context: "Parents who have used A-IEP to understand their child's education plan, across four languages.",
+        source: SRC.resume,
+        projectSlug: "a-iep",
+      },
+      {
         value: "200+",
         numeric: 200,
         suffix: "+",

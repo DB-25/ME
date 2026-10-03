@@ -22,13 +22,12 @@ export type ChapterId = (typeof CHAPTER_IDS)[number];
 /** Built-in particle formations the field knows how to make. */
 export const FORMATIONS = [
   "noise",
-  "monogram",
+  "signal",
   "globe",
   "network",
   "crowd",
   "constellation",
   "crosshair",
-  "portrait",
   "singularity",
 ] as const;
 export type FormationId = (typeof FORMATIONS)[number];

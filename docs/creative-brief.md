@@ -15,7 +15,7 @@ Not a template, not a bento grid, not a "hi I'm X" hero. It should feel like a t
 | id | Section | Particle formation | Copy job |
 |---|---|---|---|
 | `intro` | Preloader | noise converging | 000 to 100 counter, "calibrating signal" |
-| `hero` | Hero | "DB" monogram sculpture, mouse-reactive | Name, title, one-liner. Live Boston clock. Scroll cue. |
+| `hero` | Hero | "signal": a 3D field of waveform lines, chaotic noise on the left resolving into clean waves on the right, flowing, cursor ripples (no letters, no faces) | Name, title, one-liner. Live Boston clock. Scroll cue. |
 | `origin` | Origin | point-cloud globe, glowing arc Bangalore (12.97N, 77.59E) to Boston (42.36N, 71.06W) | Bangalore, building Flutter apps with real daily users, then Northeastern MS AI, then Burnes |
 | `systems` | How I build | layered network graph (docs to embeddings to retrieval to model to answer), pulses travel along it | The platform: knowledge-agent-for-impact, deployments, agencies, users. Engineering principles. |
 | `work` | Selected work | ambient drift (dimmed) so cards read | Flagship projects index, each opens `/work/[slug]` |

@@ -58,7 +58,7 @@ export const TOOLS: FunctionTool[] = [
     type: "function",
     name: "form",
     description:
-      "Morph the particle background into a built-in formation: noise, monogram (DB), globe, network, crowd, constellation, crosshair, portrait (DB himself), singularity.",
+      "Morph the particle background into a built-in formation: noise, signal (noise resolving into clean waveforms), globe, network, crowd, constellation, crosshair, singularity.",
     strict: true,
     parameters: object({ formation: { type: "string", enum: [...FORMATIONS] } }),
   },

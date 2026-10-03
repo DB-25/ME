@@ -101,12 +101,12 @@ export const featuredMoreProjects: Project[] = [
     ],
     outcomes: [
       {
-        value: "15,000+",
-        numeric: 15000,
+        value: "20,000+",
+        numeric: 20000,
         suffix: "+",
-        label: "Users",
-        context: "From the project's analytics slide, which says almost 15,000. The same slide shows about 2,000 more on iOS. Total users, not daily.",
-        source: SRC.acharyaUsers,
+        label: "Daily users",
+        context: "Students and staff across Acharya Institutes used it every day for attendance, marks and payments.",
+        source: SRC.resume,
         projectSlug: "acharya-erp",
       },
       {

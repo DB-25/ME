@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { CHAPTERS, chapterById } from "@/lib/chapters";
 import type { FormationId } from "@/lib/director/protocol";
 import { signalStore, type SignalOverride } from "@/lib/signal-store";
-import { getFormation, getPortraitCell, getPortraitTint, onFormationReady, prepareCustomPoints, warmFormations } from "./formations";
+import { getFormation, prepareCustomPoints, signalAttributes, signalLayout, signalRotation, warmFormations } from "./formations";
 import { CHAPTER_LOOK, CHAPTER_LOOK_MOBILE, FORMATION_LOOK, NO_CHAPTER_LOOK, OVERRIDE_LOOK } from "./look";
 import { FRAGMENT, VERTEX } from "./shaders";
 
@@ -14,11 +14,11 @@ export type FieldQuality = { count: number; sizeBoost: number; reducedMotion: bo
 
 const OVERRIDE_SECONDS = 1.6;
 const OVERRIDE_SECONDS_REDUCED = 0.4;
-const INTRO_MORPH_SECONDS = 2.4;
+const INTRO_MORPH_SECONDS = 2.2;
 const INTRO_TIMEOUT_MS = 4000;
 const INTRO_SPREAD = 2.6;
 const INTRO_CONVERGE_SECONDS = 4.2;
-const INTRO_COALESCE_SECONDS = 3.4;
+const INTRO_MIN_HOLD_SECONDS = 1.2;
 const PARTICLE_WORLD_SIZE = 0.042;
 const MAX_DT = 0.25;
 const CAMERA_FOV = 38;
@@ -78,6 +78,7 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
 
   const { geometry, material, attrs } = useMemo(() => {
     const geo = new THREE.BufferGeometry();
+    const layout = signalLayout(count);
     const rand = new Float32Array(count * 4);
     for (let i = 0; i < count; i++) {
       rand[i * 4] = Math.random();
@@ -86,8 +87,7 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
       rand[i * 4 + 3] = Math.random();
     }
     geo.setAttribute("aRand", new THREE.BufferAttribute(rand, 4));
-    geo.setAttribute("aTint", new THREE.BufferAttribute(getPortraitTint(count), 4));
-    geo.setAttribute("aCell", new THREE.BufferAttribute(getPortraitCell(count), 1));
+    geo.setAttribute("aSig", new THREE.BufferAttribute(signalAttributes(count), 4));
     // Placeholder so the geometry is valid before the first formation lands.
     const noise = getFormation("noise", count);
     const noiseAttr = new THREE.BufferAttribute(noise, 3);
@@ -121,8 +121,11 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
         uPixelRatio: { value: 1 },
         uOffset: { value: new THREE.Vector3() },
         uFog: { value: 0.09 },
-        uTintA: { value: 0 },
-        uTintB: { value: 0 },
+        uSigA: { value: 0 },
+        uSigB: { value: 0 },
+        uSigDims: { value: new THREE.Vector4(layout.width, layout.depth, layout.wavelength, layout.amplitude) },
+        uSigParam: { value: new THREE.Vector4(layout.noise, layout.phasePerLine, 0, 0) },
+        uSigRot: { value: new THREE.Matrix3().set(...(signalRotation(layout) as [number, number, number, number, number, number, number, number, number])) },
         uAlpha: { value: 0.5 },
         uBrightness: { value: 1 },
         uHueColor: { value: new THREE.Color("#8b7bff") },
@@ -137,20 +140,6 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
   // Warm remaining formations in idle slices, never blocking the main thread.
   useEffect(() => warmFormations(count), [count]);
 
-  // Async formations (portrait) fill their buffers in place; re-upload when they land.
-  useEffect(
-    () =>
-      onFormationReady((id) => {
-        const a = attrs.get(`f:${id}`);
-        if (a) a.needsUpdate = true;
-        const tint = geometry.getAttribute("aTint");
-        if (tint) tint.needsUpdate = true;
-        const cell = geometry.getAttribute("aCell");
-        if (cell) cell.needsUpdate = true;
-      }),
-    [attrs, geometry],
-  );
-
   const rig = useRef({
     t: 0,
     pointerX: 9,
@@ -161,6 +150,9 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     introPhase: "wait" as "wait" | "morph" | "done",
     introStart: performance.now(),
     introMorphStart: 0,
+    introSpread: 1,
+    introBrightness: 0.3,
+    spreadNow: INTRO_SPREAD,
     fromId: "noise" as FormationId,
     toId: "noise" as FormationId,
     lastOverride: null as SignalOverride | null,
@@ -293,36 +285,38 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     }
     let introW = 1;
 
-    // ---- intro: noise converges into the DB monogram while the preloader runs,
-    // then the monogram dissolves into whatever scroll wants (the portrait).
+    // ---- intro: the preloader shows dim noise; when `ready` flips the noise flies into the scroll formation
+    // (the signal field), left side first.
     let spread = 1;
     if (r.introPhase !== "done") {
-      // Never cut the coalesce short: hold the monogram until it has fully formed.
-      const formed = now - r.introStart > INTRO_COALESCE_SECONDS * 1000;
-      if (r.introPhase === "wait" && ((s.ready && formed) || (!HOLD_INTRO && now - r.introStart > INTRO_TIMEOUT_MS))) {
+      const waited = (now - r.introStart) / 1000;
+      const ripe = waited > INTRO_MIN_HOLD_SECONDS;
+      if (r.introPhase === "wait" && ripe && (s.ready || (!HOLD_INTRO && now - r.introStart > INTRO_TIMEOUT_MS))) {
         r.introPhase = "morph";
         r.introMorphStart = now;
+        r.introSpread = r.spreadNow;
+        r.introBrightness = r.brightness;
       }
-      const waited = (now - r.introStart) / 1000;
-      const conv = easeOut(clamp01(waited / INTRO_CONVERGE_SECONDS));
-      spread = INTRO_SPREAD + (1 - INTRO_SPREAD) * conv;
       if (r.introPhase === "wait") {
+        const conv = easeOut(clamp01(waited / INTRO_CONVERGE_SECONDS));
+        spread = INTRO_SPREAD + (1 - INTRO_SPREAD) * conv;
         fromId = "noise";
-        toId = "monogram";
-        m = reducedMotion ? 1 : easeInOut(clamp01(waited / INTRO_COALESCE_SECONDS));
-        brightness = 0.25 + 0.65 * conv;
+        toId = "noise";
+        m = 0;
+        brightness = 0.16 + 0.14 * conv;
         introW = 0;
       } else {
         const p = clamp01((now - r.introMorphStart) / 1000 / (reducedMotion ? 0.4 : INTRO_MORPH_SECONDS));
         const e = easeInOut(p);
-        fromId = "monogram";
+        fromId = "noise";
         m = e;
-        brightness = 0.9 + (brightness - 0.9) * e;
-        spread = 1;
+        brightness = r.introBrightness + (brightness - r.introBrightness) * e;
+        spread = r.introSpread + (1 - r.introSpread) * e;
         introW = e;
         if (p >= 1) r.introPhase = "done";
       }
     }
+    r.spreadNow = spread;
 
     // Reduced motion: formation swaps are quick settles, not scrubbed morphs.
     if (reducedMotion && r.introPhase === "done") {
@@ -419,8 +413,8 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     }
     u.uPointerStrength.value += ((r.pointerActive ? strength : 0) - u.uPointerStrength.value) * Math.min(1, dt * 5);
 
-    u.uTintA.value = fromId === "portrait" ? 1 : 0;
-    u.uTintB.value = toId === "portrait" ? 1 : 0;
+    u.uSigA.value = fromId === "signal" ? 1 : 0;
+    u.uSigB.value = toId === "signal" ? 1 : 0;
     u.uMorph.value = m;
     u.uOverride.value = ov;
     u.uOverrideMix.value = ovMix;
@@ -445,6 +439,6 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
   return <points ref={pointsRef} geometry={geometry} material={material} frustumCulled={false} />;
 }
 
-/** Dev: ?introhold keeps the preloader state (monogram) until `ready` is set by hand. */
+/** Dev: ?introhold keeps the preloader state (dim noise) until `ready` is set by hand. */
 const HOLD_INTRO = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("introhold");
 const ADAPT_OFF = typeof window !== "undefined" && new URLSearchParams(window.location.search).has("noadapt");
