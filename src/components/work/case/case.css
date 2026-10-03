@@ -148,3 +148,34 @@
   .cs-nav-name, .cs-nav-where > .text-dim, .cs-nav-next-name { display: none; }
   .cs-nav-where { text-align: center; }
 }
+
+/* Launch film */
+.cs-film { margin-top: clamp(32px, 6vw, 72px); }
+.cs-film-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--color-hairline);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--color-void-2);
+  box-shadow: 0 0 120px -40px rgb(139 123 255 / 0.35);
+}
+.cs-film-frame video { width: 100%; height: 100%; object-fit: cover; display: block; cursor: pointer; }
+.cs-film-controls {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  display: flex;
+  gap: 8px;
+}
+.cs-film-btn {
+  color: var(--color-ink);
+  background: rgb(6 5 9 / 0.62);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-hairline-strong);
+  border-radius: 2px;
+  padding: 8px 12px;
+  min-height: 32px;
+  transition: border-color 0.25s, color 0.25s;
+}
+.cs-film-btn:hover { border-color: var(--color-accent); color: var(--color-accent-hot); }

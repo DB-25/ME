@@ -146,6 +146,7 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "genie",
+    film: { src: "/films/genie.mp4", poster: "/films/genie.jpg", title: "GENIE launch film" },
     name: "GENIE",
     tagline: "A safe place for state employees to try generative AI.",
     year: "2024",
@@ -251,6 +252,7 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "abe-one-l",
+    film: { src: "/films/abe-one-l.mp4", poster: "/films/abe-one-l.jpg", title: "ABE and One-L launch film" },
     name: "ABE and One-L",
     tagline: "Two AI agents for state procurement. They won a national award.",
     year: "2025 to 2026",

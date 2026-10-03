@@ -3,6 +3,7 @@ import { projects, type Project } from "@/content";
 import { pad } from "../meta";
 import { ArchitectureDiagram } from "./ArchitectureDiagram";
 import { BuildSection } from "./BuildSection";
+import { CaseFilm } from "./CaseFilm";
 import { CaseHero } from "./CaseHero";
 import { CaseNav } from "./CaseNav";
 import { Gallery } from "./Gallery";
@@ -39,6 +40,7 @@ export function CaseStudy({ project }: { project: Project }) {
   return (
     <article className="cs">
       <CaseHero project={project} index={index} total={group.length} />
+      <CaseFilm project={project} />
       <ProblemSection project={project} n={num[0]} />
       <BuildSection project={project} n={num[1]} />
       <ArchitectureDiagram project={project} n={num[2]} />

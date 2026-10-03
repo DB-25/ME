@@ -10,6 +10,9 @@ export type Metric = {
   projectSlug?: string;
 };
 
+/** A short launch film for a project (rendered with /brag, encoded by scripts/encode-film.sh). */
+export type Film = { src: string; poster: string; title: string };
+
 export type Media = {
   src: string;
   alt: string;
@@ -34,6 +37,8 @@ export type Project = {
   approach: string[];
   architecture?: { nodes: string[]; flow: string };
   outcomes: Metric[];
+  /** Launch film shown at the top of the case study and as the work-list preview. */
+  film?: Film;
   stack: string[];
   links: Link[];
   media: Media[];

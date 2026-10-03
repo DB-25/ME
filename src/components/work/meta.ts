@@ -13,6 +13,8 @@ export const pad = (n: number) => String(n).padStart(2, "0");
 
 /** First still image of a project: the preview for rows and the poster of last resort. */
 export function previewImage(p: Project): Media | undefined {
+  // A launch film's poster is the most polished still a project has.
+  if (p.film) return { src: p.film.poster, alt: p.film.title, kind: "image", width: 1600, height: 900 };
   return p.media.find((m) => m.kind === "image");
 }
 
