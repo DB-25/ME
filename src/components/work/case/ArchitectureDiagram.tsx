@@ -1,7 +1,6 @@
 import type { Project } from "@/content";
-import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
-import { tie } from "../meta";
+import { headlineFor, tie } from "../meta";
 import { ArchLane } from "./ArchLane";
 import { CaseLabel } from "./CaseLabel";
 
@@ -26,6 +25,7 @@ function lanesOf(arch: NonNullable<Project["architecture"]>): Lane[] {
 export function ArchitectureDiagram({ project, n }: { project: Project; n: string }) {
   const arch = project.architecture;
   if (!arch?.nodes.length && !arch?.lanes?.length) return null;
+  const h = headlineFor(project, "flows", "How it flows");
   const lanes = lanesOf(arch);
   const multi = lanes.length > 1;
 
@@ -35,9 +35,9 @@ export function ArchitectureDiagram({ project, n }: { project: Project; n: strin
         <div className="grid-12 cs-split">
           <div className="col-span-12 md:col-span-4">
             <CaseLabel n={n} text="Architecture" />
-            <h2 id="cs-arch" className="headline cs-h2 mt-6">
+            <h2 id="cs-arch" className={`headline cs-h2 mt-6${h.long ? " cs-h2-long" : ""}`}>
               <Reveal as="span" className="block">
-                How it <Emph>flows</Emph>
+                {tie(h.text)}
               </Reveal>
             </h2>
           </div>

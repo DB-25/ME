@@ -10,7 +10,10 @@ import { TRANSCRIPT, TRANSCRIPT_INTRO } from "./transcript";
 
 const CLOSE_MS = 280;
 /** Height the header and transcript summary take, so the video never pushes them off screen. */
-const CHROME_PX = 210;
+const CHROME_PX = 280;
+
+/** 0:07 style clock. */
+const clock = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
 
 const CSS = `
 .reel-dlg { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0;
@@ -19,7 +22,7 @@ const CSS = `
 .reel-dlg[open]::backdrop { opacity: 1; }
 /* The site hides the native cursor for its own ring, which sits behind a modal dialog: give it back here. */
 .reel-dlg, .reel-dlg * { cursor: auto !important; }
-.reel-dlg button, .reel-dlg summary, .reel-dlg video { cursor: pointer !important; }
+.reel-dlg button, .reel-dlg summary, .reel-dlg video, .reel-dlg input[type="range"] { cursor: pointer !important; }
 .reel-stage { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; align-items: center;
   gap: 16px; padding: max(20px, env(safe-area-inset-top)) var(--gutter) max(28px, env(safe-area-inset-bottom)); }
 .reel-bar { width: 100%; max-width: var(--maxw); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex: none; }
@@ -36,6 +39,29 @@ const CSS = `
 .reel-video { display: block; width: 100%; height: 100%; object-fit: contain; background: var(--color-void); }
 .reel-dlg[data-state="open"] .reel-frame { opacity: 1; transform: none; }
 .reel-dlg[data-state="closing"] .reel-frame { opacity: 0; transition-duration: ${CLOSE_MS}ms; }
+/* Custom control bar sits BELOW the video, so it never covers the reel's baked-in lower thirds. */
+.reel-player { width: 100%; }
+.reel-player:fullscreen { display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 16px; background: var(--color-void); }
+.reel-player:fullscreen .reel-frame { flex: 1 1 0; min-height: 0; aspect-ratio: auto; }
+.reel-ctl { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.reel-btn { flex: none; min-width: 44px; min-height: 44px; padding: 0 12px; color: var(--color-ink); background: none; border: 1px solid var(--color-hairline-strong);
+  border-radius: 2px; transition: border-color .25s, color .25s; }
+.reel-btn:hover { border-color: var(--color-accent); color: var(--color-accent-hot); }
+.reel-btn:focus-visible, .reel-scrub:focus-visible, .reel-close:focus-visible { outline: 2px solid var(--color-accent-hot); outline-offset: 2px; }
+.reel-time { flex: none; min-width: 7.5ch; text-align: center; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.reel-scrub { flex: 1 1 auto; min-width: 0; height: 44px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; --p: 0%; }
+.reel-scrub::-webkit-slider-runnable-track { height: 3px; border-radius: 2px; background: linear-gradient(to right, var(--color-accent-hot) var(--p), var(--color-hairline-strong) var(--p)); }
+.reel-scrub::-moz-range-track { height: 3px; border-radius: 2px; background: var(--color-hairline-strong); }
+.reel-scrub::-moz-range-progress { height: 3px; border-radius: 2px; background: var(--color-accent-hot); }
+.reel-scrub::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5.5px; border-radius: 50%; background: var(--color-ink); border: 0; }
+.reel-scrub::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--color-ink); border: 0; }
+@media (max-width: 560px) {
+  .reel-ctl { flex-wrap: wrap; row-gap: 0; }
+  .reel-time { order: 1; }
+  .reel-ctl .reel-btn:last-child { order: 2; }
+  .reel-scrub { order: -1; flex: 1 1 100%; }
+  .reel-time { margin-left: auto; }
+}
 .reel-tx { margin-top: 8px; max-width: 52rem; }
 .reel-tx summary { list-style: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; color: var(--color-muted); }
 .reel-tx summary::-webkit-details-marker { display: none; }
@@ -88,6 +114,11 @@ export function ReelModal({ open, onClose }: ReelModalProps) {
   const unlock = useRef<(() => void) | null>(null);
   const mounted = useIsClient();
   const [state, setState] = useState<"closed" | "open" | "closing">("closed");
+  const player = useRef<HTMLDivElement>(null);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [time, setTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const vertical = useIsVertical();
   const source = vertical ? REEL.vertical : REEL.landscape;
   const titleId = useId();
@@ -100,10 +131,38 @@ export function ReelModal({ open, onClose }: ReelModalProps) {
     unlock.current?.();
     unlock.current = null;
     setState("closed");
+    setPlaying(false);
+    setTime(0);
     returnTo.current?.focus({ preventScroll: true });
     returnTo.current = null;
     onClose();
   }, [onClose]);
+
+  const togglePlay = () => {
+    const el = video.current;
+    if (!el) return;
+    if (el.paused) el.play().catch(() => undefined);
+    else el.pause();
+  };
+  const toggleMute = () => {
+    const el = video.current;
+    if (!el) return;
+    el.muted = !el.muted;
+    setMuted(el.muted);
+  };
+  const seek = (t: number) => {
+    const el = video.current;
+    if (!el) return;
+    el.currentTime = t;
+    setTime(t);
+  };
+  const fullscreen = () => {
+    const host = player.current;
+    const el = video.current as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null;
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else if (host?.requestFullscreen) void host.requestFullscreen().catch(() => undefined);
+    else el?.webkitEnterFullscreen?.();
+  };
 
   const requestClose = useCallback(() => {
     if (state === "closing") return;
@@ -149,7 +208,7 @@ export function ReelModal({ open, onClose }: ReelModalProps) {
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDialogElement>) => {
     if (e.key !== "Tab") return;
-    const items = Array.from(e.currentTarget.querySelectorAll<HTMLElement>("button, summary, video[controls]")).filter(
+    const items = Array.from(e.currentTarget.querySelectorAll<HTMLElement>("button, summary, input[type='range']")).filter(
       (n) => n.offsetParent !== null,
     );
     if (!items.length) return;
@@ -191,6 +250,7 @@ export function ReelModal({ open, onClose }: ReelModalProps) {
           </button>
         </div>
         <div className="reel-col" data-vertical={vertical || undefined}>
+          <div ref={player} className="reel-player">
           <div className="reel-frame" data-vertical={vertical || undefined}>
             {open && (
               <video
@@ -200,14 +260,46 @@ export function ReelModal({ open, onClose }: ReelModalProps) {
                 poster={assetUrl(source.poster)}
                 width={source.width}
                 height={source.height}
-                controls
                 autoPlay
                 playsInline
                 preload="auto"
                 aria-label={REEL.title}
                 aria-describedby={transcriptId}
+                onClick={togglePlay}
+                onPlay={() => setPlaying(true)}
+                onPause={() => setPlaying(false)}
+                onVolumeChange={(e) => setMuted(e.currentTarget.muted)}
+                onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
+                onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
               />
             )}
+          </div>
+          <div className="reel-ctl" role="group" aria-label="Reel controls">
+            <button type="button" className="label reel-btn" onClick={togglePlay} aria-label={playing ? "Pause reel" : "Play reel"}>
+              {playing ? "Pause" : "Play"}
+            </button>
+            <button type="button" className="label reel-btn" onClick={toggleMute} aria-pressed={muted} aria-label={muted ? "Unmute reel" : "Mute reel"}>
+              {muted ? "Muted" : "Sound"}
+            </button>
+            <input
+              type="range"
+              className="reel-scrub"
+              min={0}
+              max={duration || 1}
+              step={1}
+              value={Math.min(time, duration || 1)}
+              onChange={(e) => seek(Number(e.target.value))}
+              style={{ ["--p" as string]: `${duration ? (time / duration) * 100 : 0}%` }}
+              aria-label="Seek"
+              aria-valuetext={`${clock(time)} of ${clock(duration)}`}
+            />
+            <span className="label reel-time" aria-hidden>
+              {clock(time)} / {duration ? clock(duration) : REEL.durationLabel}
+            </span>
+            <button type="button" className="label reel-btn" onClick={fullscreen} aria-label="Toggle full screen">
+              Full
+            </button>
+          </div>
           </div>
           <details className="reel-tx">
             <summary className="label">

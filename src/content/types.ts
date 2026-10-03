@@ -56,6 +56,8 @@ export type Project = {
    */
   architecture?: { nodes: string[]; flow: string; lanes?: { name: string; nodes: string[] }[] };
   outcomes: Metric[];
+  /** Project-specific section headings for the case study (fall back to generic ones). */
+  headlines?: { problem?: string; built?: string; flows?: string; outcomes?: string };
   /** Launch film shown at the top of the case study and as the work-list preview. */
   film?: Film;
   stack: string[];

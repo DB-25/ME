@@ -75,7 +75,6 @@
 .wk-ch { display: inline-grid; overflow: hidden; vertical-align: top; padding: 0.06em 0.03em 0.16em; margin: -0.06em -0.03em -0.16em; }
 .wk-a, .wk-b { grid-area: 1 / 1; display: block; transition: transform 0.45s var(--wk-ease); transition-delay: calc(var(--i) * 12ms); }
 .wk-b { transform: translateY(115%); color: var(--color-accent-hot); }
-.wk-last .wk-b { font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 1.07em; letter-spacing: -0.02em; }
 .wk-row[data-active] .wk-a { transform: translateY(-115%); }
 .wk-row[data-active] .wk-b { transform: none; }
 
@@ -112,6 +111,13 @@
   .wk-inline[data-thumb] img { filter: brightness(0.5) saturate(0.7); transition: filter 0.7s var(--wk-ease), transform 1.1s var(--wk-ease); }
   .wk-row[data-active] .wk-inline[data-thumb] img { filter: none; transform: scale(1.03); }
   .wk-row[data-active] .wk-inline { border-color: var(--pa); }
+  /* On hover the in-row media grows leftwards to five of the twelve columns (~42% of the row) so the film is readable.
+     Height is untouched: the frame already spans the row. 5c + 4g expressed against the three-column area: 5/3 A + 2/3 g. */
+  .wk-name { position: relative; z-index: 3; }
+  .wk-inline { justify-self: end; z-index: 2; transition: width 0.7s var(--wk-ease), border-color 0.4s; }
+  .wk-row[data-active] .wk-inline { width: calc(166.667% + var(--gutter) * 0.6667); }
+  /* The enlarged film sits where the lead stat is: let the stat step aside while the row is active (inline opacity from the entrance tween loses to !important). */
+  .wk-row[data-active] .wk-out { opacity: 0 !important; }
   .wk-meta { grid-column: 10 / 13; grid-row: 4; margin-top: 12px; flex-wrap: nowrap; justify-content: space-between; gap: 8px 16px; }
   /* The director's pick: facts overlay the tagline cells, so the row never grows. */
   .wk-pick { display: block; grid-column: 2 / 10; grid-row: 2 / 4; position: relative; pointer-events: none; }
@@ -185,5 +191,5 @@
   .wk-lab-row > .wk-lab-link { grid-column: 10 / 13; grid-row: 1; justify-self: end; text-align: right; }
   .wk-lab-badge { top: -1px; right: auto; left: 0; }
 }
-.wk-out { transition: opacity 0.5s var(--wk-ease); }
+/* No opacity transition here: it fights the entrance tween (gsap.from) and can strand the stat at 0. */
 .wk-row[data-spot] .wk-out { opacity: 0; }

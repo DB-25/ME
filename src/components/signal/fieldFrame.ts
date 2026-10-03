@@ -3,7 +3,7 @@ import { CHAPTERS, chapterById } from "@/lib/chapters";
 import type { SignalState, SignalOverride } from "@/lib/signal-store";
 import { CHAPTER_LOOK, CHAPTER_LOOK_MOBILE, FORMATION_LOOK, NO_CHAPTER_LOOK, OVERRIDE_LOOK, type ChapterLook } from "./look";
 import { SETTLE_EPSILON, Tween, clamp01, easeInOut, easeOut, mix, smoothstep01 } from "./ease";
-import { READING_DIM } from "./readingMode";
+import { DUCK_DIM, READING_DIM, fieldMotion } from "./readingMode";
 
 /**
  * Pure per-frame steps for the field. SignalField's useFrame calls them in order:
@@ -224,6 +224,8 @@ export function blendLook(out: Scene, smooth: Smooth, ov: number, reduced: boole
   look.scale = 1 + (look.scale - 1) * calm;
   // Reading mode: back off while text is being read, but never dim a Director drawing.
   look.brightness *= 1 - READING_DIM * reading * (1 - ov);
+  // A section with dense copy over the field's half of the screen can duck it further.
+  look.brightness *= 1 - DUCK_DIM * fieldMotion.duck * (1 - ov);
   // The Director (override or streaming energy) brings the field up to full light.
   look.brightness += (1 - look.brightness) * Math.min(1, smooth.energy * ENERGY_BRIGHTNESS_GAIN);
   look.brightness = mix(look.brightness, OVERRIDE_LOOK.brightness, ov);

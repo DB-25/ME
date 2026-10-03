@@ -1,5 +1,4 @@
 import type { Project } from "@/content";
-import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
 import { KIND_LABEL } from "../meta";
 import { CaseLabel } from "./CaseLabel";
@@ -14,7 +13,7 @@ export function LinksList({ project, n }: { project: Project; n: string }) {
           <CaseLabel n={n} text="Links" />
           <h2 id="cs-links" className="headline cs-h2 mt-6">
             <Reveal as="span" className="block">
-              Go <Emph>deeper</Emph>
+              Go deeper
             </Reveal>
           </h2>
         </div>

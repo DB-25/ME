@@ -89,7 +89,7 @@ export function Hero() {
       id="hero"
       data-chapter="hero"
       aria-labelledby="hero-title"
-      className="relative h-[135svh]"
+      className="relative h-svh"
     >
       <style>{CSS}</style>
 
@@ -98,7 +98,7 @@ export function Hero() {
           {profile.name}, {profile.title}
         </h1>
 
-        <div className="shell relative flex h-full flex-col justify-between pb-[max(var(--gutter),env(safe-area-inset-bottom))] pt-[72px] md:pb-8 md:pt-[76px]">
+        <div className="shell relative flex h-full flex-col justify-start gap-4 pb-[max(var(--gutter),env(safe-area-inset-bottom))] pt-[72px] md:justify-between md:gap-0 md:pb-8 md:pt-[76px]">
           {/* Registration marks frame the stage, the way a title card is framed. */}
           {(["left-[var(--gutter)] top-[68px]", "right-[var(--gutter)] top-[68px]", "left-[var(--gutter)] bottom-3", "right-[var(--gutter)] bottom-3"] as const).map((pos) => (
             <span key={pos} aria-hidden className={`absolute hidden h-[9px] w-[9px] md:block ${pos}`}>
@@ -126,7 +126,7 @@ export function Hero() {
           </div>
 
           {/* Bottom: story, proof and links, with the last name */}
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+          <div className="flex flex-col gap-4 max-md:-mt-3 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
             <div data-out className="hero-stack order-2 flex w-full max-w-[30rem] flex-col gap-4 lg:order-1 lg:w-[32vw] lg:gap-5">
               <div className="flex flex-col gap-2">
                 <HeroEyebrow />

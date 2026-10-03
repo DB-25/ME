@@ -4,12 +4,13 @@ import { useEffect, useRef } from "react";
 import type { Project } from "@/content";
 import { Reveal } from "@/components/ui/Reveal";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/motion";
-import { pad, tie } from "../meta";
+import { headlineFor, pad, tie } from "../meta";
 import { CaseLabel } from "./CaseLabel";
 
 /** Numbered steps. The step nearest the reading line lights up (number turns accent, text to ink). */
 export function BuildSection({ project, n }: { project: Project; n: string }) {
   const list = useRef<HTMLOListElement>(null);
+  const h = headlineFor(project, "built", "What I built");
 
   useEffect(() => {
     const root = list.current;
@@ -46,9 +47,9 @@ export function BuildSection({ project, n }: { project: Project; n: string }) {
         <div className="col-span-12 md:col-span-4">
           <div className="cs-sticky">
             <CaseLabel n={n} text="What I built" />
-            <h2 id="cs-build" className="headline cs-h2 mt-6">
+            <h2 id="cs-build" className={`headline cs-h2 mt-6${h.long ? " cs-h2-long" : ""}`}>
               <Reveal as="span" className="block">
-                What I built
+                {tie(h.text)}
               </Reveal>
             </h2>
           </div>

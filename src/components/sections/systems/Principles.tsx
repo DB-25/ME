@@ -5,15 +5,15 @@ import { Scrim } from "../Scrim";
 /** The first four manifesto lines. The fifth is a story, and Origin tells it. */
 const PRINCIPLES = profile.manifesto.slice(0, 4);
 
-/** Two columns of hairline-ruled principles, set at reading size so they carry weight without shouting. */
+/** One column of hairline-ruled principles on the left half, so the network on the right never runs through them. */
 export function Principles() {
   return (
-    <div className="relative">
-      <Scrim strength={0.78} inset="-10% -4%" />
+    <div className="relative md:max-w-[52%]">
+      <Scrim shape="hold" strength={0.92} inset="-8% -22% -8% -28px" />
       <p className="label !text-[12px] !text-ink/70">Principles</p>
-      <ol className="mt-6 grid border-b border-hairline md:grid-cols-2 md:gap-x-[var(--gutter)]">
+      <ol className="mt-6 border-b border-hairline">
         {PRINCIPLES.map((text, i) => (
-          <li key={text} className="grid grid-cols-[2.25rem_1fr] gap-x-3 border-t border-hairline py-6 md:py-8">
+          <li key={text} className="grid grid-cols-[2.25rem_1fr] gap-x-3 border-t border-hairline py-5 md:py-6">
             <span className="num label pt-[0.55em]">{String(i + 1).padStart(2, "0")}</span>
             <Reveal
               as="p"

@@ -59,11 +59,13 @@ Without the secret the Worker returns 503 `{"error":"director_offline"}` and the
 
 1. Allow the site origin in the Worker: edit `worker/wrangler.toml`:
    `ALLOWED_ORIGINS = "https://example.dev,https://www.example.dev,https://db-portfolio.pages.dev,https://db-25.github.io"`
-   Then `cd worker && npx wrangler deploy`. (`http://localhost:3000` is always allowed.)
+   Then `cd worker && npx wrangler deploy`. (`http://localhost:3000` is always allowed.) `ALLOWED_ORIGINS` must list every origin the site is served from: the committed default is `https://db-25.github.io,https://db25.dev`, so update it at deploy if the final domain differs.
 2. Point the site at the Worker: set `NEXT_PUBLIC_DIRECTOR_URL` to the Worker URL at build time (GitHub: the `DIRECTOR_URL` repo variable; Cloudflare Pages: the `export` line in step b). It is baked into the static build, so rebuild and redeploy after changing it.
 3. Optional: serve the Worker on `director.example.dev` (Worker > Settings > Domains & Routes > Add custom domain), then use that as `DIRECTOR_URL` and in `ALLOWED_ORIGINS` if needed.
 
-Rate limit: 15 requests per 10 minutes per IP (in memory, per Worker instance). Set a monthly spend cap in the OpenAI dashboard as the real backstop.
+Rate limit: 15 requests per 10 minutes per IP (in memory, per Worker instance). Daily budget: `DIRECTOR_DAILY_BUDGET` (default 300 requests per UTC day, counted in `TTS_KV` if bound, else per data center in the Cache API); past it `POST /director` answers 503 `director_offline` and the site falls back to the scripted tour. Each OpenAI call has a 20 second timeout. Set a monthly spend cap in the OpenAI dashboard as the real backstop.
+
+`workers_dev = true` in `worker/wrangler.toml` keeps the public `*.workers.dev` URL live because there is no custom domain yet. Once the Worker is on a custom domain (see step 3), set `workers_dev = false` so the only way in is the domain.
 
 ## f) Voice
 

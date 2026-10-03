@@ -9,6 +9,8 @@ const OPENAI_URL = "https://api.openai.com/v1/responses";
 /** Visual actions per turn, end_scene included. speak calls have their own cap. */
 const MAX_ACTIONS = 6;
 const MAX_SPEAKS = 4;
+/** Whole-call ceiling, headers and streamed body included. A stall past it ends the stream with an error. */
+const UPSTREAM_TIMEOUT_MS = 20_000;
 const MAX_NARRATION_CHARS = 600;
 /** Subtitles, up to six visual tool calls (one a small SVG) and four short speak calls. Reasoning tokens count too. */
 const MAX_OUTPUT_TOKENS = 1000;
@@ -36,6 +38,7 @@ export async function openUpstream(config: OpenAIConfig, messages: DirectorMessa
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${config.apiKey}` },
       body: JSON.stringify(body),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
     if (!res.ok || !res.body) {
       console.error("openai upstream error", res.status, (await res.text()).slice(0, 500));

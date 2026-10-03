@@ -55,6 +55,12 @@ export const KIND_LABEL: Record<NonNullable<Project["links"][number]["kind"]>, s
   award: "Award",
 };
 
+/** The project's own section headline when it has one, else the generic name. `long` picks the sentence-sized type. */
+export function headlineFor(p: Project, key: keyof NonNullable<Project["headlines"]>, generic: string) {
+  const specific = p.headlines?.[key];
+  return { text: specific ?? generic, long: Boolean(specific) };
+}
+
 /** Compact lab projects are table rows only: no case study page exists for them. */
 export const hasCase = (p: Project) => !p.compact;
 

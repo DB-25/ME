@@ -76,16 +76,22 @@ export function Director() {
       {/* Feathered on every side: no edge for the eye to catch where the section ends. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute"
+        className="pointer-events-none absolute transition-opacity duration-700 ease-[var(--ease-out-expo)]"
         style={{
+          opacity: running ? 0 : 1,
           inset: "-12% -6%",
           background:
             "radial-gradient(ellipse 62% 56% at 30% 50%, rgb(6 5 9 / 0.78) 0%, rgb(6 5 9 / 0.5) 48%, transparent 100%)",
         }}
       />
       <div
-        className="shell relative w-full transition-opacity duration-700 ease-[var(--ease-out-expo)]"
-        style={{ opacity: running ? 0.14 : 1 }}
+        className="shell relative w-full"
+        // Fades out, then leaves the layer entirely, so nothing ghosts through the drawing during a take.
+        style={{
+          opacity: running ? 0 : 1,
+          visibility: running ? "hidden" : "visible",
+          transition: running ? "opacity 0.7s, visibility 0s linear 0.7s" : "opacity 0.7s, visibility 0s",
+        }}
         inert={running}
       >
         <div className="slate flex flex-wrap items-center gap-x-8 gap-y-2 pb-5">

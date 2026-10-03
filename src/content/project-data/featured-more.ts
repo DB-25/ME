@@ -6,6 +6,7 @@ import { FILM_TRANSCRIPTS } from "../transcripts";
 export const featuredMoreProjects: Project[] = [
   {
     slug: "public-voice",
+    headlines: { problem: "Surveys ask too much and hear too little.", built: "A survey you answer out loud, with one smart follow‑up.", flows: "Voice in, themes out, no recordings kept.", outcomes: "Live at InnovateUS." },
     film: {
       src: "/films/public-voice.mp4",
       poster: "/films/public-voice.jpg",
@@ -118,6 +119,7 @@ export const featuredMoreProjects: Project[] = [
   },
   {
     slug: "acharya-erp",
+    headlines: { problem: "Attendance, marks and fees lived in different places.", built: "One Flutter app for all of it, start to finish.", flows: "One codebase, Android and iOS.", outcomes: "Twenty thousand people opened it every day." },
     name: "Acharya ERP",
     tagline: "Where the shipping started: one Flutter app, thousands of students.",
     year: "2021 to 2023",

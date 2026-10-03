@@ -114,6 +114,12 @@ export const moreProjects: Project[] = [
   },
   {
     slug: "arc-control-mcp",
+    headlines: {
+      problem: "The Chrome MCP server can’t be pointed at Arc.",
+      built: "26 tools that let an agent use the browser I’m already signed in to.",
+      flows: "A tool call goes in, Apple Events run it, the page comes back.",
+      outcomes: "Twenty-six tools, published on npm.",
+    },
     film: {
       src: "/films/arc-control-mcp.mp4",
       poster: "/films/arc-control-mcp.jpg",
@@ -127,7 +133,8 @@ export const moreProjects: Project[] = [
     tagline: "An MCP server that lets agents drive the Arc browser.",
     year: "2026",
     role: "Creator",
-    featured: false,
+    owned: "Sole creator: all 26 tools, the rule that an agent never touches the tab I am reading, and the CI and npm release.",
+    featured: true,
     category: "tool",
     accent: "#8B5CF6",
     problem:
@@ -137,6 +144,10 @@ export const moreProjects: Project[] = [
       "The server keeps its own tabs separate from mine, refuses to touch the tab I am looking at, and reports which permissions are missing instead of failing silently.",
       "One runtime dependency, no build step, CI, and a changelog and security policy.",
     ],
+    architecture: {
+      nodes: ["AI agent", "MCP client", "arc-control-mcp", "JXA over Apple Events", "Arc", "Agent space tab"],
+      flow: "An agent calls a tool over MCP. The server turns it into an Apple Events script, Arc runs it in a tab of the agent’s own, and the result goes back to the agent.",
+    },
     outcomes: [
       {
         value: "26",

@@ -7,6 +7,8 @@ import { assetUrl } from "../asset";
 
 /** Phones get the 9:16 cut. Keep in sync with the `.cs-film-frame[data-vertical]` media query in case.css. */
 const PHONE_QUERY = "(max-width: 767px)";
+/** The film starts loading this far before it scrolls into view. */
+const NEAR_PX = 200;
 
 /**
  * The project's launch film, right under the title sequence. Plays muted while on screen (never under
@@ -27,22 +29,39 @@ export function CaseFilm({ project }: { project: Project }) {
   const hasVertical = Boolean(film?.vertical);
   const still = useRef<HTMLImageElement>(null);
 
-  // Pick the source once, at mount (vertical on phones, landscape elsewhere). The <video> renders
-  // without a src, so only the chosen file is ever fetched; autoplay waits for the frame to be in view.
+  // Pick the source once, at mount (vertical on phones, landscape elsewhere), but fetch nothing until the frame
+  // is within NEAR_PX of the viewport: the film sits below the fold, so page load stays free of its ~4MB.
   useEffect(() => {
     const el = video.current;
     if (!el || !film) return;
     const tall = Boolean(film.vertical) && window.matchMedia(PHONE_QUERY).matches;
     const pick = tall && film.vertical ? film.vertical : film;
-    // Buffer right away (the film sits directly under the title) so autoplay on scroll-in starts within a beat.
-    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    el.preload = saveData ? "metadata" : "auto";
-    el.src = assetUrl(pick.src);
+    el.preload = "none";
     if (tall && film.vertical && still.current) still.current.src = assetUrl(film.vertical.poster);
-    if (prefersReducedMotion()) return;
+
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    let loaded = false;
+    const load = () => {
+      if (loaded) return;
+      loaded = true;
+      el.preload = saveData ? "metadata" : "auto";
+      el.src = assetUrl(pick.src);
+    };
+    const near = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        load();
+        near.disconnect();
+      },
+      { rootMargin: `${NEAR_PX}px 0px` },
+    );
+    near.observe(el);
+
+    if (prefersReducedMotion()) return () => near.disconnect();
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !userPaused.current) {
+          load();
           el.play().catch(() => setPlaying(false));
         } else {
           el.pause();
@@ -51,7 +70,10 @@ export function CaseFilm({ project }: { project: Project }) {
       { threshold: 0.35 },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      near.disconnect();
+      io.disconnect();
+    };
   }, [film]);
 
   if (!film) return null;
@@ -86,7 +108,7 @@ export function CaseFilm({ project }: { project: Project }) {
           muted
           loop
           playsInline
-          preload="metadata"
+          preload="none"
           onPlay={() => setPlaying(true)}
           onPlaying={() => setStarted(true)}
           onPause={() => setPlaying(false)}

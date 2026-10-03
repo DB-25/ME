@@ -64,7 +64,7 @@ export function WorkIndex() {
             <div className="col-span-12 lg:col-span-5 lg:pb-3">
               <Reveal mode="fade" delay={0.1}>
                 <p className="lede max-w-[42ch]">
-                  Production systems, one hackathon podium and the app where it started. Each one opens into a full case study with the
+                  Production systems, one hackathon podium, a tool on npm and the app where it started. Each one opens into a full case study with the
                   problem, the architecture and the receipts.
                 </p>
               </Reveal>

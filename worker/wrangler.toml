@@ -1,6 +1,7 @@
 name = "director"
 main = "src/index.ts"
 compatibility_date = "2026-09-01"
+# No custom domain yet, so the workers.dev URL stays on. Turn it off once a custom domain/route is live.
 workers_dev = true
 
 [observability]
@@ -12,9 +13,14 @@ enabled = true
 OPENAI_MODEL = "gpt-6.1-sol"
 # Reasoning effort for the Responses API: low keeps latency down. Empty string omits the field.
 OPENAI_REASONING_EFFORT = "low"
-# Comma-separated site origins allowed to call the Worker, e.g.
-# "https://example.dev,https://db-25.github.io". http://localhost:3000 is always allowed.
-ALLOWED_ORIGINS = ""
+# Comma-separated site origins allowed to call the Worker. SET THIS AT DEPLOY to every origin the
+# site is served from (add the custom domain once it exists). Browsers only; the default is safe
+# out of the box. http://localhost:3000 is always allowed.
+ALLOWED_ORIGINS = "https://db-25.github.io,https://db25.dev"
+# Director requests allowed per UTC day across all visitors. Over it, POST /director answers 503
+# {"error":"director_offline"} and the client falls back to the scripted tour. Counted in TTS_KV if
+# bound (global), else the Cache API (per data center).
+DIRECTOR_DAILY_BUDGET = "300"
 
 # Option B: runtime cloned-voice TTS (ElevenLabs). OFF unless TTS_PROVIDER = "elevenlabs" and the
 # secrets ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID exist. See docs/voice-plan.md.
@@ -41,7 +47,7 @@ name = "TTS_LIMITER"
 namespace_id = "1002"
 simple = { limit = 20, period = 60 }
 
-# Optional global TTS budget counter (the Cache API is the fallback, per data center). To use KV:
+# Optional global budget counters (TTS characters and Director requests) (the Cache API is the fallback, per data center). To use KV:
 #   npx wrangler kv namespace create TTS_KV      then paste the printed id below and uncomment.
 # [[kv_namespaces]]
 # binding = "TTS_KV"

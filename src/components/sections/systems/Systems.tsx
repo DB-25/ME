@@ -1,5 +1,6 @@
 import "../fade.css";
 import { Principles } from "./Principles";
+import { ReadingZone } from "./ReadingZone";
 import { StackIndex } from "./StackIndex";
 import { SystemsFlow } from "./SystemsFlow";
 import { SystemsHeader } from "./SystemsHeader";
@@ -20,8 +21,10 @@ export function Systems() {
             </div>
           </div>
         </div>
-        <Principles />
-        <StackIndex />
+        <ReadingZone className="flex flex-col gap-[clamp(64px,8vw,120px)]">
+          <Principles />
+          <StackIndex />
+        </ReadingZone>
       </div>
     </section>
   );

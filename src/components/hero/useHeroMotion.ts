@@ -5,7 +5,7 @@ import { gsap, ScrollTrigger, isCoarsePointer, prefersReducedMotion } from "@/li
 
 const SPREAD_FIRST = 30;
 const SPREAD_LAST = 20;
-const SCRUB_VH = 0.45;
+const SCRUB_VH = 0.55;
 const WAVE_LIFT = -0.1; // em
 const WAVE_SIGMA = 0.75; // em
 

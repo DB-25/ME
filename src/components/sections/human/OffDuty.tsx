@@ -1,6 +1,5 @@
 import "../fade.css";
 import { Reveal } from "@/components/ui/Reveal";
-import { Emph } from "@/components/ui/Emph";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Scrim } from "../Scrim";
 import { AimTrainer } from "./AimTrainer";
@@ -31,7 +30,7 @@ export function OffDuty() {
                 className="max-w-[5.5em] text-[clamp(2.5rem,3.7vw,3.75rem)] font-medium leading-[0.98] tracking-[-0.04em]"
               >
                 <Reveal as="span" className="block">
-                  Off the clock, still <Emph>aiming</Emph>.
+                  Off the clock, still aiming.
                 </Reveal>
               </h2>
             </div>
@@ -48,17 +47,14 @@ export function OffDuty() {
             </div>
           </div>
 
-          <div className="grid-12 mt-[8vh] gap-y-14">
-            <div className="col-span-12 md:col-span-7 md:col-start-6 md:row-start-1">
-              <AimTrainer />
+          {/* The ring and crosshair own the right half of the screen, so facts and drill stack in the left column. */}
+          <div className="mt-[8vh] flex flex-col gap-14 md:max-w-[min(36rem,42vw)]">
+            <div className="relative md:pr-6">
+              <Scrim shape="band" strength={0.85} inset="-6% -4% -6% -24px" />
+              <p className="label mb-6 !text-[12px] !text-ink/75">Notes on the person</p>
+              <OffDutyFacts />
             </div>
-            <div className="col-span-12 md:col-span-5 md:col-start-1 md:row-start-1">
-              <div className="relative md:pr-6">
-                <Scrim shape="band" strength={0.85} inset="-6% -4% -6% -24px" />
-                <p className="label mb-6 !text-[12px] !text-ink/75">Notes on the person</p>
-                <OffDutyFacts />
-              </div>
-            </div>
+            <AimTrainer />
           </div>
 
           <div className="relative mt-[10vh]">

@@ -1,4 +1,5 @@
 import type { Env, WorkerContext } from "./env";
+import { reserveDailyBudget } from "./budget";
 import { clientKey, createRateLimiter, json, sha256Hex } from "./http";
 
 /**
@@ -16,7 +17,6 @@ const DEFAULT_MODEL = "eleven_flash_v2_5";
 const OUTPUT_FORMAT = "mp3_44100_96";
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1/text-to-speech";
 const AUDIO_CACHE_TTL_S = 30 * 24 * 60 * 60;
-const BUDGET_TTL_S = 2 * 24 * 60 * 60;
 const VOICE_ID = /^[A-Za-z0-9]{8,40}$/;
 const RATE_LIMIT = 40;
 const RATE_WINDOW_MS = 10 * 60 * 1000;
@@ -51,40 +51,15 @@ export function parseTtsText(body: unknown): string | null {
 
 /* ---------- daily character budget ---------- */
 
-const utcDay = (now = Date.now()) => new Date(now).toISOString().slice(0, 10);
-const defaultCache = () => (caches as unknown as { default: Cache }).default;
-const budgetCacheKey = (day: string) => new Request(`https://tts.budget.invalid/${day}`);
-
-async function readUsed(env: Env, day: string): Promise<number> {
-  if (env.TTS_KV) return Number(await env.TTS_KV.get(`tts-budget:${day}`)) || 0;
-  const hit = await defaultCache().match(budgetCacheKey(day));
-  return hit ? Number(await hit.text()) || 0 : 0;
-}
-
-async function writeUsed(env: Env, day: string, used: number): Promise<void> {
-  if (env.TTS_KV) {
-    await env.TTS_KV.put(`tts-budget:${day}`, String(used), { expirationTtl: BUDGET_TTL_S });
-    return;
-  }
-  await defaultCache().put(
-    budgetCacheKey(day),
-    new Response(String(used), { headers: { "cache-control": `public, max-age=${BUDGET_TTL_S}` } }),
-  );
-}
-
 /**
  * Reserve `chars` from today's budget. Returns false when it would exceed the budget.
- * KV (global, if bound) or the Cache API (per data center, best effort) holds the counter; the
- * read then write is not atomic, so concurrent requests can overshoot by a request or two.
  * Throws if the store fails: the caller fails closed.
  */
-export async function reserveBudget(env: Env, budget: number, chars: number, now = Date.now()): Promise<boolean> {
-  const day = utcDay(now);
-  const used = await readUsed(env, day);
-  if (used + chars > budget) return false;
-  await writeUsed(env, day, used + chars);
-  return true;
+export function reserveBudget(env: Env, budget: number, chars: number, now = Date.now()): Promise<boolean> {
+  return reserveDailyBudget(env, "tts", budget, chars, now);
 }
+
+const defaultCache = () => (caches as unknown as { default: Cache }).default;
 
 /* ---------- handler ---------- */
 
@@ -112,7 +87,7 @@ export async function handleTts(
   const declared = Number(request.headers.get("content-length") ?? 0);
   if (declared > MAX_BODY_BYTES) return json({ error: "payload_too_large" }, 413, cors);
   const raw = await request.text();
-  if (raw.length > MAX_BODY_BYTES) return json({ error: "payload_too_large" }, 413, cors);
+  if (new TextEncoder().encode(raw).length > MAX_BODY_BYTES) return json({ error: "payload_too_large" }, 413, cors);
   let body: unknown;
   try {
     body = JSON.parse(raw);

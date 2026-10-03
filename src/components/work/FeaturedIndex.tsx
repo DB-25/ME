@@ -16,7 +16,7 @@ import { useRowFilm } from "./useRowFilm";
 
 type Props = { projects: Project[]; spotlight: string | null };
 
-/** Name as rolling characters: sans on top, the last word swaps to serif italic on activate. */
+/** Name as rolling characters: sans on top, the last word swaps whole into the accent colour on activate. */
 function RollName({ name }: { name: string }) {
   const words = name.split(" ");
   const offsets = words.map((_, wi) =>
@@ -29,7 +29,7 @@ function RollName({ name }: { name: string }) {
         <span className="wk-nline">
           {words.map((w, wi) => {
             const last = wi === words.length - 1;
-            // Earlier words roll letter by letter; the last word swaps whole into serif italic.
+            // Earlier words roll letter by letter; the last word swaps whole.
             const parts = last ? [w] : [...w];
             return (
               <Fragment key={wi}>

@@ -26,7 +26,13 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx tsc --noEmit
-      - run: npx eslint src --quiet
+      - run: npx eslint src
+      - run: npm ci
+        working-directory: worker
+      - run: npm run typecheck
+        working-directory: worker
+      - run: npm test
+        working-directory: worker
       - run: npm run build
         env:
           # Repo variables (Settings > Secrets and variables > Actions > Variables).
@@ -40,7 +46,7 @@ jobs:
           path: out
 
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v3')
     needs: verify
     runs-on: ubuntu-latest
     permissions:

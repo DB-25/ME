@@ -61,7 +61,7 @@ export function Impact() {
   if (!LEAD) return null;
   return (
     <section id="impact" data-chapter="impact" aria-labelledby="impact-title" className="sx-in relative">
-      <div className="sx-out shell py-[clamp(72px,8vw,120px)]">
+      <div className="sx-out shell pb-[clamp(72px,8vw,120px)] pt-[clamp(32px,4vw,64px)]">
         <header className="grid-12 gap-y-6">
           <div className="col-span-12 md:col-span-8">
             <SectionLabel chapter="impact" />
@@ -77,7 +77,7 @@ export function Impact() {
           </FadeIn>
         </header>
 
-        <div className="mt-[clamp(40px,6vw,88px)] grid-12 items-end gap-y-8">
+        <div className="mt-[clamp(28px,3.6vw,56px)] grid-12 items-end gap-y-8">
           <FadeIn className="col-span-12 border-t border-hairline-strong pt-4 md:col-span-8">
             <p className="label !text-[12px] !text-ink">{LEAD.label}</p>
             <div className="mt-[clamp(10px,1.6vw,22px)]">

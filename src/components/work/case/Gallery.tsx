@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Media, Project } from "@/content";
-import { Emph } from "@/components/ui/Emph";
 import { Lightbox, useLightbox } from "@/components/ui/Lightbox";
 import { Reveal } from "@/components/ui/Reveal";
 import { gsap, EASE_OUT, prefersReducedMotion } from "@/lib/motion";
@@ -102,13 +101,9 @@ export function Gallery({ project, n }: { project: Project; n: string }) {
           gsap.from([shot, cap], { opacity: 0, duration: 0.6, ease: "none", scrollTrigger });
           return;
         }
-        // The clip is cleared when done so the focus ring and glow are never cut off.
-        gsap.fromTo(
-          shot,
-          { clipPath: "inset(0% 0% 30% 0% round 6px)", opacity: 0 },
-          { clipPath: "inset(0% 0% 0% 0% round 6px)", opacity: 1, duration: 1.2, ease: EASE_OUT, clearProps: "clipPath", scrollTrigger },
-        );
-        gsap.from(cap, { opacity: 0, y: 10, duration: 1, delay: 0.15, ease: EASE_OUT, scrollTrigger });
+        // Fade and rise only: a clip-path would leave part of the button unclickable while it plays.
+        gsap.from(shot, { opacity: 0, y: 18, duration: 0.8, ease: EASE_OUT, clearProps: "opacity,transform", scrollTrigger });
+        gsap.from(cap, { opacity: 0, y: 10, duration: 0.7, delay: 0.1, ease: EASE_OUT, clearProps: "opacity,transform", scrollTrigger });
       });
     }, el);
 
@@ -130,7 +125,7 @@ export function Gallery({ project, n }: { project: Project; n: string }) {
         <CaseLabel n={n} text="In use" />
         <h2 id="cs-gallery" className="headline cs-h2 mt-6">
           <Reveal as="span" className="block">
-            The <Emph>work</Emph>, up close
+            The work, up close
           </Reveal>
         </h2>
         <div ref={root} className="cs-gal">

@@ -8,6 +8,7 @@ const BURNES = "The Burnes Center for Social Change";
 export const flagshipProjects: Project[] = [
   {
     slug: "a-iep",
+    headlines: { problem: "Parents were signing plans they couldn’t read.", built: "A pipeline that reads the plan, so parents don’t have to decode it.", flows: "Upload in, plain language out, nothing private left behind.", outcomes: "A thousand families, four languages." },
     film: {
       src: "/films/a-iep.mp4",
       poster: "/films/a-iep.jpg",
@@ -130,10 +131,10 @@ export const flagshipProjects: Project[] = [
       },
       {
         src: "/stills/a-iep/02.jpg",
-        alt: "A‑IEP Glossary drawer open on the term Special Education, with a short plain-language definition.",
+        alt: "A plain definition of Special Education slides in over the IEP summary, with the dimmed plan still visible behind it. Sample student.",
         kind: "image",
-        width: 774,
-        height: 696,
+        width: 960,
+        height: 520,
         caption: "Tap a term and a plain definition slides in, without leaving the page.",
       },
       {
@@ -148,6 +149,7 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "genie",
+    headlines: { problem: "State employees wanted AI. The state wanted it safe.", built: "One sandbox, many models, and a router that picks for you.", flows: "Every request finds the right model.", outcomes: "Forty-four thousand people with access." },
     film: {
       src: "/films/genie.mp4",
       poster: "/films/genie.jpg",
@@ -262,6 +264,7 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "abe-one-l",
+    headlines: { problem: "Procurement runs on rules nobody can keep in their head.", built: "Two agents: one answers buyers, one redlines contracts.", flows: "Questions get citations. Contracts get redlines.", outcomes: "A national award, and lawyers who start from a draft." },
     film: {
       src: "/films/abe-one-l.mp4",
       poster: "/films/abe-one-l.jpg",
@@ -405,6 +408,7 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "vct-scout",
+    headlines: { problem: "Scouting a pro roster means drowning in match data.", built: "An agent that turns one sentence into a five-player roster.", flows: "Plain English in, tool calls out, a roster back.", outcomes: "Second out of 3,200+ participants." },
     film: {
       src: "/films/vct-scout.mp4",
       poster: "/films/vct-scout.jpg",
@@ -500,27 +504,27 @@ export const flagshipProjects: Project[] = [
     media: [
       {
         src: "/stills/vct-scout/01.jpg",
-        alt: "VCT Scout chat after a follow-up question. The agent lists its tool calls, explains why Feniz replaces Chronicle as the Cypher player, and the team formation panel shows the updated roster.",
+        alt: "VCT Scout mid-request: the prompt is a red bubble, and under the agent's reply it lists its own tool calls, Data Retrieval, Data Analysis and Team Composition.",
         kind: "image",
-        width: 1600,
-        height: 996,
-        caption: "Ask a follow-up in plain English and the agent revises the roster from real player stats.",
+        width: 930,
+        height: 295,
+        caption: "The agent chooses its own tools: retrieve data, analyze it, compose a team.",
       },
       {
         src: "/stills/vct-scout/02.jpg",
-        alt: "VCT Scout home screen with the prompt: Build a team using only players from VCT Champions. Assign roles and explain why.",
+        alt: "Five VCT Scout roster cards in a row: Boaster on Omen, aspas on Jett, MaKo on Viper, Derke on Raze and Feniz on Cypher, each with an agent portrait and kills, deaths and games.",
         kind: "image",
-        width: 1600,
-        height: 996,
-        caption: "The whole interface starts as one sentence typed into a box.",
+        width: 1550,
+        height: 344,
+        caption: "The roster it builds: five players, their roles and real kills, deaths and games.",
       },
       {
         src: "/stills/vct-scout/03.jpg",
-        alt: "VCT Scout mid-request: the agent has listed Data Retrieval, Data Analysis and Team Composition while the team formation panel is still empty.",
+        alt: "VCT Scout after a follow-up question. The agent lists its tool calls, explains why Feniz replaces Chronicle as the Cypher player, and the team formation panel shows the updated roster cards.",
         kind: "image",
-        width: 1600,
-        height: 996,
-        caption: "The agent chooses its own tools: retrieve data, analyze it, compose a team.",
+        width: 1276,
+        height: 896,
+        caption: "Ask a follow-up in plain English and the agent revises the roster from real player stats.",
       },
     ],
   },

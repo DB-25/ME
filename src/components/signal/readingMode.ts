@@ -38,5 +38,11 @@ export function stepReading(r: ReadingState, scrollY: number, dt: number, forced
 export const timeScaleFor = (reading: number, still: boolean) =>
   still ? STILL_TIME_SCALE : 1 + (READING_TIME_SCALE - 1) * reading;
 
-/** Shared with the camera rig, which reads it each frame. */
-export const fieldMotion = { reading: 0, timeScale: 1 };
+/** Extra brightness removed while a dense text block (Systems principles and stack) is in view. */
+export const DUCK_DIM = 0.7;
+
+/**
+ * Shared with the camera rig, which reads it each frame.
+ * `duck` is set by a section (0 or 1) and eased by the look smoothing; it dims the field under dense copy.
+ */
+export const fieldMotion = { reading: 0, timeScale: 1, duck: 0 };
