@@ -2,14 +2,13 @@
 
 import { useEffect, useRef, type RefObject } from "react";
 import { profile } from "@/content";
-import { CHAPTERS } from "@/lib/chapters";
-import { gsap, prefersReducedMotion, scrollToTarget } from "@/lib/motion";
+import { gsap, prefersReducedMotion } from "@/lib/motion";
 import { lockScroll } from "./scroll-lock";
 import { assetUrl } from "@/lib/asset";
+import { NAV_ITEMS } from "./nav-items";
+import { SectionLink } from "./SectionLink";
 
 type Props = { open: boolean; onClose: () => void; toggle: RefObject<HTMLButtonElement | null> };
-
-const ITEMS = CHAPTERS.filter((c) => c.id !== "hero");
 
 function focusables(root: HTMLElement, toggle: HTMLElement | null): HTMLElement[] {
   const links = Array.from(root.querySelectorAll<HTMLElement>("a[href]"));
@@ -39,6 +38,7 @@ export function MobileMenu({ open, onClose, toggle }: Props) {
     }
 
     const unlock = lockScroll();
+    document.body.classList.add("menu-open");
     const main = document.getElementById("main");
     main?.setAttribute("inert", "");
     gsap.set(lines, { yPercent: reduced ? 0 : 115 });
@@ -74,17 +74,11 @@ export function MobileMenu({ open, onClose, toggle }: Props) {
       document.removeEventListener("keydown", onKey);
       mq.removeEventListener("change", onMq);
       main?.removeAttribute("inert");
+      document.body.classList.remove("menu-open");
       unlock();
       btn?.focus({ preventScroll: true });
     };
   }, [open, onClose, toggle]);
-
-  const go = (e: React.MouseEvent, id: string) => {
-    e.preventDefault();
-    onClose();
-    // Let the scroll lock release before Lenis is asked to move.
-    window.setTimeout(() => scrollToTarget(`#${id}`), 120);
-  };
 
   return (
     <div
@@ -93,32 +87,33 @@ export function MobileMenu({ open, onClose, toggle }: Props) {
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
-      className="invisible fixed inset-0 z-[70] flex flex-col justify-between bg-void/[0.96] px-[var(--gutter)] pb-[var(--gutter)] pt-24 md:hidden"
+      className="invisible fixed inset-0 z-[70] flex flex-col justify-between bg-void/[0.96] px-[var(--gutter)] pb-[max(var(--gutter),env(safe-area-inset-bottom))] pt-24 md:hidden"
     >
       <ul className="flex flex-col">
-        {ITEMS.map((c) => (
+        {NAV_ITEMS.map((c) => (
           <li key={c.id} className="overflow-hidden border-b border-hairline">
-            <a
+            <SectionLink
               data-line
-              href={`#${c.id}`}
-              onClick={(e) => go(e, c.id)}
-              className="flex items-baseline gap-4 py-[0.55rem] text-ink"
+              id={c.id}
+              onNavigate={onClose}
+              // Let the scroll lock release before Lenis is asked to move.
+              delayMs={120}
+              className="block py-[0.55rem] text-ink"
             >
-              <span className="label w-6 !text-accent">{c.index}</span>
               <span className="display text-[clamp(2.1rem,9.5vw,3rem)]">{c.label}</span>
-            </a>
+            </SectionLink>
           </li>
         ))}
       </ul>
 
       <div className="flex items-end justify-between gap-6">
         <div className="overflow-hidden">
-          <a data-line href={assetUrl(profile.resumeHref)} target="_blank" rel="noopener" className="label block !text-ink">
-            Résumé ↗
+          <a data-line href={assetUrl(profile.resumeHref)} target="_blank" rel="noopener" className="label block py-3 !text-ink">
+            Résumé (PDF) ↗
           </a>
         </div>
         <div className="overflow-hidden">
-          <a data-line href={`mailto:${profile.email}`} className="label block !text-ink">
+          <a data-line href={`mailto:${profile.email}`} className="label block py-3 !text-ink">
             {profile.email}
           </a>
         </div>

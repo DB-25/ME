@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
+import { useEffect, type RefObject } from "react";
 import { gsap, ScrollTrigger, isCoarsePointer, prefersReducedMotion } from "@/lib/motion";
-import { useSignal } from "@/lib/signal-store";
 
 const SPREAD_FIRST = 30;
 const SPREAD_LAST = 20;
@@ -11,62 +10,17 @@ const WAVE_LIFT = -0.1; // em
 const WAVE_SIGMA = 0.75; // em
 
 /**
- * Hero choreography: pre-intro state, intro after the preloader hands over,
- * scrubbed scroll-out, and the hover wave over the name.
+ * Hero choreography: scrubbed scroll-out and the hover wave over the name.
  *
- * Contract with the markup: glyphs are `[data-ch]` inside `[data-mask]`, name
- * lines are `[data-line]`, quiet text rows are `[data-meta]` inside `[data-out]`
- * containers, rules are `[data-rule]`. Intro animates the leaves, scroll-out
- * animates the containers, so the two never fight over a property.
+ * There is no gated intro: every glyph, line and link is in the first paint, so the
+ * hero text is the LCP and a recruiter can read it at once. The only "intro" is the
+ * particle field's own noise-to-signal morph behind the text.
+ *
+ * Contract with the markup: glyphs are `[data-ch]`, name lines are `[data-line]`,
+ * quiet text containers are `[data-out]`. Scroll-out animates the lines and
+ * containers; the hover wave animates the leaves (y, color), so they never fight.
  */
 export function useHeroMotion(root: RefObject<HTMLElement | null>) {
-  const ready = useSignal((s) => s.ready);
-  const introDone = useRef(false);
-  const played = useRef(false);
-
-  // Park everything in its pre-intro pose before first paint.
-  useLayoutEffect(() => {
-    const el = root.current;
-    if (!el) return;
-    if (prefersReducedMotion()) {
-      el.removeAttribute("data-intro");
-      introDone.current = true;
-      return;
-    }
-    gsap.set(el.querySelectorAll("[data-ch]"), { yPercent: 115 });
-    gsap.set(el.querySelectorAll("[data-meta]"), { opacity: 0, y: 14 });
-    gsap.set(el.querySelectorAll("[data-rule]"), { scaleX: 0, transformOrigin: "0% 50%" });
-    gsap.set(el.querySelectorAll("[data-mark]"), { opacity: 0 });
-    el.removeAttribute("data-intro");
-  }, [root]);
-
-  // Intro, once the preloader says ready.
-  useEffect(() => {
-    const el = root.current;
-    if (!ready || !el || played.current || prefersReducedMotion()) return;
-    played.current = true;
-
-    const first = el.querySelectorAll("[data-line='first'] [data-ch]");
-    const last = el.querySelectorAll("[data-line='last'] [data-ch]");
-    const tl = gsap.timeline({
-      defaults: { ease: "expo.out" },
-      onComplete: () => {
-        introDone.current = true;
-        gsap.set(el.querySelectorAll("[data-mask]"), { overflow: "visible" });
-      },
-    });
-    tl.to(first, { yPercent: 0, duration: 1.3, stagger: 0.07 }, 0.05)
-      .to(last, { yPercent: 0, duration: 1.3, stagger: 0.04 }, 0.3)
-      .to("#hero [data-rule]", { scaleX: 1, duration: 1.6, stagger: 0.12 }, 0.5)
-      .to("#hero [data-mark]", { opacity: 1, duration: 1.2 }, 0.6)
-      .to("#hero [data-meta]:not([data-cue])", { opacity: 1, y: 0, duration: 1, stagger: 0.07 }, 0.75)
-      .to("#hero [data-cue]", { opacity: 1, y: 0, duration: 1 }, 1.6);
-
-    return () => {
-      tl.kill();
-    };
-  }, [ready, root]);
-
   // Scroll-out: name drifts apart, blurs, fades; quiet text leaves first.
   useEffect(() => {
     const el = root.current;
@@ -99,7 +53,7 @@ export function useHeroMotion(root: RefObject<HTMLElement | null>) {
         )
         .fromTo(firstChars, { x: 0 }, { x: spread(1, SPREAD_FIRST) }, 0)
         .fromTo(lastChars, { x: 0 }, { x: spread(1, SPREAD_LAST) }, 0)
-        .fromTo("#hero [data-out]", { opacity: 1, y: 0 }, { opacity: 0, y: -28, ease: "power1.in", duration: 0.6 }, 0);
+        .fromTo("#hero [data-out]", { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -28, ease: "power1.in", duration: 0.6 }, 0);
     }, el);
 
     return () => ctx.revert();
@@ -123,7 +77,6 @@ export function useHeroMotion(root: RefObject<HTMLElement | null>) {
       };
 
       const onMove = (e: PointerEvent) => {
-        if (!introDone.current) return;
         const em = fontPx();
         chars.forEach((c, i) => {
           const r = c.getBoundingClientRect();

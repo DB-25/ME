@@ -60,7 +60,6 @@ export function LabTable({ projects, offset, spotlight }: { projects: Project[];
               key={p.slug}
               className="wk-lab-row"
               data-spot={spotlight === p.slug ? "" : undefined}
-              style={{ ["--pa" as string]: p.accent ?? "var(--color-accent)" }}
             >
               <span className="wk-lab-idx label num">{pad(offset + i + 1)}</span>
               <Link href={caseHref(p.slug)} className="wk-lab-name" data-cursor="open">

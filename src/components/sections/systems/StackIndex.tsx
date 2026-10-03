@@ -1,23 +1,42 @@
 import { stack } from "@/content";
 import { FadeIn } from "../origin/FadeIn";
+import { Scrim } from "../Scrim";
 
-/** A typographic index of the tools, set like a table of contents. */
+/**
+ * The dozen tools behind most of what I have shipped, in three short lines. Names are looked up in
+ * the content stack, so a tool that is not listed there never appears here.
+ */
+const LINES: { name: string; items: string[] }[] = [
+  { name: "Models and agents", items: ["Claude via Amazon Bedrock", "OpenAI", "RAG", "RAGAS evaluation"] },
+  { name: "Cloud", items: ["AWS CDK", "Step Functions", "Lambda", "OpenSearch Serverless"] },
+  { name: "Product", items: ["TypeScript", "Python", "React", "Next.js"] },
+];
+
+const KNOWN = new Set(stack.flatMap((g) => g.items));
+
 export function StackIndex() {
   return (
-    <div>
-      <p className="label">Stack</p>
+    <div className="relative">
+      <Scrim strength={0.78} inset="-12% -4%" />
+      <p className="label">What I reach for</p>
       <dl className="mt-6 border-b border-hairline">
-        {stack.map((group) => (
-          <FadeIn
-            key={group.name}
-            className="grid-12 gap-y-2 border-t border-hairline py-5 md:py-6"
-          >
-            <dt className="label col-span-12 md:col-span-3 md:pt-[0.55em]">{group.name}</dt>
-            <dd className="col-span-12 md:col-span-9">
-              <ul className="flex flex-wrap gap-x-[1.4em] text-[clamp(1.0625rem,1.55vw,1.4rem)] leading-[1.55] tracking-[-0.015em] text-ink">
-                {group.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
+        {LINES.map((line) => (
+          <FadeIn key={line.name} className="grid gap-x-[var(--gutter)] gap-y-2 border-t border-hairline py-5 md:grid-cols-[14rem_1fr] md:py-6">
+            <dt className="label md:pt-[0.7em]">{line.name}</dt>
+            <dd>
+              <ul className="flex flex-wrap items-baseline gap-x-[0.9em] gap-y-1 text-[clamp(1.125rem,1.8vw,1.625rem)] leading-[1.35] tracking-[-0.02em] text-ink">
+                {line.items
+                  .filter((item) => KNOWN.has(item))
+                  .map((item, i, all) => (
+                    <li key={item} className="flex items-baseline gap-x-[0.9em]">
+                      {item}
+                      {i < all.length - 1 && (
+                        <span aria-hidden className="text-faint">
+                          /
+                        </span>
+                      )}
+                    </li>
+                  ))}
               </ul>
             </dd>
           </FadeIn>

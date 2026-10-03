@@ -1,67 +1,75 @@
-"use client";
+import { metrics, profile } from "@/content";
+import type { Metric } from "@/content";
+import { assetUrl } from "@/lib/asset";
 
-import { useEffect, useState } from "react";
+/** First app shipped to real users in 2021 (see timeline). A year, not a "years of experience" claim. */
+const SHIPPING_SINCE = 2021;
 
-const COORDS = "42.3601° N, 71.0589° W";
-const TZ = "America/New_York";
+/** "A-IEP" must not break after the hyphen on a narrow column. */
+const noBreakHyphen = (text: string) => text.replace(/-/g, "\u2011");
 
-const fmt = new Intl.DateTimeFormat("en-US", {
-  timeZone: TZ,
-  hour: "2-digit",
-  minute: "2-digit",
-  second: "2-digit",
-  hourCycle: "h23",
-  timeZoneName: "short",
-});
+const city = (place: string) => place.split(",")[0].trim();
 
-function bostonNow(): string {
-  const parts = fmt.formatToParts(new Date());
-  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
-  return `${get("hour")}:${get("minute")}:${get("second")} ${get("timeZoneName")}`;
+/** The three provable facts: two lead metrics (ordered for the startup audience) plus the hackathon placing. */
+const PROOF: Metric[] = [metrics[0], metrics[1], metrics.find((m) => m.projectSlug === "vct-scout")].filter(
+  (m): m is Metric => Boolean(m),
+);
+
+export function HeroEyebrow() {
+  return <p className="label !text-accent-hot">Shipping production software since {SHIPPING_SINCE}</p>;
 }
 
-/** Live Boston time. Renders a fixed-width placeholder until mounted (no hydration mismatch). */
-function BostonTime() {
-  const [now, setNow] = useState("--:--:-- ---");
-  useEffect(() => {
-    const tick = () => setNow(bostonNow());
-    tick();
-    const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
-  }, []);
-  return <span className="num font-mono">{now}</span>;
-}
-
-type Props = { location: string; origin: string };
-
-/** Mono metadata ledger: location, live local time, coordinates, origin. */
-export function HeroLedger({ location, origin }: Props) {
-  const rows: { k: string; v: React.ReactNode }[] = [
-    { k: "Location", v: location },
-    { k: "Local", v: <BostonTime /> },
-    { k: "Coords", v: <span className="num font-mono">{COORDS}</span> },
-    { k: "From", v: origin },
-  ];
+export function HeroLocation() {
   return (
-    <dl className="grid w-full grid-cols-2 gap-x-4 gap-y-3 md:w-[min(14vw,16rem)] md:grid-cols-1 md:gap-y-0">
-      {rows.map((r) => (
-        <div key={r.k} data-meta className="border-t border-hairline-strong pt-2 md:py-3">
-          <dt className="label mb-1 !text-muted">{r.k}</dt>
-          <dd className="label !text-ink">{r.v}</dd>
-        </div>
-      ))}
-    </dl>
+    <p className="label mt-1">
+      {city(profile.location)}, from {city(profile.origin)}
+    </p>
   );
 }
 
-/** Thin line with a sweeping highlight plus the word SCROLL. */
-export function ScrollCue() {
+/** Three crisp facts: value and a short label, tabular numerals. */
+export function HeroProof() {
   return (
-    <div className="flex items-center gap-3">
-      <span aria-hidden className="relative block h-px w-14 overflow-hidden bg-hairline-strong">
-        <span className="hero-cue-sweep absolute inset-y-0 left-0 w-1/2 bg-accent-hot" />
-      </span>
-      <span className="label !text-muted">Scroll</span>
-    </div>
+    <ul className="grid grid-cols-3 gap-x-4 border-t border-hairline-strong pt-3">
+      {PROOF.map((m) => (
+        <li key={m.label}>
+          <span className="num block text-[1.75rem] font-medium leading-none text-ink lg:text-[2rem]">{m.value}</span>
+          <span className="mt-2 block text-[12.5px] leading-[1.35] text-muted">{noBreakHyphen(m.label)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Understated text links, not pills. Arrow glyphs mark them as exits. */
+export function HeroLinks() {
+  const link = (label: string) => profile.links.find((l) => l.label === label)?.href;
+  const items: { label: string; href: string; external: boolean; hint?: string; primary?: boolean }[] = [
+    { label: "Résumé (PDF)", href: assetUrl(profile.resumeHref), external: true, primary: true },
+    { label: "Email", href: `mailto:${profile.email}`, external: false, hint: profile.email },
+    { label: "LinkedIn", href: link("LinkedIn") ?? "", external: true },
+    { label: "GitHub", href: link("GitHub") ?? "", external: true },
+  ];
+  return (
+    <ul className="-ml-0.5 flex flex-wrap gap-x-3.5 gap-y-0">
+      {items
+        .filter((i) => i.href)
+        .map((i) => (
+          <li key={i.label}>
+            <a
+              href={i.href}
+              {...(i.external ? { target: "_blank", rel: "noopener" } : {})}
+              data-primary={i.primary || undefined}
+              className="hero-cta"
+            >
+              <span className="hero-cta-text">{i.label}</span>
+              {i.hint && <span className="sr-only">, {i.hint}</span>}
+              <span aria-hidden className="hero-cta-arrow">
+                ↗
+              </span>
+            </a>
+          </li>
+        ))}
+    </ul>
   );
 }

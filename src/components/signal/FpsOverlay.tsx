@@ -1,17 +1,21 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { devFlag } from "./devtools";
 
 /** Dev overlay, shown with ?fps. Polls the probe the canvas writes; no per-frame React state. */
 export function FpsOverlay() {
+  const [enabled] = useState(() => devFlag("fps"));
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (!enabled) return;
     const id = window.setInterval(() => {
-      const fps = (window as unknown as { __signalFps?: number }).__signalFps;
+      const fps = window.__signalFps;
       if (ref.current) ref.current.textContent = fps ? `${fps} fps` : "-- fps";
     }, 500);
     return () => window.clearInterval(id);
-  }, []);
+  }, [enabled]);
+  if (!enabled) return null;
   return (
     <div
       ref={ref}

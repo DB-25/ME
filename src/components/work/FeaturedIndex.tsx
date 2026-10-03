@@ -78,7 +78,6 @@ function Row({
       data-slug={project.slug}
       data-active={active ? "" : undefined}
       data-spot={spot ? "" : undefined}
-      style={{ ["--pa" as string]: project.accent ?? "var(--color-accent)" }}
     >
       <Link
         href={caseHref(project.slug)}
@@ -128,6 +127,13 @@ function Row({
           <p className="wk-out" data-reveal>
             <span className="wk-out-v num">{lead.value}</span>
             <span className="wk-out-l label">{lead.label}</span>
+          </p>
+        ) : null}
+
+        {project.owned ? (
+          <p className="wk-own" data-reveal>
+            <span className="wk-own-k label">I owned</span>
+            <span className="wk-own-v">{project.owned}</span>
           </p>
         ) : null}
 
@@ -184,7 +190,6 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
         return {
           slug: p.slug,
           name: p.name,
-          accent: p.accent ?? "#8B7BFF",
           src: img ? assetUrl(img.src) : undefined,
           alt: img?.alt ?? p.name,
         };

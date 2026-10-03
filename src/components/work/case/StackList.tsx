@@ -1,5 +1,4 @@
 import type { Project } from "@/content";
-import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
 import { CaseLabel } from "./CaseLabel";
 
@@ -12,7 +11,7 @@ export function StackList({ project, n }: { project: Project; n: string }) {
           <CaseLabel n={n} text="Stack" />
           <h2 id="cs-stack" className="headline cs-h2 mt-6">
             <Reveal as="span" className="block">
-              Built <Emph>with</Emph>
+              Built with
             </Reveal>
           </h2>
         </div>

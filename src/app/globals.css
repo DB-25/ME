@@ -58,6 +58,9 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Decorative absolute layers must never widen the mobile viewport. */
+main { overflow-x: clip; }
+
 ::selection { background: var(--color-accent); color: var(--color-void); }
 
 :focus-visible {

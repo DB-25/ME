@@ -1,5 +1,6 @@
 import type { Recognition } from "@/content";
 import { assetUrl } from "@/lib/asset";
+import { Scrim } from "../Scrim";
 
 const LEGIBLE = "[text-shadow:0_0_24px_rgb(6_5_9/0.9),0_0_3px_rgb(6_5_9/0.5)]";
 
@@ -30,8 +31,8 @@ function Row({ item }: { item: Recognition }) {
   const body = (
     <div className="grid-12 items-start gap-y-3 py-6 md:py-8">
       <p className="label num col-span-3 pt-[0.6em] md:col-span-1 md:pt-[1.1em]">{item.year}</p>
-      <div className="col-span-12 md:col-span-10 md:col-start-2">
-        <h3 className={`text-[clamp(1.75rem,4.4vw,4.4rem)] font-medium leading-[0.98] tracking-[-0.04em] text-ink text-balance ${LEGIBLE}`}>
+      <div className="col-span-12 md:col-span-8 md:col-start-2">
+        <h3 className={`text-[clamp(1.75rem,4vw,4rem)] font-medium leading-[0.98] tracking-[-0.04em] text-ink text-balance ${LEGIBLE}`}>
           {item.title}
         </h3>
         <div className="proof-detail">
@@ -39,7 +40,7 @@ function Row({ item }: { item: Recognition }) {
             <div className="grid-12 pt-5 md:pt-6">
               <p className="label col-span-12 !text-ink md:col-span-4">{item.issuer}</p>
               {item.note && (
-                <p className={`col-span-12 mt-3 max-w-[34rem] text-[1rem] leading-[1.55] text-ink/75 md:col-span-6 md:mt-0 ${LEGIBLE}`}>
+                <p className={`col-span-12 mt-3 max-w-[34rem] text-[1rem] leading-[1.55] text-ink/80 md:col-span-8 md:mt-0 ${LEGIBLE}`}>
                   {item.note}
                 </p>
               )}
@@ -77,8 +78,9 @@ function Row({ item }: { item: Recognition }) {
 /** Oversized award titles. Hover or focus a row and it opens to show who gave it and why. */
 export function AwardList({ items }: { items: Recognition[] }) {
   return (
-    <div>
+    <div className="relative">
       <style>{CSS}</style>
+      <Scrim shape="left" strength={0.85} inset="-4% -3% -4% -24px" />
       <p className="label mb-6">Awards</p>
       <ul className="proof-list border-b border-hairline-strong">
         {items.map((item) => (

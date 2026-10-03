@@ -1,0 +1,25 @@
+/* The five-stage flow. The path lives in a fixed-width SVG rail on the left; labels sit in their own
+   column on the right, one fixed-height row per stage, so nothing can ever overlap. */
+.sys-flow { --row: 124px; --rail: 120px; position: relative; display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); column-gap: 20px; }
+.sys-svg { grid-column: 1; grid-row: 1; display: block; width: var(--rail); height: calc(var(--row) * 5); overflow: visible; }
+.sys-rows { grid-column: 2; grid-row: 1; list-style: none; margin: 0; padding: 0; }
+.sys-row { height: var(--row); display: flex; flex-direction: column; justify-content: center; opacity: 0.38; transition: opacity 0.6s var(--ease-out-expo); }
+.sys-row[data-lit] { opacity: 1; }
+
+.sys-track { fill: none; stroke: var(--color-hairline-strong); stroke-width: 1; }
+.sys-line { fill: none; stroke: var(--color-accent); stroke-width: 1.5; opacity: 0.6; }
+.sys-flowdash { fill: none; stroke: var(--color-accent-hot); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 2 11; animation: sys-dash 1.1s linear infinite; }
+@keyframes sys-dash { to { stroke-dashoffset: -13; } }
+.sys-ring { fill: var(--color-void); stroke: var(--color-faint); stroke-width: 1.25; transition: stroke 0.5s; }
+.sys-node[data-lit] .sys-ring { stroke: var(--color-accent); }
+.sys-glow { fill: var(--color-accent); opacity: 0; transition: opacity 0.6s; }
+.sys-node[data-lit] .sys-glow { opacity: 0.14; }
+.sys-pulse { fill: none; stroke: var(--color-accent); stroke-width: 1.5; opacity: 0; }
+.sys-n { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; fill: var(--color-muted); }
+.sys-node[data-lit] .sys-n { fill: var(--color-accent-hot); }
+.sys-packet { fill: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sys-flowdash { animation: none; }
+  .sys-row { opacity: 1; transition: none; }
+}

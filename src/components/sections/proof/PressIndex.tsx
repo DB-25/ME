@@ -1,12 +1,14 @@
 import type { Recognition } from "@/content";
 import { assetUrl } from "@/lib/asset";
+import { Scrim } from "../Scrim";
 
 const KIND_LABEL: Record<Recognition["kind"], string> = { award: "Award", press: "Press", talk: "Talk" };
 
 /** The press and talk record as a plain, linked ledger. */
 export function PressIndex({ items }: { items: Recognition[] }) {
   return (
-    <div className="mt-[clamp(72px,10vw,150px)]">
+    <div className="relative mt-[clamp(56px,8vw,120px)]">
+      <Scrim shape="left" strength={0.85} inset="-4% -3% -4% -24px" />
       <p className="label mb-6">Press and talks</p>
       <ul className="border-b border-hairline">
         {items.map((r) => {

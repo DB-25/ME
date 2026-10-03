@@ -3,23 +3,42 @@
 import { useEffect } from "react";
 import { CHAPTERS } from "@/lib/chapters";
 import type { ChapterId } from "@/lib/director/protocol";
-import { gsap, ScrollTrigger } from "@/lib/motion";
+import { ScrollTrigger } from "@/lib/motion";
 import { signalStore } from "@/lib/signal-store";
+import { chapterPresence } from "./chapterPresence";
+import { clamp01 } from "./ease";
 
 /** A section's top travels from 85% to 25% of the viewport while its formation arrives. */
 const MORPH_START = 0.85;
 const MORPH_END = 0.25;
+const SETTLE_MS = 800;
+const MIN_MORPH_STEP = 0.0005;
+const MIN_HEIGHT_DELTA = 2;
 
-type Section = { id: ChapterId; el: HTMLElement; index: number };
+/** `top` is the section's document offset, cached and re-measured only on refresh. */
+type Section = { id: ChapterId; el: HTMLElement; index: number; top: number };
 
 function collectSections(): Section[] {
   const out: Section[] = [];
   document.querySelectorAll<HTMLElement>("[data-chapter]").forEach((el) => {
     const id = el.dataset.chapter as ChapterId;
     const index = CHAPTERS.findIndex((c) => c.id === id);
-    if (index >= 0) out.push({ id, el, index });
+    if (index >= 0) out.push({ id, el, index, top: 0 });
   });
   return out.sort((a, b) => a.index - b.index);
+}
+
+function measure(sections: Section[]) {
+  const y = window.scrollY;
+  for (const s of sections) s.top = s.el.getBoundingClientRect().top + y;
+}
+
+function touchesChapter(records: MutationRecord[]): boolean {
+  return records.some((r) =>
+    [...r.addedNodes, ...r.removedNodes].some(
+      (n) => n instanceof HTMLElement && (n.hasAttribute("data-chapter") || n.querySelector("[data-chapter]")),
+    ),
+  );
 }
 
 /**
@@ -29,14 +48,17 @@ function collectSections(): Section[] {
  * section whose top has crossed 85% of the viewport, and `morph` is how far
  * that top has travelled toward 25%. The field morphs previous formation to
  * this one by `morph`, so scrolling backwards reverses the morph exactly.
+ *
+ * One ScrollTrigger spans the page; section offsets are cached and re-measured
+ * on ScrollTrigger refresh (resize, layout shifts, section mount), so a scroll
+ * tick reads no layout.
  */
 export function useChapterScroll() {
   useEffect(() => {
     let sections: Section[] = [];
-    let triggers: ScrollTrigger[] = [];
     let raf = 0;
 
-    const recompute = () => {
+    const recompute = (scrollY: number) => {
       if (sections.length === 0) return;
       const vh = window.innerHeight;
       const from = vh * MORPH_START;
@@ -44,77 +66,66 @@ export function useChapterScroll() {
       let chapter = sections[0];
       let morph = 1;
       for (const s of sections) {
-        const top = s.el.getBoundingClientRect().top;
+        const top = s.top - scrollY;
         if (top > from) break;
         chapter = s;
-        morph = s.index === 0 ? 1 : gsap.utils.clamp(0, 1, (from - top) / span);
+        morph = s.index === 0 ? 1 : clamp01((from - top) / span);
       }
       const cur = signalStore.getState();
-      if (cur.chapter !== chapter.id || Math.abs(cur.morph - morph) > 0.0005) {
+      if (cur.chapter !== chapter.id || Math.abs(cur.morph - morph) > MIN_MORPH_STEP) {
         cur.set({ chapter: chapter.id, morph });
       }
     };
 
-    const build = () => {
-      triggers.forEach((t) => t.kill());
+    const rescan = () => {
       sections = collectSections();
-      triggers = sections.map((s) =>
-        ScrollTrigger.create({
-          trigger: s.el,
-          start: `top ${MORPH_START * 100}%`,
-          end: `top ${MORPH_END * 100}%`,
-          onUpdate: recompute,
-          onToggle: recompute,
-          onRefresh: recompute,
-        }),
-      );
-      recompute();
+      chapterPresence.present = sections.length > 0;
+      measure(sections);
+      recompute(window.scrollY);
     };
 
+    const trigger = ScrollTrigger.create({
+      start: 0,
+      end: "max",
+      onUpdate: (self) => recompute(self.scroll()),
+    });
+    // The global event fires once every trigger (pin spacers included) has settled.
+    const onRefreshed = () => {
+      measure(sections);
+      recompute(window.scrollY);
+    };
+    ScrollTrigger.addEventListener("refresh", onRefreshed);
+
+    // Sections mount in parallel with the field: rescan whenever they appear or leave.
     const schedule = () => {
       cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        build();
-        ScrollTrigger.refresh();
-      });
+      raf = requestAnimationFrame(rescan);
     };
-
-    build();
-
-    // Sections mount in parallel with the field: rebuild whenever they appear or leave.
+    const main = document.getElementById("main") ?? document.body;
     const mo = new MutationObserver((records) => {
-      const touched = records.some((r) =>
-        [...r.addedNodes, ...r.removedNodes].some(
-          (n) => n instanceof HTMLElement && (n.hasAttribute("data-chapter") || n.querySelector("[data-chapter]")),
-        ),
-      );
-      if (touched) schedule();
+      if (touchesChapter(records)) schedule();
     });
-    mo.observe(document.body, { childList: true, subtree: true });
+    mo.observe(main, { childList: true, subtree: true });
 
     // Layout shifts (fonts, images, accordions) move section tops.
-    const main = document.getElementById("main") ?? document.body;
     let lastHeight = main.scrollHeight;
     const ro = new ResizeObserver(() => {
-      if (Math.abs(main.scrollHeight - lastHeight) < 2) return;
+      if (Math.abs(main.scrollHeight - lastHeight) < MIN_HEIGHT_DELTA) return;
       lastHeight = main.scrollHeight;
       ScrollTrigger.refresh();
-      recompute();
     });
     ro.observe(main);
 
-    window.addEventListener("scroll", recompute, { passive: true });
-    window.addEventListener("resize", recompute);
-    const settle = window.setTimeout(schedule, 800);
+    rescan();
+    const settle = window.setTimeout(schedule, SETTLE_MS);
 
     return () => {
       cancelAnimationFrame(raf);
       window.clearTimeout(settle);
       mo.disconnect();
       ro.disconnect();
-      window.removeEventListener("scroll", recompute);
-      window.removeEventListener("resize", recompute);
-      triggers.forEach((t) => t.kill());
+      ScrollTrigger.removeEventListener("refresh", onRefreshed);
+      trigger.kill();
     };
   }, []);
 }

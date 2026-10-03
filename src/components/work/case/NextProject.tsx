@@ -7,7 +7,7 @@ import { CATEGORY_LABEL, pad } from "../meta";
 /** The bottom-of-page hand-off: the next project's name, large enough to click into. */
 export function NextProject({ next, index, total }: { next: Project; index: number; total: number }) {
   return (
-    <section className="cs-next" data-cs="next" data-cs-label="Up next" aria-labelledby="cs-next-h" style={{ ["--pa" as string]: next.accent ?? "var(--color-accent)" }}>
+    <section className="cs-next" data-cs="next" data-cs-label="Up next" aria-labelledby="cs-next-h">
       <div className="shell">
         <Link href={caseHref(next.slug)} className="cs-next-link" data-cursor="open">
           <div className="cs-next-top">

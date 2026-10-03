@@ -55,3 +55,4 @@ worker/dist/
 .wrangler/
 worker/.wrangler/
 worker/.dev.vars
+.brag/

@@ -16,4 +16,13 @@ OPENAI_REASONING_EFFORT = "low"
 # "https://example.dev,https://db-25.github.io". http://localhost:3000 is always allowed.
 ALLOWED_ORIGINS = ""
 
+# Rate limiting binding (Cloudflare Workers Rate Limiting; `period` must be 10 or 60 seconds).
+# Counts per hashed client IP, per Cloudflare location. The Worker also keeps a small in-memory
+# limiter, which is the only one in effect when this binding is missing (e.g. `wrangler dev`).
+# namespace_id is any positive integer string, unique within your account.
+[[ratelimits]]
+name = "DIRECTOR_LIMITER"
+namespace_id = "1001"
+simple = { limit = 6, period = 60 }
+
 # Secret (never put in this file):  npx wrangler secret put OPENAI_API_KEY

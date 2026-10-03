@@ -5,28 +5,11 @@ import { profile } from "@/content";
 import { gsap, prefersReducedMotion } from "@/lib/motion";
 
 const PURI_COUNT = 7;
-const ROW = "grid grid-cols-[6.5rem_1fr] items-baseline gap-x-4 border-t border-hairline py-4 md:grid-cols-[7.5rem_1fr] md:py-4";
-const VALUE = "text-[clamp(1.125rem,1.7vw,1.5rem)] leading-[1.2] tracking-[-0.02em] text-ink";
-
-/** Black and purple, with a coin that flips when you point at the words. */
-function ColorsValue({ value }: { value: string }) {
-  const [black, rest] = value.split(" and ");
-  return (
-    <span className={`group/colors inline-flex cursor-default items-center gap-3 ${VALUE}`}>
-      <span aria-hidden className="relative inline-block h-[18px] w-[18px] [perspective:120px]">
-        <span className="absolute inset-0 transition-transform duration-[600ms] ease-[var(--ease-out-expo)] [transform-style:preserve-3d] group-hover/colors:[transform:rotateY(180deg)]">
-          <span className="absolute inset-0 border border-ink/40 bg-void [backface-visibility:hidden]" />
-          <span className="absolute inset-0 bg-accent [backface-visibility:hidden] [transform:rotateY(180deg)]" />
-        </span>
-      </span>
-      <span>
-        <span className="transition-colors duration-300 group-hover/colors:text-muted">{black}</span>
-        {" and "}
-        <span className="transition-colors duration-300 group-hover/colors:text-accent-hot">{rest}</span>
-      </span>
-    </span>
-  );
-}
+/** The six facts that say the most about the person, in reading order. Values come from content. */
+const KEEP = ["Games", "Past life", "Desk", "Reading", "Eats", "From"];
+const FACTS = KEEP.flatMap((label) => profile.offDuty.filter((f) => f.label === label));
+const ROW = "grid grid-cols-[6rem_1fr] items-baseline gap-x-4 border-t border-hairline py-4 md:grid-cols-[7rem_1fr]";
+const VALUE = "text-[clamp(1.0625rem,1.5vw,1.3125rem)] leading-[1.25] tracking-[-0.02em] text-ink [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]";
 
 /** Hover, focus or tap the dish and the plate count ticks up. */
 function EatsValue({ value }: { value: string }) {
@@ -85,7 +68,6 @@ function EatsValue({ value }: { value: string }) {
 }
 
 function renderValue(label: string, value: string): ReactNode {
-  if (label === "Colors") return <ColorsValue value={value} />;
   if (label === "Eats") return <EatsValue value={value} />;
   return <span className={VALUE}>{value}</span>;
 }
@@ -93,7 +75,7 @@ function renderValue(label: string, value: string): ReactNode {
 export function OffDutyFacts() {
   return (
     <dl className="border-b border-hairline">
-      {profile.offDuty.map((fact) => (
+      {FACTS.map((fact) => (
         <div key={fact.label} className={ROW}>
           <dt className="label">{fact.label}</dt>
           <dd>

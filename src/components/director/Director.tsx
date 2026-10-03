@@ -11,9 +11,9 @@ import "./director.css";
 import { useDirectorRun } from "./useDirectorRun";
 
 const TAKES = [
+  "I'm a founder",
   "I'm hiring an AI engineer",
   "Show me the hardest problem",
-  "I'm a founder",
   "Draw me a pani puri",
 ];
 
@@ -71,9 +71,15 @@ export function Director() {
       aria-labelledby="director-title"
       className="relative flex min-h-screen items-center py-28 md:py-36"
     >
+      {/* Feathered on every side: no edge for the eye to catch where the section ends. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-void/90 via-void/65 to-void/10"
+        className="pointer-events-none absolute"
+        style={{
+          inset: "-12% -6%",
+          background:
+            "radial-gradient(ellipse 62% 56% at 30% 50%, rgb(6 5 9 / 0.78) 0%, rgb(6 5 9 / 0.5) 48%, transparent 100%)",
+        }}
       />
       <div
         className="shell relative w-full transition-opacity duration-700 ease-[var(--ease-out-expo)]"
@@ -82,7 +88,7 @@ export function Director() {
       >
         <div className="slate flex flex-wrap items-center gap-x-8 gap-y-2 pb-5">
           <SectionLabel chapter="director" />
-          <p className="label hidden sm:block">{live ? "Live" : "Offline, scripted"}</p>
+          <p className="label hidden sm:block">{live ? "Live" : "Scripted tour"}</p>
         </div>
 
         <h2 id="director-title" className="display text-[length:var(--text-display)]">
@@ -96,7 +102,6 @@ export function Director() {
         <p className="lede mt-8 max-w-[52ch]">
           Tell the site who you are or what you want. It scrolls, spotlights the work and redraws the particles behind
           this page.
-          {live ? "" : " No live model is connected here, so this plays a scripted offline cut, written from the real content."}
         </p>
 
         <form onSubmit={onSubmit} className="relative mt-16 md:mt-24" aria-label="Tell the Director what you want">
@@ -159,6 +164,13 @@ export function Director() {
             </li>
           ))}
         </ul>
+
+        {!live && (
+          <p className="mt-8 max-w-[62ch] text-[0.8125rem] leading-relaxed text-muted">
+            This is a scripted tour, written by hand from the real content and routed by keyword. The live version runs
+            a tool-calling model on a Cloudflare Worker. It is switched off right now.
+          </p>
+        )}
       </div>
 
       <DirectorHud state={state} onCut={cut} showAnotherTake={state.afterglow && !running && !inView} onAnotherTake={anotherTake} />

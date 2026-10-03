@@ -11,7 +11,7 @@ function Stat({ label, value, dim }: { label: string; value: string; dim?: boole
   return (
     <div className="min-w-0">
       <p className="label">{label}</p>
-      <p className={`num font-mono text-[15px] md:text-[17px] ${dim ? "text-dim" : "text-ink"}`}>
+      <p className={`num font-mono text-[15px] md:text-[17px] ${dim ? "text-dim" : label === "TARGET" ? "text-ink" : "text-valorant"}`}>
         {value}
         <span className="ml-1 text-[10px] text-muted">{label === "TARGET" ? "" : "MS"}</span>
       </p>
@@ -109,7 +109,7 @@ function HitBurst({ burst }: { burst: Burst }) {
 
 function Corners({ live }: { live: boolean }) {
   const base = "absolute h-3 w-3 border-solid transition-colors duration-300";
-  const tone = live ? "border-valorant" : "border-faint";
+  const tone = live ? "border-valorant" : "border-valorant/40";
   return (
     <>
       <span aria-hidden className={`${base} ${tone} left-2 top-2 border-l border-t`} />
@@ -122,7 +122,7 @@ function Corners({ live }: { live: boolean }) {
 
 /** Faint center cross: the same shape the particles make on a good day. */
 function CenterCross() {
-  const arm = "absolute bg-hairline-strong";
+  const arm = "absolute bg-valorant/35";
   return (
     <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 h-0 w-0">
       <span className={`${arm} -left-[22px] top-0 h-px w-[14px]`} />
@@ -134,7 +134,7 @@ function CenterCross() {
 }
 
 const btn =
-  "label !text-ink inline-flex items-center gap-3 border border-hairline-strong px-5 py-3 transition-colors duration-300 hover:border-valorant hover:!text-valorant focus-visible:border-valorant";
+  "label !text-ink inline-flex items-center gap-3 border border-valorant/60 px-5 py-3 transition-colors duration-300 hover:border-valorant hover:!text-valorant focus-visible:border-valorant";
 
 export function AimTrainer() {
   const t = useAimTrainer();
@@ -178,7 +178,7 @@ export function AimTrainer() {
         aria-label="Aim trainer arena. Press Space when a target appears."
         onKeyDown={onKeyDown}
         onPointerDown={(e) => t.onArenaPointer(toPercent(e))}
-        className="relative aspect-[4/5] touch-manipulation select-none overflow-hidden border border-hairline-strong bg-[rgb(6_5_9/0.72)] backdrop-blur-[3px] md:aspect-[16/11]"
+        className="relative aspect-[4/5] touch-manipulation select-none overflow-hidden bg-[radial-gradient(ellipse_closest-side_at_50%_50%,rgb(6_5_9/0.82),rgb(6_5_9/0.6)_70%,rgb(6_5_9/0.2))] md:aspect-[16/11]"
       >
         <style>{`
           @keyframes aim-ping { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(1.9); opacity: 0; } }
@@ -191,7 +191,10 @@ export function AimTrainer() {
 
         {t.phase === "idle" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-6 text-center">
-            <p className="label">Aim drill / {ROUND_SIZE} targets</p>
+            <p className="label flex items-center gap-3 !text-valorant">
+              <span aria-hidden className="h-[6px] w-[6px] rounded-full bg-valorant" />
+              Aim drill / {ROUND_SIZE} targets
+            </p>
             <p className="max-w-[18ch] text-[clamp(1.5rem,2.6vw,2.25rem)] font-medium leading-[1.05] tracking-[-0.03em]">
               Hit them when they appear.
             </p>
@@ -203,7 +206,7 @@ export function AimTrainer() {
         )}
 
         {t.phase === "waiting" && (
-          <p className="aim-wait label absolute inset-x-0 top-[62%] text-center !text-muted">Wait for it</p>
+          <p className="aim-wait label absolute inset-x-0 top-[62%] text-center !text-valorant">Wait for it</p>
         )}
 
         {t.phase === "live" && t.pos && <Target key={`${t.hits.length}-${t.pos.x}`} pos={t.pos} onHit={(e) => t.registerHit(e.timeStamp, t.pos)} />}
@@ -211,10 +214,10 @@ export function AimTrainer() {
 
         {t.phase === "done" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
-            <p className="label">Drill complete</p>
-            <p className="num font-medium leading-[0.9] tracking-[-0.05em] text-[clamp(3.5rem,9vw,7rem)]">
+            <p className="label !text-valorant">Drill complete</p>
+            <p className="num font-medium leading-[0.9] tracking-[-0.05em] text-valorant text-[clamp(3.5rem,9vw,7rem)]">
               {avg}
-              <span className="ml-2 font-mono text-[13px] font-normal tracking-normal text-muted">MS AVG</span>
+              <span className="ml-2 font-mono text-[13px] font-normal tracking-normal text-ink/70">MS AVG</span>
             </p>
             <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1 font-mono text-[12px] text-muted" aria-label="Individual times">
               {t.hits.map((h, i) => (

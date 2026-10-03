@@ -1,9 +1,10 @@
 "use client";
 
+import { ContactBar } from "./ContactBar";
 import { Cursor } from "./Cursor";
 import { Grain } from "./Grain";
+import { Intro } from "./Intro";
 import { Nav } from "./Nav";
-import { Preloader } from "./Preloader";
 import { ScrollProgress } from "./ScrollProgress";
 
 function focusMain(e: React.MouseEvent<HTMLAnchorElement>) {
@@ -15,7 +16,7 @@ function focusMain(e: React.MouseEvent<HTMLAnchorElement>) {
   main.scrollIntoView();
 }
 
-/** Global UI layer: skip link, preloader, nav, cursor, grain and the chapter rail. */
+/** Global UI layer: skip link, intro handover, nav, mobile contact bar, cursor, grain and the chapter rail. */
 export function Chrome() {
   return (
     <>
@@ -26,8 +27,9 @@ export function Chrome() {
       >
         Skip to content
       </a>
-      <Preloader />
+      <Intro />
       <Nav />
+      <ContactBar />
       <ScrollProgress />
       <Grain />
       <Cursor />

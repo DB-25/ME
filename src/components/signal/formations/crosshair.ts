@@ -2,22 +2,22 @@ import { gauss, mulberry32 } from "./rng";
 
 const GAP = 0.3;
 const LEN = 0.95;
-const THICK = 0.032;
+const THICK = 0.011;
 const DEPTH = 0.05;
 
-/** Valorant-style crosshair: center dot plus four bars with a gap, crisp and bold. */
+/** Valorant-style crosshair: center dot plus four bars with a gap, thin and crisp (hairline bars, small dot, a dim scope ring). */
 export function crosshairFormation(count: number): Float32Array {
   const rand = mulberry32(5);
   const out = new Float32Array(count * 3);
-  const dotShare = 0.08;
-  const barShare = 0.82;
+  const dotShare = 0.04;
+  const barShare = 0.66;
   for (let i = 0; i < count; i++) {
     const u = rand();
     let x: number;
     let y: number;
     if (u < dotShare) {
       const a = rand() * Math.PI * 2;
-      const r = Math.sqrt(rand()) * 0.075;
+      const r = Math.sqrt(rand()) * 0.042;
       x = Math.cos(a) * r;
       y = Math.sin(a) * r;
     } else if (u < dotShare + barShare) {

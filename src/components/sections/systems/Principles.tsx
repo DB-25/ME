@@ -1,20 +1,23 @@
 import { profile } from "@/content";
 import { Reveal } from "@/components/ui/Reveal";
+import { Scrim } from "../Scrim";
 
 /** The first four manifesto lines. The fifth is a story, and Origin tells it. */
 const PRINCIPLES = profile.manifesto.slice(0, 4);
 
+/** Two columns of hairline-ruled principles, set at reading size so they carry weight without shouting. */
 export function Principles() {
   return (
-    <div>
+    <div className="relative">
+      <Scrim strength={0.78} inset="-10% -4%" />
       <p className="label">Principles</p>
-      <ol className="mt-6 border-b border-hairline">
+      <ol className="mt-6 grid border-b border-hairline md:grid-cols-2 md:gap-x-[var(--gutter)]">
         {PRINCIPLES.map((text, i) => (
-          <li key={text} className="grid-12 gap-y-3 border-t border-hairline py-8 md:py-12">
-            <span className="num label col-span-12 md:col-span-2 md:pt-[0.9em]">{String(i + 1).padStart(2, "0")}</span>
+          <li key={text} className="grid grid-cols-[2.25rem_1fr] gap-x-3 border-t border-hairline py-6 md:py-8">
+            <span className="num label pt-[0.55em]">{String(i + 1).padStart(2, "0")}</span>
             <Reveal
               as="p"
-              className="col-span-12 text-[clamp(1.6rem,3.5vw,3.4rem)] font-medium leading-[1.06] tracking-[-0.035em] text-ink text-balance [text-shadow:0_0_24px_rgb(6_5_9/0.9),0_0_3px_rgb(6_5_9/0.5)] md:col-span-9 md:col-start-3"
+              className="text-[clamp(1.25rem,1.9vw,1.75rem)] font-medium leading-[1.25] tracking-[-0.02em] text-ink text-balance"
             >
               {text}
             </Reveal>

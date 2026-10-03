@@ -25,9 +25,6 @@ const GENERATORS: Record<FormationId, Generator> = {
   singularity: singularityFormation,
 };
 
-/** Idle warm-up order: what the user meets first is generated first. */
-const WARM_ORDER: FormationId[] = ["noise", "signal", "globe", "network", "crowd", "constellation", "crosshair", "singularity"];
-
 const cache = new Map<string, Float32Array>();
 
 /** Formations whose particle index carries meaning (line / slot) must keep their order. */
@@ -54,7 +51,7 @@ export function prepareCustomPoints(points: Float32Array, count: number): Float3
   const out = new Float32Array(count * 3);
   const rand = mulberry32(n + count);
   // Surplus particles reuse targets with a tiny fan-out so duplicates do not stack exactly.
-  const jitter = count > n ? 0.006 : 0;
+  const jitter = count > n ? 0.001 : 0;
   for (let i = 0; i < count; i++) {
     const j = i % n;
     const extra = i >= n ? jitter : 0;
@@ -71,15 +68,18 @@ const idle = (fn: () => void) => {
   else window.setTimeout(fn, 60);
 };
 
-/** Generate every formation one per idle slice so the main thread never blocks. */
-export function warmFormations(count: number, onEach?: (id: FormationId) => void): () => void {
+/**
+ * Generate the given formations, one per idle slice, skipping any already cached. Called with the
+ * chapters the visitor is about to reach so the heavy ones (globe, network, crowd, constellation)
+ * are not built at boot. Returns a cancel function.
+ */
+export function warmFormations(count: number, ids: FormationId[]): () => void {
   let cancelled = false;
   let i = 0;
   const step = () => {
-    if (cancelled || i >= WARM_ORDER.length) return;
-    const id = WARM_ORDER[i++];
-    getFormation(id, count);
-    onEach?.(id);
+    while (i < ids.length && cache.has(`${ids[i]}:${count}`)) i++;
+    if (cancelled || i >= ids.length) return;
+    getFormation(ids[i++], count);
     idle(step);
   };
   idle(step);

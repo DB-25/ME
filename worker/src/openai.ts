@@ -8,7 +8,8 @@ export type OpenAIConfig = { apiKey: string; model: string; reasoningEffort: str
 const OPENAI_URL = "https://api.openai.com/v1/responses";
 const MAX_ACTIONS = 6;
 const MAX_NARRATION_CHARS = 1200;
-const MAX_OUTPUT_TOKENS = 8000;
+/** Narration (about 90 words) plus up to six tool calls, one of them a small SVG. Reasoning tokens count too. */
+const MAX_OUTPUT_TOKENS = 800;
 
 /**
  * Open the streaming Responses API call. Returns null on any upstream failure

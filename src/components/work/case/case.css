@@ -1,6 +1,7 @@
 /* Case study pages. --pa is the project accent, set on .cs. Used for hairlines, index numbers and the diagram. */
 .cs {
   --cs-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --pa: var(--color-accent);
   position: relative;
   padding-bottom: 64px;
   background:
@@ -9,7 +10,7 @@
 }
 
 /* Title sequence */
-.cs-hero { min-height: 100svh; display: flex; flex-direction: column; padding-top: 112px; padding-bottom: clamp(28px, 4vw, 56px); }
+.cs-hero { min-height: 100svh; display: flex; flex-direction: column; padding-top: 112px; padding-bottom: calc(clamp(28px, 4vw, 56px) + 56px); }
 .cs-hero-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: auto; }
 .cs-index { display: flex; align-items: baseline; gap: 2px; }
 .cs-index-n { color: var(--pa); font-size: clamp(1rem, 1.8vw, 1.5rem); }
@@ -20,6 +21,14 @@
 @media (min-width: 768px) { .cs-title { font-size: clamp(2.5rem, min(15vw, calc(150vw / var(--len))), 17rem); } }
 .cs-hero-sub { margin-top: clamp(20px, 2.4vw, 32px); }
 .cs-tagline { font-size: clamp(1.2rem, 2vw, 1.75rem); max-width: 30ch; color: var(--color-ink); opacity: 0.82; }
+.cs-hero-sub { align-items: start; row-gap: 28px; }
+.cs-owned { display: grid; gap: clamp(20px, 2.4vw, 32px); }
+.cs-owned-k { color: var(--pa); }
+.cs-owned-v { margin: 10px 0 0; font-size: clamp(1.15rem, 1.7vw, 1.55rem); line-height: 1.35; letter-spacing: -0.015em; color: var(--color-ink); text-wrap: pretty; }
+.cs-owned section { border-top: 1px solid var(--pa); padding-top: 14px; }
+.cs-lead { margin: 0; display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.cs-lead-v { font-size: clamp(2.25rem, 4.4vw, 4rem); font-weight: 500; line-height: 0.95; letter-spacing: -0.05em; }
+.cs-lead-l { max-width: 24ch; }
 .cs-rule { height: 1px; background: var(--color-hairline-strong); }
 .cs-rule-accent { background: var(--pa); margin-top: clamp(32px, 5vw, 64px); }
 .cs-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 20px var(--gutter); margin: 20px 0 0; }

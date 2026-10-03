@@ -3,6 +3,8 @@
 //   node scripts/smoke.mjs http://localhost:8787 "I'm a recruiter hiring for infra"
 // Prints each NDJSON event as it arrives. Exits non-zero on failure.
 const base = (process.argv[2] ?? "http://localhost:8787").replace(/\/$/, "");
+// The Worker rejects POSTs without an allowed Origin; localhost:3000 is always allowed.
+const origin = process.env.SMOKE_ORIGIN ?? "http://localhost:3000";
 const message = process.argv[3] ?? "I'm a recruiter hiring for cloud infrastructure. Show me what matters.";
 
 const health = await fetch(`${base}/health`).catch((e) => ({ ok: false, status: String(e) }));
@@ -11,7 +13,7 @@ console.log("health:", health.ok ? await health.json() : health.status);
 const started = Date.now();
 const res = await fetch(`${base}/director`, {
   method: "POST",
-  headers: { "content-type": "application/json" },
+  headers: { "content-type": "application/json", origin },
   body: JSON.stringify({ messages: [{ role: "user", content: message }] }),
 });
 console.log("status:", res.status, res.headers.get("content-type"));

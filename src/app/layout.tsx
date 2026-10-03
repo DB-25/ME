@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: TITLE, description: profile.oneLiner, images: [OG_IMAGE.url] },
 };
 
-export const viewport: Viewport = { themeColor: "#060509", colorScheme: "dark" };
+export const viewport: Viewport = { themeColor: "#060509", colorScheme: "dark", viewportFit: "cover" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

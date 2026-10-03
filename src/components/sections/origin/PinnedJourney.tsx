@@ -4,11 +4,15 @@ import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger, EASE_OUT } from "@/lib/motion";
 import { BEATS, CITIES, digitCells, digitTravel } from "./beats";
 import { OriginHeader } from "./OriginHeader";
+import { Scrim } from "../Scrim";
 import { YearRoll } from "./YearRoll";
 
 /** Scroll distance owned by each beat, in viewport heights. */
 const VH_PER_BEAT = 48;
+/** Share of the pinned scroll that walks the beats; the tail fades the whole stage out before Systems arrives. */
+const BEAT_SHARE = 0.9;
 const N = BEATS.length;
+const TRACK_VH = Math.round((N * VH_PER_BEAT) / BEAT_SHARE);
 const TRAVEL = digitTravel(BEATS);
 const CELLS = digitCells(TRAVEL);
 
@@ -25,6 +29,7 @@ export function PinnedJourney() {
       const strips = gsap.utils.toArray<HTMLElement>("[data-strip]");
       const ticks = gsap.utils.toArray<HTMLElement>("[data-tick]");
       const fill = root.querySelector<HTMLElement>("[data-fill]");
+      const stage = root.querySelector<HTMLElement>("[data-stage]");
       const coords = gsap.utils.toArray<HTMLElement>("[data-city]");
       let current = -1;
       strips.forEach((strip) => gsap.set(strip, { yPercent: Number(strip.dataset.start) }));
@@ -74,10 +79,12 @@ export function PinnedJourney() {
         end: "bottom bottom",
         invalidateOnRefresh: true,
         onUpdate: (self) => {
-          const p = self.progress;
+          const p = Math.min(1, self.progress / BEAT_SHARE);
           if (fill) fill.style.transform = `scaleX(${Math.min(1, (p * N) / (N - 1))})`;
           const i = Math.min(N - 1, Math.floor(p * N));
           if (i !== current) show(i);
+          // The pin ends in a fade, so the year axis never bleeds into the next chapter.
+          if (stage) stage.style.opacity = String(1 - gsap.utils.clamp(0, 1, (self.progress - BEAT_SHARE) / (1 - BEAT_SHARE)));
         },
       });
     }, root);
@@ -96,14 +103,14 @@ export function PinnedJourney() {
     if (!el) return;
     const top = el.getBoundingClientRect().top + window.scrollY;
     const span = el.offsetHeight - window.innerHeight;
-    const y = top + ((i + 0.5) / N) * span;
+    const y = top + ((i + 0.5) / N) * span * BEAT_SHARE;
     const lenis = (window as unknown as { lenis?: { scrollTo: (y: number, o?: object) => void } }).lenis;
     if (lenis) lenis.scrollTo(y, { duration: 1.4 });
     else window.scrollTo({ top: y, behavior: "smooth" });
   };
 
   return (
-    <div ref={track} style={{ height: `calc(100svh + ${N * VH_PER_BEAT}svh)` }}>
+    <div ref={track} style={{ height: `calc(100svh + ${TRACK_VH}svh)` }}>
       {/* Screen readers get the whole journey as a list; the stage is the visual layer. */}
       <ol className="sr-only">
         {BEATS.map((b) => (
@@ -114,7 +121,7 @@ export function PinnedJourney() {
         ))}
       </ol>
 
-      <div className="sticky top-0 h-svh overflow-clip">
+      <div data-stage className="sticky top-0 h-svh overflow-clip">
         <div className="shell grid h-full grid-rows-[auto_1fr_auto] pb-7 pt-[84px]">
           <OriginHeader />
 
@@ -122,11 +129,12 @@ export function PinnedJourney() {
             <YearRoll />
 
             <div aria-hidden className="grid-12 items-start">
-              <div className="relative col-span-12 grid min-h-[min(25svh,200px)] md:col-span-8">
+              <div className="relative col-span-12 grid min-h-[min(25svh,200px)] md:col-span-6">
+                <Scrim shape="left" strength={0.8} inset="-12% -8% -12% -24px" />
                 {BEATS.map((b) => {
                   const city = CITIES[b.city];
                   return (
-                    <div key={b.id} data-panel className="invisible col-start-1 row-start-1 grid grid-cols-7 gap-x-[var(--gutter)]">
+                    <div key={b.id} data-panel className="invisible col-start-1 row-start-1 grid grid-cols-6 gap-x-[var(--gutter)]">
                       <div className="col-span-3">
                         <p data-part className={`label !text-[12px] ${city.label}`}>
                           {b.place}
@@ -140,7 +148,7 @@ export function PinnedJourney() {
                           </p>
                         )}
                       </div>
-                      <p data-part className="col-span-4 max-w-[30rem] pt-[1.55rem] text-[clamp(1rem,1.25vw,1.1875rem)] leading-[1.55] text-ink/70 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">
+                      <p data-part className="col-span-3 max-w-[30rem] pt-[1.55rem] text-[clamp(0.9375rem,1.15vw,1.0625rem)] leading-[1.55] text-ink/70 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">
                         {b.body}
                       </p>
                     </div>

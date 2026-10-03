@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { DirectorAction, DirectorEvent, DirectorMessage } from "@/lib/director/protocol";
 import { isDirectorConfigured, remember, streamDirector } from "@/lib/director/client";
-import { offlineDirector } from "@/lib/director/offline";
+import { explainMatch, offlineDirector } from "@/lib/director/offline";
 import { signalStore } from "@/lib/signal-store";
 import { runAction, releaseStage, sleep } from "./executor";
 import { Narrator } from "./narrator";
@@ -18,6 +18,9 @@ const MAX_LOG_LINES = 5;
 
 /** The model may chain many tool calls; cap the run so a loop can never trap the visitor. */
 const MAX_ACTIONS = 14;
+
+/** Set on <body> while a take runs, so site chrome (the mobile contact bar) can step aside. */
+const ACTIVE_CLASS = "director-active";
 
 export function useDirectorRun() {
   const router = useRouter();
@@ -43,6 +46,13 @@ export function useDirectorRun() {
       releaseStage();
     };
   }, [patch]);
+
+  const active = state.phase !== "idle";
+  useEffect(() => {
+    if (!active) return;
+    document.body.classList.add(ACTIVE_CLASS);
+    return () => document.body.classList.remove(ACTIVE_CLASS);
+  }, [active]);
 
   const cut = useCallback(() => {
     abortRef.current?.abort();
@@ -106,9 +116,10 @@ export function useDirectorRun() {
             deferred = null;
             transcript = "";
             patch({ mode: "offline", spoken: "", figure: null });
-            log("live director unreachable, playing the offline cut");
+            log("live director unreachable, playing the scripted tour");
           }
         }
+        log(explainMatch(prompt));
         yield* offlineDirector(prompt, signal);
       }
 

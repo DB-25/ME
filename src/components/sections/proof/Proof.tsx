@@ -1,3 +1,4 @@
+import "../fade.css";
 import { recognition } from "@/content";
 import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
@@ -16,37 +17,41 @@ export function Proof() {
   const talks = recognition.filter((r) => r.kind === "talk");
 
   return (
-    <section id="proof" data-chapter="proof" aria-labelledby="proof-title" className="relative">
-      <div className="shell pt-[clamp(96px,14vw,220px)]">
-        <header className="grid-12 gap-y-6">
-          <div className="col-span-12 md:col-span-9">
-            <SectionLabel chapter="proof" />
-            <Reveal as="h2" className="headline mt-5 !text-[clamp(2.5rem,6vw,6rem)]">
-              <span id="proof-title">
-                Proof, in other people&rsquo;s <Emph>words</Emph>
-              </span>
-            </Reveal>
+    <section id="proof" data-chapter="proof" aria-labelledby="proof-title" className="sx-in relative">
+      <div className="sx-out">
+        <div className="shell pt-[clamp(88px,11vw,170px)]">
+          <header className="grid-12 gap-y-6">
+            <div className="col-span-12 md:col-span-7">
+              <SectionLabel chapter="proof" />
+              <Reveal as="h2" className="headline mt-5 !text-[clamp(2.5rem,5.6vw,5.5rem)]">
+                <span id="proof-title">
+                  Proof, in other people&rsquo;s <Emph>words</Emph>
+                </span>
+              </Reveal>
+              <FadeIn delay={0.15} className="label mt-6 flex flex-wrap gap-x-6 gap-y-1">
+                <span>
+                  <span className="text-ink">{count("award")}</span> awards
+                </span>
+                <span>
+                  <span className="text-ink">{count("press")}</span> press features
+                </span>
+                <span>
+                  <span className="text-ink">{count("talk")}</span> {count("talk") === 1 ? "talk" : "talks"}
+                </span>
+              </FadeIn>
+            </div>
+          </header>
+
+          <div className="mt-[clamp(40px,6vw,96px)]">
+            <AwardList items={awards} />
           </div>
-          <FadeIn delay={0.15} className="col-span-12 md:col-span-3 md:self-end">
-            <p className="label leading-[1.9]">
-              <span className="text-ink">{count("award")}</span> awards
-              <br />
-              <span className="text-ink">{count("press")}</span> press features
-              <br />
-              <span className="text-ink">{count("talk")}</span> talk
-            </p>
-          </FadeIn>
-        </header>
-
-        <div className="mt-[clamp(56px,9vw,140px)]">
-          <AwardList items={awards} />
         </div>
-      </div>
 
-      <PressMarquee items={press} />
+        <PressMarquee items={press} />
 
-      <div className="shell pb-[clamp(96px,14vw,220px)]">
-        <PressIndex items={[...press, ...talks]} />
+        <div className="shell pb-[clamp(88px,11vw,170px)]">
+          <PressIndex items={[...press, ...talks]} />
+        </div>
       </div>
     </section>
   );

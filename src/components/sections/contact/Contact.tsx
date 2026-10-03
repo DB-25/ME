@@ -1,9 +1,10 @@
 "use client";
 
+import "../fade.css";
 import { profile } from "@/content";
-import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { Scrim } from "../Scrim";
 import { EmailLink } from "./EmailLink";
 import { SiteFooter } from "./SiteFooter";
 import { useCopy } from "./useCopy";
@@ -12,10 +13,15 @@ import { assetUrl } from "@/lib/asset";
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
+/** Founders need four things: the address, the résumé, and the two profiles they will check. */
 const LINKS = [
-  ...profile.links.map((l) => ({ label: l.label, href: assetUrl(l.href) })),
   { label: "Résumé", href: `${BASE_PATH}${profile.resumeHref}` },
+  ...["LinkedIn", "GitHub"].flatMap((label) =>
+    profile.links.filter((l) => l.label === label).map((l) => ({ label: l.label, href: assetUrl(l.href) })),
+  ),
 ];
+
+const WORKING_STYLE = "I work fast, in small teams, and I ship things I can measure.";
 
 const CSS = `
 .email-ch {
@@ -35,16 +41,20 @@ export function Contact() {
   const copied = state === "copied";
 
   return (
-    <section id="contact" data-chapter="contact" aria-labelledby="contact-title" className="relative flex min-h-svh flex-col">
+    <section id="contact" data-chapter="contact" aria-labelledby="contact-title" className="sx-in relative flex min-h-svh flex-col">
       <style>{CSS}</style>
-      <div className="shell flex flex-1 flex-col justify-between gap-16 pt-[16vh] md:pt-[14vh]">
-        <div>
+      <div className="sx-out shell flex flex-1 flex-col justify-between gap-16 pt-[16vh] md:pt-[14vh]">
+        <div className="relative">
+          <Scrim shape="left" strength={0.7} inset="-12% -4% -12% -24px" />
           <SectionLabel chapter="contact" className="mb-6" />
-          <h2 id="contact-title" className="max-w-[16ch] text-[clamp(2.6rem,6.4vw,6.75rem)] font-medium leading-[0.96] tracking-[-0.04em]">
+          <h2 id="contact-title" className="max-w-[14ch] text-[clamp(2.6rem,6.4vw,6.75rem)] font-medium leading-[0.96] tracking-[-0.04em]">
             <Reveal as="span" className="block">
-              Let&rsquo;s build something <Emph>people use</Emph>.
+              Building something early? Let&rsquo;s talk.
             </Reveal>
           </h2>
+          <Reveal as="p" mode="fade" delay={0.2} className="lede mt-6 max-w-[34ch] [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">
+            {WORKING_STYLE}
+          </Reveal>
         </div>
 
         <div>

@@ -64,7 +64,7 @@ export function DirectorHud({ state, onCut, showAnotherTake, onAnotherTake }: Pr
             </p>
             <p className="label hidden min-w-0 flex-1 truncate text-dim lg:block">&ldquo;{state.prompt}&rdquo;</p>
             <p className="label ml-auto hidden text-muted md:block">
-              {state.mode === "live" ? "Live" : "Offline, scripted"}
+              {state.mode === "live" ? "Live" : "Scripted tour"}
             </p>
             <button
               type="button"

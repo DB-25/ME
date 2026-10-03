@@ -80,6 +80,7 @@ varying float vHeat;
 varying float vSpark;
 varying float vDepth;
 varying float vNear;
+varying float vRight; // 0 on the left of the screen, 1 on the far right
 varying vec4 vSig; // x: signal weight, y: noise->signal (weighted), z: crest (weighted), w: edge fade (weighted)
 
 ${SNOISE}
@@ -177,6 +178,7 @@ void main(){
     clip.xy += vec2(push.x / uAspect, push.y) * clip.w;
   }
   gl_Position = clip;
+  vRight = smoothstep(0., 0.95, clip.x / max(clip.w, 0.0001));
 
   float dist = -mv.z;
   float spark = mix(step(0.988, aRand.z), step(0.9994, aRand.z), sigW);
@@ -194,6 +196,7 @@ void main(){
 export const FRAGMENT = /* glsl */ `
 uniform float uAlpha;
 uniform float uBrightness;
+uniform float uRightDim; // dims the right edge so copy over it stays legible
 uniform vec3 uHueColor;
 uniform float uHueMix;
 
@@ -201,6 +204,7 @@ varying float vHeat;
 varying float vSpark;
 varying float vDepth;
 varying float vNear;
+varying float vRight;
 varying vec4 vSig;
 
 const vec3 DEEP = vec3(0.3569, 0.2784, 0.8784);  // #5B47E0
@@ -219,6 +223,7 @@ void main(){
   float halo = exp(-d * d * 3.) * 0.45 * (1. - sigW);
   float a = (core + halo) * uAlpha * uBrightness * vDepth;
   a *= 1. + vNear * 0.6;
+  a *= 1. - uRightDim * vRight;
 
   float heat = clamp(smoothstep(0.6, 1., vHeat) * 0.55 + core * 0.4 + vNear * 0.3, 0., 1.);
   vec3 col = heat < 0.5 ? mix(DEEP, UV, heat * 2.) : mix(UV, HOT, (heat - 0.5) * 2.);

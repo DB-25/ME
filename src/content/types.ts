@@ -25,6 +25,8 @@ export type Project = {
   tagline: string;
   year: string;
   role: string;
+  /** One honest sentence on what DB personally built or owned. */
+  owned?: string;
   org?: string;
   featured: boolean;
   category: "gov-ai" | "platform" | "hackathon" | "mobile" | "lab" | "tool";

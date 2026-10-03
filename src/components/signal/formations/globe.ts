@@ -12,10 +12,10 @@ const INLAND_KEEP = 0.5;
 const COAST_PROBE_DEG = 2.4;
 /** Fraction of far-side points kept so the globe reads solid, not wireframe. */
 const BACKSIDE_KEEP = 0.12;
-const ARC_LIFT = 0.42;
-/** Camera latitude and longitude offset from the arc midpoint, in degrees. */
+const ARC_LIFT = 0.3;
+/** Camera latitude, and longitude offset from the arc midpoint, in degrees. */
 const VIEW_LAT_DEG = 30;
-const VIEW_LON_SHIFT_DEG = 0;
+const VIEW_LON_SHIFT_DEG = 8;
 
 type V3 = [number, number, number];
 
@@ -34,8 +34,9 @@ const cross = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[
 const dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 /**
- * View basis: centered on the arc's midpoint longitude at a moderate latitude, north up.
- * Boston lands on the left, Bangalore on the right, and the great-circle arc bows over the north.
+ * View basis: centered near the arc's midpoint longitude at a moderate latitude, then rolled so the
+ * Bangalore to Boston chord is level. The arc reads as a bow across the top of the globe with
+ * Bangalore on the right and Boston on the left, both ends on the visible hemisphere.
  */
 function viewBasis(): { right: V3; up: V3; forward: V3 } {
   const a = toVec(BANGALORE.lat, BANGALORE.lon);
@@ -45,7 +46,15 @@ function viewBasis(): { right: V3; up: V3; forward: V3 } {
   const forward = toVec(VIEW_LAT_DEG, lon + VIEW_LON_SHIFT_DEG);
   const d = forward[1];
   const up = normalize([-forward[0] * d, 1 - forward[1] * d, -forward[2] * d]);
-  return { right: normalize(cross(up, forward)), up, forward };
+  const right = normalize(cross(up, forward));
+  const roll = Math.atan2(dot(a, up) - dot(b, up), dot(a, right) - dot(b, right));
+  const c = Math.cos(roll);
+  const s = Math.sin(roll);
+  return {
+    right: normalize([right[0] * c + up[0] * s, right[1] * c + up[1] * s, right[2] * c + up[2] * s]),
+    up: normalize([up[0] * c - right[0] * s, up[1] * c - right[1] * s, up[2] * c - right[2] * s]),
+    forward,
+  };
 }
 
 /** Point-cloud Earth (land dense, ocean sparse) with a lifted Bangalore to Boston arc. */
@@ -65,9 +74,9 @@ export function globeFormation(count: number): Float32Array {
     i++;
   };
 
-  const surfaceCount = Math.floor(count * 0.76);
+  const surfaceCount = Math.floor(count * 0.8);
   const atmoCount = Math.floor(count * 0.05);
-  const cityCount = Math.floor(count * 0.04);
+  const cityCount = Math.floor(count * 0.025);
   const arcCount = count - surfaceCount - atmoCount - cityCount;
 
   // Surface: fibonacci lattice, land kept, ocean thinned, far side thinned.
@@ -110,7 +119,7 @@ export function globeFormation(count: number): Float32Array {
   for (let n = 0; n < cityCount; n++) {
     const c = cities[n % 2];
     const base = toVec(c.lat, c.lon);
-    const g = 0.022;
+    const g = 0.012;
     put(normalize([base[0] + gauss(rand) * g, base[1] + gauss(rand) * g, base[2] + gauss(rand) * g]), 1.012 + rand() * 0.01);
   }
 
@@ -125,9 +134,9 @@ export function globeFormation(count: number): Float32Array {
     const wb = Math.sin(t * omega) / so;
     const base = normalize([a[0] * wa + b[0] * wb, a[1] * wa + b[1] * wb, a[2] * wa + b[2] * wb]);
     const lift = 1.01 + ARC_LIFT * Math.pow(Math.sin(Math.PI * t), 0.9);
-    const spread = 0.005 + 0.008 * (1 - Math.sin(Math.PI * t));
+    const spread = 0.0022 + 0.003 * (1 - Math.sin(Math.PI * t));
     const v = normalize([base[0] + gauss(rand) * spread, base[1] + gauss(rand) * spread, base[2] + gauss(rand) * spread]);
-    put(v, lift + gauss(rand) * 0.006);
+    put(v, lift + gauss(rand) * 0.0025);
   }
   while (i < count) put(normalize([gauss(rand), gauss(rand), gauss(rand)]), 1.05);
   return out;

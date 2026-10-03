@@ -1,5 +1,4 @@
 import type { Project } from "@/content";
-import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
 import { CaseLabel } from "./CaseLabel";
 
@@ -11,7 +10,7 @@ export function ProblemSection({ project, n }: { project: Project; n: string }) 
           <CaseLabel n={n} text="The problem" />
           <h2 id="cs-problem" className="headline cs-h2 mt-6">
             <Reveal as="span" className="block">
-              The <Emph>problem</Emph>
+              The problem
             </Reveal>
           </h2>
         </div>

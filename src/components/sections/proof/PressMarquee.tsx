@@ -1,5 +1,6 @@
 import type { Recognition } from "@/content";
 import { assetUrl } from "@/lib/asset";
+import { Scrim } from "../Scrim";
 
 const CSS = `
 .press-marquee { -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
@@ -55,11 +56,13 @@ function Strip({ list, hidden }: { list: Outlet[]; hidden?: boolean }) {
 export function PressMarquee({ items }: { items: Recognition[] }) {
   const list = outlets(items);
   return (
-    <div className="mt-[clamp(72px,11vw,170px)]">
+    <div className="relative mt-[clamp(56px,8vw,120px)]">
       <style>{CSS}</style>
+      {/* A soft band, feathered top and bottom, so outlet names never sit on bright particles. */}
+      <Scrim strength={0.85} inset="8% 0 -6% 0" />
       <p className="label shell mb-5">As covered by</p>
       {/* Decorative: the same outlets are listed, focusable, in PressIndex below. */}
-      <div aria-hidden className="press-marquee overflow-hidden border-y border-hairline py-[clamp(20px,3vw,44px)]">
+      <div aria-hidden className="press-marquee overflow-hidden py-[clamp(20px,3vw,44px)]">
         <div className="press-track">
           <Strip list={list} />
           <Strip list={list} hidden />

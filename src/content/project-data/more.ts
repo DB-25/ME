@@ -95,6 +95,7 @@ export const moreProjects: Project[] = [
     tagline: "An 8-day video course that nudges you by text.",
     year: "2026",
     role: "Sole engineer",
+    owned: "Sole engineer: all 65 commits, from the Lambda API and SMS pacing to the quiz gate and the certificate.",
     org: "InnovateUS",
     featured: false,
     category: "platform",

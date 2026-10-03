@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import type { Project } from "@/content";
-import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/motion";
 import { pad } from "../meta";
@@ -49,7 +48,7 @@ export function BuildSection({ project, n }: { project: Project; n: string }) {
             <CaseLabel n={n} text="What I built" />
             <h2 id="cs-build" className="headline cs-h2 mt-6">
               <Reveal as="span" className="block">
-                What I <Emph>built</Emph>
+                What I built
               </Reveal>
             </h2>
           </div>

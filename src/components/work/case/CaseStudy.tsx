@@ -37,7 +37,7 @@ export function CaseStudy({ project }: { project: Project }) {
   const num = present.map((p) => (p ? pad(++c) : ""));
 
   return (
-    <article className="cs" style={{ ["--pa" as string]: project.accent ?? "var(--color-accent)" }}>
+    <article className="cs">
       <CaseHero project={project} index={index} total={group.length} />
       <ProblemSection project={project} n={num[0]} />
       <BuildSection project={project} n={num[1]} />
