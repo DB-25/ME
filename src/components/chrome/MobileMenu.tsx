@@ -5,6 +5,7 @@ import { profile } from "@/content";
 import { CHAPTERS } from "@/lib/chapters";
 import { gsap, prefersReducedMotion, scrollToTarget } from "@/lib/motion";
 import { lockScroll } from "./scroll-lock";
+import { assetUrl } from "@/lib/asset";
 
 type Props = { open: boolean; onClose: () => void; toggle: RefObject<HTMLButtonElement | null> };
 
@@ -112,7 +113,7 @@ export function MobileMenu({ open, onClose, toggle }: Props) {
 
       <div className="flex items-end justify-between gap-6">
         <div className="overflow-hidden">
-          <a data-line href={profile.resumeHref} target="_blank" rel="noopener" className="label block !text-ink">
+          <a data-line href={assetUrl(profile.resumeHref)} target="_blank" rel="noopener" className="label block !text-ink">
             Résumé ↗
           </a>
         </div>

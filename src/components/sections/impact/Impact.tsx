@@ -5,6 +5,7 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { FadeIn } from "../origin/FadeIn";
 import { Counter } from "./Counter";
 import { sourceRef } from "./source";
+import { assetUrl } from "@/lib/asset";
 
 type Tier = "hero" | "large" | "medium" | "small";
 
@@ -41,7 +42,7 @@ function Source({ metric }: { metric: Metric }) {
   if (!ref.href) return <span className="label !text-dim">{ref.label}</span>;
   return (
     <a
-      href={ref.href}
+      href={assetUrl(ref.href)}
       target="_blank"
       rel="noopener noreferrer"
       data-cursor="read"

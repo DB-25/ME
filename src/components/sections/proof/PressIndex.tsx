@@ -1,4 +1,5 @@
 import type { Recognition } from "@/content";
+import { assetUrl } from "@/lib/asset";
 
 const KIND_LABEL: Record<Recognition["kind"], string> = { award: "Award", press: "Press", talk: "Talk" };
 
@@ -31,7 +32,7 @@ export function PressIndex({ items }: { items: Recognition[] }) {
             <li key={r.title} className="border-t border-hairline">
               {r.href ? (
                 <a
-                  href={r.href}
+                  href={assetUrl(r.href)}
                   target="_blank"
                   rel="noopener noreferrer"
                   data-cursor="read"

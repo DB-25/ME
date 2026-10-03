@@ -1,4 +1,5 @@
 import type { Recognition } from "@/content";
+import { assetUrl } from "@/lib/asset";
 
 const CSS = `
 .press-marquee { -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
@@ -33,7 +34,7 @@ function Strip({ list, hidden }: { list: Outlet[]; hidden?: boolean }) {
       {list.map((o) => (
         <li key={o.name} className="shrink-0 whitespace-nowrap">
           <a
-            href={o.href}
+            href={o.href && assetUrl(o.href)}
             target="_blank"
             rel="noopener noreferrer"
             tabIndex={-1}

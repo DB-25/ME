@@ -8,6 +8,7 @@ import { ChapterIndicator } from "./ChapterIndicator";
 import { MobileMenu } from "./MobileMenu";
 import { Magnetic } from "./Magnetic";
 import { Roll } from "./Roll";
+import { assetUrl } from "@/lib/asset";
 
 const LINKS = [
   { id: "work", label: "Work" },
@@ -113,7 +114,7 @@ export function Nav() {
                   {l.label}
                 </a>
               ))}
-              <a href={profile.resumeHref} target="_blank" rel="noopener" className="link label !text-ink">
+              <a href={assetUrl(profile.resumeHref)} target="_blank" rel="noopener" className="link label !text-ink">
                 Résumé<span aria-hidden> ↗</span>
               </a>
             </nav>

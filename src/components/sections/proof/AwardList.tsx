@@ -1,4 +1,5 @@
 import type { Recognition } from "@/content";
+import { assetUrl } from "@/lib/asset";
 
 const LEGIBLE = "[text-shadow:0_0_24px_rgb(6_5_9/0.9),0_0_3px_rgb(6_5_9/0.5)]";
 
@@ -58,7 +59,7 @@ function Row({ item }: { item: Recognition }) {
     <li className="proof-row border-t border-hairline-strong">
       {item.href ? (
         <a
-          href={item.href}
+          href={assetUrl(item.href)}
           target="_blank"
           rel="noopener noreferrer"
           data-cursor="read"

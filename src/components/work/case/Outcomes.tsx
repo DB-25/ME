@@ -7,6 +7,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { gsap, EASE_OUT, prefersReducedMotion } from "@/lib/motion";
 import { CaseLabel } from "./CaseLabel";
 import { DrawRule } from "./DrawRule";
+import { assetUrl } from "@/lib/asset";
 
 const COUNT_S = 1.8;
 
@@ -103,7 +104,7 @@ export function Outcomes({ project, n }: { project: Project; n: string }) {
                     <p className="label cs-out-src" data-in>
                       Source:{" "}
                       {r.href ? (
-                        <a href={r.href} target="_blank" rel="noopener noreferrer" className="link !text-ink">
+                        <a href={assetUrl(r.href)} target="_blank" rel="noopener noreferrer" className="link !text-ink">
                           {r.text}
                           <span aria-hidden> &#8599;</span>
                         </a>

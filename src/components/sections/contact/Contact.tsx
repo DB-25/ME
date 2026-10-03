@@ -8,11 +8,12 @@ import { EmailLink } from "./EmailLink";
 import { SiteFooter } from "./SiteFooter";
 import { useCopy } from "./useCopy";
 import { useEasterEgg } from "./useEasterEgg";
+import { assetUrl } from "@/lib/asset";
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const LINKS = [
-  ...profile.links.map((l) => ({ label: l.label, href: l.href })),
+  ...profile.links.map((l) => ({ label: l.label, href: assetUrl(l.href) })),
   { label: "Résumé", href: `${BASE_PATH}${profile.resumeHref}` },
 ];
 

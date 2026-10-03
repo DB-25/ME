@@ -6,6 +6,7 @@ import type { Project } from "@/content";
 import { gsap, EASE_OUT, prefersReducedMotion } from "@/lib/motion";
 import { caseHref } from "./asset";
 import { CATEGORY_LABEL, KIND_LABEL, pad, primaryLink } from "./meta";
+import { assetUrl } from "@/lib/asset";
 
 type Filter = "all" | Project["category"];
 
@@ -71,7 +72,7 @@ export function LabTable({ projects, offset, spotlight }: { projects: Project[];
                 <span className="wk-lab-cat label">{CATEGORY_LABEL[p.category]}</span>
               </span>
               {ext ? (
-                <a className="wk-lab-link label link" href={ext.href} target="_blank" rel="noopener noreferrer">
+                <a className="wk-lab-link label link" href={assetUrl(ext.href)} target="_blank" rel="noopener noreferrer">
                   {ext.kind ? KIND_LABEL[ext.kind] : "Visit"}: {ext.label}
                   <span aria-hidden> &#8599;</span>
                 </a>

@@ -3,6 +3,7 @@ import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
 import { KIND_LABEL } from "../meta";
 import { CaseLabel } from "./CaseLabel";
+import { assetUrl } from "@/lib/asset";
 
 export function LinksList({ project, n }: { project: Project; n: string }) {
   if (!project.links.length) return null;
@@ -21,7 +22,7 @@ export function LinksList({ project, n }: { project: Project; n: string }) {
           <ul className="cs-links">
             {project.links.map((l) => (
               <li key={l.href}>
-                <a href={l.href} target="_blank" rel="noopener noreferrer" data-cursor="open">
+                <a href={assetUrl(l.href)} target="_blank" rel="noopener noreferrer" data-cursor="open">
                   <span className="label">{l.kind ? KIND_LABEL[l.kind] : "Link"}</span>
                   <span className="cs-link-label">{l.label}</span>
                   <span className="cs-link-arrow" aria-hidden>
