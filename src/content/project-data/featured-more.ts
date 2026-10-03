@@ -5,6 +5,7 @@ import { SRC } from "../sources";
 export const featuredMoreProjects: Project[] = [
   {
     slug: "public-voice",
+    film: { src: "/films/public-voice.mp4", poster: "/films/public-voice.jpg", title: "Public Voice launch film" },
     name: "Public Voice",
     tagline: "A voice survey that asks one smart follow-up, then lets you go.",
     year: "2026",
