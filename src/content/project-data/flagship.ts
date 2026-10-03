@@ -1,5 +1,6 @@
 import type { Project } from "../types";
 import { SRC } from "../sources";
+import { FILM_TRANSCRIPTS } from "../transcripts";
 
 const BURNES = "The Burnes Center for Social Change";
 
@@ -7,7 +8,15 @@ const BURNES = "The Burnes Center for Social Change";
 export const flagshipProjects: Project[] = [
   {
     slug: "a-iep",
-    film: { src: "/films/a-iep.mp4", poster: "/films/a-iep.jpg", title: "A-IEP launch film" },
+    film: {
+      src: "/films/a-iep.mp4",
+      poster: "/films/a-iep.jpg",
+      thumb: "/films/a-iep-thumb.jpg",
+      thumb43: "/films/a-iep-thumb-43.jpg",
+      vertical: { src: "/films/a-iep-vertical.mp4", poster: "/films/a-iep-vertical.jpg" },
+      title: "A-IEP launch film",
+      transcript: FILM_TRANSCRIPTS["a-iep"],
+    },
     name: "A-IEP",
     tagline: "A special-education plan, in words a parent actually uses.",
     year: "2025 to now",
@@ -147,7 +156,15 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "genie",
-    film: { src: "/films/genie.mp4", poster: "/films/genie.jpg", title: "GENIE launch film" },
+    film: {
+      src: "/films/genie.mp4",
+      poster: "/films/genie.jpg",
+      thumb: "/films/genie-thumb.jpg",
+      thumb43: "/films/genie-thumb-43.jpg",
+      vertical: { src: "/films/genie-vertical.mp4", poster: "/films/genie-vertical.jpg" },
+      title: "GENIE launch film",
+      transcript: FILM_TRANSCRIPTS["genie"],
+    },
     name: "GENIE",
     tagline: "A safe place for state employees to try generative AI.",
     year: "2024",
@@ -253,7 +270,15 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "abe-one-l",
-    film: { src: "/films/abe-one-l.mp4", poster: "/films/abe-one-l.jpg", title: "ABE and One-L launch film" },
+    film: {
+      src: "/films/abe-one-l.mp4",
+      poster: "/films/abe-one-l.jpg",
+      thumb: "/films/abe-one-l-thumb.jpg",
+      thumb43: "/films/abe-one-l-thumb-43.jpg",
+      vertical: { src: "/films/abe-one-l-vertical.mp4", poster: "/films/abe-one-l-vertical.jpg" },
+      title: "ABE and One-L launch film",
+      transcript: FILM_TRANSCRIPTS["abe-one-l"],
+    },
     name: "ABE and One-L",
     tagline: "Two AI agents for state procurement. They won a national award.",
     year: "2025 to 2026",
@@ -374,7 +399,15 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "vct-scout",
-    film: { src: "/films/vct-scout.mp4", poster: "/films/vct-scout.jpg", title: "VCT Scout launch film" },
+    film: {
+      src: "/films/vct-scout.mp4",
+      poster: "/films/vct-scout.jpg",
+      thumb: "/films/vct-scout-thumb.jpg",
+      thumb43: "/films/vct-scout-thumb-43.jpg",
+      vertical: { src: "/films/vct-scout-vertical.mp4", poster: "/films/vct-scout-vertical.jpg" },
+      title: "VCT Scout launch film",
+      transcript: FILM_TRANSCRIPTS["vct-scout"],
+    },
     name: "VCT Scout",
     tagline: "Ask in plain English, get a Valorant roster. Second place worldwide.",
     year: "2024",

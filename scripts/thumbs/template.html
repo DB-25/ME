@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: "Geist"; src: url("fonts/Geist.woff2") format("woff2"); font-weight: 100 900; }
+@font-face { font-family: "Geist Mono"; src: url("fonts/GeistMono.woff2") format("woff2"); font-weight: 100 900; }
+@font-face { font-family: "Instrument Serif"; font-style: italic; src: url("fonts/InstrumentSerif-italic.woff2") format("woff2"); }
+:root { --void: #060509; --ink: #eeeaf6; --muted: #8b8798; --uv: #8b7bff; --hot: #c9beff; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--void); }
+.canvas { position: relative; overflow: hidden; background: var(--void); color: var(--ink); font-family: "Geist", sans-serif; }
+.canvas[data-v="169"] { width: 1600px; height: 900px; }
+.canvas[data-v="43"] { width: 1200px; height: 900px; }
+.glow { position: absolute; inset: 0; pointer-events: none; }
+.grain { position: absolute; inset: 0; opacity: 0.07; mix-blend-mode: overlay; pointer-events: none; }
+.vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(120% 100% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.5)); }
+
+.kicker { position: absolute; left: 96px; top: 88px; font: 500 15px/1 "Geist Mono", monospace; letter-spacing: 0.1em; text-transform: uppercase; color: var(--uv); display: flex; align-items: center; gap: 14px; }
+.kicker::before { content: ""; width: 28px; height: 1px; background: var(--uv); opacity: 0.8; }
+[data-v="43"] .kicker { left: 72px; top: 72px; }
+
+.title { position: absolute; left: 92px; bottom: 86px; font-weight: 500; letter-spacing: -0.045em; line-height: 0.9; white-space: nowrap; }
+.title .ln { display: block; padding: 0.04em 0.06em 0.12em; margin: -0.04em -0.06em -0.12em; }
+.title .it { font-family: "Instrument Serif", serif; font-style: italic; font-weight: 400; letter-spacing: -0.02em; color: var(--hot); font-size: 1.08em; }
+[data-v="43"] .title { left: 68px; bottom: auto; top: 128px; }
+[data-v="43"] .title.one .ln { display: inline; margin: 0; padding: 0; }
+
+.stage { position: absolute; inset: 0; perspective: 2600px; perspective-origin: 70% 50%; }
+.hero { position: absolute; transform-origin: 50% 50%; border-radius: 18px; background-size: 100% 100%; background-repeat: no-repeat;
+  box-shadow: 0 0 0 1px rgb(201 190 255 / 0.22), 0 50px 120px rgb(0 0 0 / 0.65), 0 0 160px rgb(139 123 255 / 0.22); }
+.hero::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.1), transparent 28%); }
+</style>
+</head>
+<body>
+<div class="canvas" id="c">
+  <div class="glow" id="glow"></div>
+  <div class="stage"><div class="hero" id="hero"></div></div>
+  <div class="kicker" id="kicker"></div>
+  <h1 class="title" id="title"></h1>
+  <div class="vignette"></div>
+  <svg class="grain" width="100%" height="100%"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.9 0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+</div>
+<script src="config.js"></script>
+<script>
+(async () => {
+  const q = new URLSearchParams(location.search);
+  const t = THUMBS.find((x) => x.slug === q.get("slug"));
+  const v = q.get("v") || "169";
+  const c = document.getElementById("c");
+  c.dataset.v = v;
+  const W = v === "169" ? 1600 : 1200, H = 900;
+  const p = v === "169" ? t.p169 : t.p43;
+  const [, , cw, ch] = t.crop;
+  const h = Math.round(p.w * ch / cw);
+  const top = p.y ?? Math.round((H - h) / 2);
+  const hero = document.getElementById("hero");
+  Object.assign(hero.style, {
+    left: p.x + "px", top: top + "px", width: p.w + "px", height: h + "px",
+    backgroundImage: `url(heroes/${t.slug}.png)`,
+    transform: `rotateY(${p.rotY}deg) rotateX(0deg)`,
+  });
+  const cx = p.x + p.w / 2, cy = top + h / 2;
+  document.getElementById("glow").style.background =
+    `radial-gradient(ellipse ${p.w * 1.05}px ${Math.max(h, 460) * 1.15}px at ${cx}px ${cy}px, rgb(139 123 255 / 0.5), transparent 70%),` +
+    `radial-gradient(ellipse 700px 500px at ${v === "169" ? 0 : W}px ${v === "169" ? H : 0}px, rgb(95 70 220 / 0.18), transparent 70%)`;
+  document.getElementById("kicker").textContent = t.kicker;
+  const title = document.getElementById("title");
+  const inline = v === "43" && !p.side;
+  title.classList.toggle("one", inline);
+  title.innerHTML = t.title.map((l) => `<span class="ln${l.it ? " it" : ""}">${l.t}</span>`).join(inline ? " " : "");
+  title.querySelectorAll(".it").forEach((e) => e.classList.add("it"));
+  // Title size: one size for the series, shrunk only when a line would run into the hero.
+  // A one-line title sits below the hero, so it may run under its far edge; stacked titles must clear it.
+  const maxW = v === "169" ? p.x + (t.title.length > 1 ? -36 : 60) - 96 : (p.side ? p.x - 30 : W) - 68 - (p.side ? 0 : 68);
+  let size = v === "169" ? 168 : 132;
+  title.style.fontSize = size + "px";
+  await document.fonts.ready;
+  while (title.scrollWidth > maxW && size > 72) { size -= 4; title.style.fontSize = size + "px"; }
+  window.__ready = true;
+})();
+</script>
+</body>
+</html>

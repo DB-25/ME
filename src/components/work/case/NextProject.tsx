@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Project } from "@/content";
 import { Reveal } from "@/components/ui/Reveal";
-import { caseHref } from "../asset";
+import { assetUrl, caseHref } from "../asset";
 import { CATEGORY_LABEL, pad } from "../meta";
 
 /** The bottom-of-page hand-off: the next project's name, large enough to click into. */
@@ -25,6 +25,14 @@ export function NextProject({ next, index, total }: { next: Project; index: numb
             </Reveal>
           </span>
           <span className="cs-next-bar" aria-hidden />
+          {next.film?.thumb ? (
+            <figure className="cs-next-thumb" aria-hidden>
+              <picture>
+                {next.film.thumb43 ? <source media="(max-width: 559px)" srcSet={assetUrl(next.film.thumb43)} /> : null}
+                <img src={assetUrl(next.film.thumb)} alt="" width={1600} height={900} loading="lazy" decoding="async" />
+              </picture>
+            </figure>
+          ) : null}
           <div className="cs-next-foot">
             <p className="cs-next-tag">{next.tagline}</p>
             <p className="label">

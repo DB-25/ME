@@ -11,10 +11,21 @@ export const CATEGORY_LABEL: Record<Project["category"], string> = {
 
 export const pad = (n: number) => String(n).padStart(2, "0");
 
-/** First still image of a project: the preview for rows and the poster of last resort. */
-export function previewImage(p: Project): Media | undefined {
-  // A launch film's poster is the most polished still a project has.
-  if (p.film) return { src: p.film.poster, alt: p.film.title, kind: "image", width: 1600, height: 900 };
+/** A project's preview still: the designed film thumb (already on-brand) when it has one, else its first screenshot. */
+export function previewImage(p: Project): (Media & { thumb?: boolean; src43?: string }) | undefined {
+  const f = p.film;
+  if (f) {
+    const designed = Boolean(f.thumb);
+    return {
+      src: f.thumb ?? f.poster,
+      src43: f.thumb43,
+      thumb: designed,
+      alt: f.title,
+      kind: "image",
+      width: 1600,
+      height: 900,
+    };
+  }
   return p.media.find((m) => m.kind === "image");
 }
 

@@ -4,7 +4,16 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { gsap, EASE_OUT } from "@/lib/motion";
 
-export type PreviewItem = { slug: string; name: string; src?: string; alt: string };
+export type PreviewItem = {
+  slug: string;
+  name: string;
+  src?: string;
+  /** True for a raw screenshot (gets the ultraviolet "developing" cast); designed thumbs show as they are. */
+  raw?: boolean;
+  /** Launch film that crossfades in over the thumb while the row is hovered. */
+  video?: string;
+  alt: string;
+};
 
 const LERP = 0.14;
 const EDGE = 24;
@@ -14,15 +23,57 @@ const SHOW = "inset(0% 0% 0% 0%)";
 const FROM_BELOW = "inset(100% 0% 0% 0%)";
 const TO_ABOVE = "inset(0% 0% 100% 0%)";
 
-/** How far the "developing" tint has cleared on a layer: 0 is the resting ultraviolet cast, 1 is natural. */
+/** How far the "developing" tint has cleared on a raw-screenshot layer: 0 is the resting ultraviolet cast, 1 is natural. */
 const DEVELOPED = 0.8;
+/** Hover films start this far in, past the title card, on the first UI moment. */
+const FILM_START = 2;
+/** The film only starts after this much dwell, so sweeping the pointer down the list fetches nothing. */
+const FILM_INTENT_MS = 250;
+
+const canStreamFilm = () => !(navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
+/** Lazily create (first hover) and start one muted decorative <video> in a preview layer. */
+function playFilm(videos: Map<string, HTMLVideoElement>, layer: HTMLElement, slug: string, src: string, isActive: () => boolean) {
+  if (!canStreamFilm()) return;
+  let v = videos.get(slug);
+  if (!v) {
+    const film = document.createElement("video");
+    film.muted = true;
+    film.playsInline = true;
+    film.preload = "none";
+    film.tabIndex = -1;
+    film.disablePictureInPicture = true;
+    film.setAttribute("aria-hidden", "true");
+    film.addEventListener("loadedmetadata", () => {
+      film.currentTime = FILM_START;
+    });
+    film.addEventListener("playing", () => {
+      if (isActive()) film.setAttribute("data-live", "");
+    });
+    // Loop back to the first UI moment, not the title card.
+    film.addEventListener("ended", () => {
+      film.currentTime = FILM_START;
+      void film.play().catch(() => {});
+    });
+    film.src = src;
+    layer.appendChild(film);
+    videos.set(slug, film);
+    v = film;
+  } else {
+    v.removeAttribute("data-live");
+    if (v.readyState > 0) v.currentTime = FILM_START;
+  }
+  void v.play().catch(() => {});
+}
+
 /**
- * A dark-framed still that sits in the right gutter beside the hovered title (never over it).
+ * A dark-framed 16:9 card that sits in the right gutter beside the hovered title (never over it).
  * Only its vertical position follows the cursor, lerped in a gsap ticker and clamped to the
- * hovered row. Each project's image wipes in tinted ultraviolet and develops while you dwell.
+ * hovered row. The project's designed thumb wipes in at once; if it has a launch film, one lazily
+ * created muted <video> per project (preload none, src set on first hover) fades in over it and
+ * plays from FILM_START until the pointer leaves. Purely decorative: aria-hidden, no controls.
  * Mount only when `useDesktopHover()` is true.
  */
 export function CursorPreview({ items, activeSlug }: { items: PreviewItem[]; activeSlug: string | null }) {
@@ -30,6 +81,7 @@ export function CursorPreview({ items, activeSlug }: { items: PreviewItem[]; act
   const host = typeof document === "undefined" ? null : document.body;
   const box = useRef<HTMLDivElement>(null);
   const layers = useRef(new Map<string, HTMLDivElement>());
+  const videos = useRef(new Map<string, HTMLVideoElement>());
   const state = useRef({ ty: -999, y: -999, x: 0, shown: false, z: 1, slug: null as string | null, cy: 0 });
 
   // Pointer tracking and the lerp loop.
@@ -82,6 +134,7 @@ export function CursorPreview({ items, activeSlug }: { items: PreviewItem[]; act
     const el = box.current;
     if (!host || !el) return;
     const s = state.current;
+    if (s.slug && s.slug !== activeSlug) videos.current.get(s.slug)?.pause();
     s.slug = activeSlug;
     if (!activeSlug) {
       if (!s.shown) return;
@@ -91,11 +144,16 @@ export function CursorPreview({ items, activeSlug }: { items: PreviewItem[]; act
     }
     const layer = layers.current.get(activeSlug);
     if (!layer) return;
+    const src = items.find((it) => it.slug === activeSlug)?.video;
+    const slug = activeSlug;
+    const intent = src
+      ? window.setTimeout(() => playFilm(videos.current, layer, slug, src, () => state.current.slug === slug), FILM_INTENT_MS)
+      : 0;
     const inner = layer.firstElementChild as HTMLElement | null;
     layer.style.zIndex = String(++s.z);
     gsap.fromTo(layer, { clipPath: FROM_BELOW, "--dev": 0 }, { clipPath: SHOW, duration: 0.9, ease: EASE_OUT });
-    gsap.to(layer, { "--dev": DEVELOPED, duration: 1.6, ease: "power2.out", delay: 0.3, overwrite: "auto" });
-    if (inner) gsap.fromTo(inner, { scale: 1.3 }, { scale: 1, duration: 1.2, ease: EASE_OUT });
+    if (layer.hasAttribute("data-raw")) gsap.to(layer, { "--dev": DEVELOPED, duration: 1.6, ease: "power2.out", delay: 0.3, overwrite: "auto" });
+    if (inner) gsap.fromTo(inner, { scale: layer.hasAttribute("data-raw") ? 1.3 : 1.05 }, { scale: 1, duration: 1.2, ease: EASE_OUT });
     if (!s.shown) {
       s.shown = true;
       const row = document.querySelector<HTMLElement>(`.wk-row[data-slug="${activeSlug}"]`);
@@ -111,7 +169,8 @@ export function CursorPreview({ items, activeSlug }: { items: PreviewItem[]; act
       gsap.set(el, { x: s.x, y: s.y, autoAlpha: 1 });
       gsap.fromTo(el, { clipPath: FROM_BELOW }, { clipPath: SHOW, duration: 0.8, ease: EASE_OUT, overwrite: true });
     }
-  }, [activeSlug, host]);
+    return () => window.clearTimeout(intent);
+  }, [activeSlug, host, items]);
 
   if (!host) return null;
   return createPortal(
@@ -125,6 +184,7 @@ export function CursorPreview({ items, activeSlug }: { items: PreviewItem[]; act
               else layers.current.delete(it.slug);
             }}
             className="wk-preview-layer"
+            data-raw={it.raw ? "" : undefined}
             style={{ clipPath: FROM_BELOW }}
           >
             {it.src ? (

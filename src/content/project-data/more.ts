@@ -1,5 +1,6 @@
 import type { Project } from "../types";
 import { SRC } from "../sources";
+import { FILM_TRANSCRIPTS } from "../transcripts";
 
 const BURNES = "The Burnes Center for Social Change";
 
@@ -137,7 +138,15 @@ export const moreProjects: Project[] = [
   },
   {
     slug: "arc-control-mcp",
-    film: { src: "/films/arc-control-mcp.mp4", poster: "/films/arc-control-mcp.jpg", title: "arc-control-mcp launch film" },
+    film: {
+      src: "/films/arc-control-mcp.mp4",
+      poster: "/films/arc-control-mcp.jpg",
+      thumb: "/films/arc-control-mcp-thumb.jpg",
+      thumb43: "/films/arc-control-mcp-thumb-43.jpg",
+      vertical: { src: "/films/arc-control-mcp-vertical.mp4", poster: "/films/arc-control-mcp-vertical.jpg" },
+      title: "arc-control-mcp launch film",
+      transcript: FILM_TRANSCRIPTS["arc-control-mcp"],
+    },
     name: "arc-control-mcp",
     tagline: "An MCP server that lets agents drive the Arc browser.",
     year: "2026",

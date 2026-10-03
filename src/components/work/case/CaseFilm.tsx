@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Project } from "@/content";
 import { prefersReducedMotion } from "@/lib/motion";
 import { assetUrl } from "../asset";
 
+/** Phones get the 9:16 cut. Keep in sync with the `.cs-film-frame[data-vertical]` media query in case.css. */
+const PHONE_QUERY = "(max-width: 767px)";
+
 /**
- * The project's launch film, right under the title sequence. Plays muted while
- * on screen (never under reduced motion), with explicit pause and sound
- * controls so autoplay is never something the visitor can't stop.
+ * The project's launch film, right under the title sequence. Plays muted while on screen (never under
+ * reduced motion, never with sound) with explicit pause and sound buttons so autoplay is always
+ * stoppable (WCAG 2.2.2). A transcript sits under it for anyone who can't watch.
+ * The source is chosen once at mount (vertical on phones, landscape elsewhere): never both.
  */
 export function CaseFilm({ project }: { project: Project }) {
   const film = project.film;
@@ -16,10 +20,19 @@ export function CaseFilm({ project }: { project: Project }) {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const userPaused = useRef(false);
+  const transcriptId = useId();
+  const hasVertical = Boolean(film?.vertical);
 
+  // Pick the source once, at mount (vertical on phones, landscape elsewhere). The <video> renders
+  // without a src, so only the chosen file is ever fetched; autoplay waits for the frame to be in view.
   useEffect(() => {
     const el = video.current;
-    if (!el || prefersReducedMotion()) return;
+    if (!el || !film) return;
+    const tall = Boolean(film.vertical) && window.matchMedia(PHONE_QUERY).matches;
+    const pick = tall && film.vertical ? film.vertical : film;
+    el.src = assetUrl(pick.src);
+    if (tall && film.vertical) el.poster = assetUrl(film.vertical.poster);
+    if (prefersReducedMotion()) return;
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !userPaused.current) {
@@ -32,7 +45,7 @@ export function CaseFilm({ project }: { project: Project }) {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [film]);
 
   if (!film) return null;
 
@@ -58,11 +71,12 @@ export function CaseFilm({ project }: { project: Project }) {
 
   return (
     <section className="cs-film shell" aria-label={film.title}>
-      <div className="cs-film-frame">
+      <div className="cs-film-frame" data-vertical={hasVertical ? "" : undefined}>
         <video
           ref={video}
-          src={assetUrl(film.src)}
-          poster={assetUrl(film.poster)}
+          poster={assetUrl(film.thumb ?? film.poster)}
+          aria-label={film.title}
+          aria-describedby={film.transcript ? transcriptId : undefined}
           muted
           loop
           playsInline
@@ -72,14 +86,20 @@ export function CaseFilm({ project }: { project: Project }) {
           onClick={togglePlay}
         />
         <div className="cs-film-controls">
-          <button type="button" className="label cs-film-btn" onClick={togglePlay} aria-pressed={playing}>
+          <button type="button" className="label cs-film-btn" onClick={togglePlay}>
             {playing ? "Pause" : "Play film"}
           </button>
           <button type="button" className="label cs-film-btn" onClick={toggleSound} aria-pressed={!muted}>
-            {muted ? "Sound on" : "Sound off"}
+            Sound <span aria-hidden>{muted ? "off" : "on"}</span>
           </button>
         </div>
       </div>
+      {film.transcript ? (
+        <details className="cs-film-transcript">
+          <summary className="label">Transcript</summary>
+          <p id={transcriptId}>{film.transcript}</p>
+        </details>
+      ) : null}
     </section>
   );
 }

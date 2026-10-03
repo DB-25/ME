@@ -1,11 +1,20 @@
 import type { Project } from "../types";
 import { SRC } from "../sources";
+import { FILM_TRANSCRIPTS } from "../transcripts";
 
 // Featured: Public Voice and the mobile origin story.
 export const featuredMoreProjects: Project[] = [
   {
     slug: "public-voice",
-    film: { src: "/films/public-voice.mp4", poster: "/films/public-voice.jpg", title: "Public Voice launch film" },
+    film: {
+      src: "/films/public-voice.mp4",
+      poster: "/films/public-voice.jpg",
+      thumb: "/films/public-voice-thumb.jpg",
+      thumb43: "/films/public-voice-thumb-43.jpg",
+      vertical: { src: "/films/public-voice-vertical.mp4", poster: "/films/public-voice-vertical.jpg" },
+      title: "Public Voice launch film",
+      transcript: FILM_TRANSCRIPTS["public-voice"],
+    },
     name: "Public Voice",
     tagline: "A voice survey that asks one smart follow-up, then lets you go.",
     year: "2026",

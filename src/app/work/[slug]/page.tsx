@@ -17,10 +17,12 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!project) return {};
   const title = `${project.name}: ${project.tagline}`;
   const image = project.media.find((m) => m.kind === "image");
-  // Projects without a screenshot fall back to the site-wide card (public/og.png).
-  const images = image
-    ? [{ url: image.src, alt: image.alt }]
-    : [{ url: "/og.png", width: 1200, height: 630, alt: `${profile.name}, ${profile.title}` }];
+  // Designed film key art (16:9) first, then a screenshot; otherwise the site-wide card (public/og.png).
+  const images = project.film?.thumb
+    ? [{ url: project.film.thumb, width: 1600, height: 900, alt: project.film.title }]
+    : image
+      ? [{ url: image.src, alt: image.alt }]
+      : [{ url: "/og.png", width: 1200, height: 630, alt: `${profile.name}, ${profile.title}` }];
   return {
     title: project.name,
     description: project.tagline,

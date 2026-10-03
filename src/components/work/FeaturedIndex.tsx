@@ -102,16 +102,18 @@ function Row({
         </div>
 
         {img ? (
-          <figure className="wk-inline" data-reveal>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={assetUrl(img.src)}
-              alt={img.alt}
-              width={img.width}
-              height={img.height}
-              loading="lazy"
-              decoding="async"
-            />
+          <figure className="wk-inline" data-thumb={img.thumb ? "" : undefined} data-reveal>
+            <picture>
+              {img.src43 ? <source media="(max-width: 559px)" srcSet={assetUrl(img.src43)} /> : null}
+              <img
+                src={assetUrl(img.src)}
+                alt={img.alt}
+                width={img.width}
+                height={img.height}
+                loading="lazy"
+                decoding="async"
+              />
+            </picture>
           </figure>
         ) : (
           <div className="wk-inline wk-inline-type" aria-hidden data-reveal>
@@ -140,7 +142,7 @@ function Row({
         <div className="wk-pick" aria-hidden={!spot}>
           <div className="wk-pick-in">
             <div className="wk-pick-body">
-              <div className="wk-pick-media">
+              <div className="wk-pick-media" data-thumb={img?.thumb ? "" : undefined}>
                 {img ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -191,6 +193,8 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
           slug: p.slug,
           name: p.name,
           src: img ? assetUrl(img.src) : undefined,
+          raw: img ? !img.thumb : false,
+          video: p.film ? assetUrl(p.film.src) : undefined,
           alt: img?.alt ?? p.name,
         };
       }),
