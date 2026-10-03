@@ -11,7 +11,7 @@ function Stat({ label, value, dim }: { label: string; value: string; dim?: boole
   return (
     <div className="min-w-0">
       <p className="label">{label}</p>
-      <p className={`num font-mono text-[15px] md:text-[17px] ${dim ? "text-faint" : "text-ink"}`}>
+      <p className={`num font-mono text-[15px] md:text-[17px] ${dim ? "text-dim" : "text-ink"}`}>
         {value}
         <span className="ml-1 text-[10px] text-muted">{label === "TARGET" ? "" : "MS"}</span>
       </p>
@@ -198,7 +198,7 @@ export function AimTrainer() {
             <button type="button" onClick={t.start} className={btn}>
               Start drill
             </button>
-            <p className="label !text-faint">Mouse, touch, or Space</p>
+            <p className="label !text-dim">Mouse, touch, or Space</p>
           </div>
         )}
 
@@ -224,7 +224,7 @@ export function AimTrainer() {
               ))}
             </ul>
             <p className="max-w-[32ch] text-[15px] leading-snug text-ink">{rankFor(avg)}</p>
-            {t.misses > 0 && <p className="label !text-faint">{t.misses} stray {t.misses === 1 ? "click" : "clicks"}</p>}
+            {t.misses > 0 && <p className="label !text-dim">{t.misses} stray {t.misses === 1 ? "click" : "clicks"}</p>}
             <button ref={again} type="button" onClick={t.start} className={btn}>
               Run it again
             </button>

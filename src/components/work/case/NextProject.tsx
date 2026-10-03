@@ -16,7 +16,7 @@ export function NextProject({ next, index, total }: { next: Project; index: numb
             </p>
             <p className="label num">
               <span className="cs-index-n">{pad(index + 1)}</span>
-              <span className="text-faint"> / {pad(total)}</span>
+              <span className="text-dim"> / {pad(total)}</span>
             </p>
           </div>
           <span className="cs-next-name" style={{ ["--len" as string]: next.name.length }}>
@@ -28,7 +28,7 @@ export function NextProject({ next, index, total }: { next: Project; index: numb
           <div className="cs-next-foot">
             <p className="cs-next-tag">{next.tagline}</p>
             <p className="label">
-              {next.year} <span className="text-faint">/</span> {CATEGORY_LABEL[next.category]}
+              {next.year} <span className="text-dim">/</span> {CATEGORY_LABEL[next.category]}
               <span className="cs-next-arrow" aria-hidden>
                 &rarr;
               </span>

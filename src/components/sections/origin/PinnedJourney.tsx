@@ -185,7 +185,7 @@ export function PinnedJourney() {
                   }}
                 >
                   <span className={`absolute -top-[7px] block h-[7px] w-px ${i === 0 ? "left-0" : i === N - 1 ? "right-0" : "left-1/2"} bg-faint transition-colors group-data-[state=active]:bg-ink group-data-[state=past]:bg-muted`} />
-                  <span className="label num block pt-3 !text-faint transition-colors group-hover:!text-ink group-data-[state=active]:!text-ink group-data-[state=past]:!text-muted">
+                  <span className="label num block pt-3 !text-dim transition-colors group-hover:!text-ink group-data-[state=active]:!text-ink group-data-[state=past]:!text-muted">
                     {b.year}
                   </span>
                 </button>

@@ -86,7 +86,7 @@ export function WorkIndex() {
           <div className="col-span-12 lg:col-span-7">
             <p className="label">
               <span className="text-accent">{pad(featured.length + 1)}</span>
-              <span className="mx-2 text-faint">/</span>Everything else
+              <span className="mx-2 text-dim">/</span>Everything else
             </p>
             <h3 id="lab-heading" className="mt-6">
               <Reveal as="span" className="headline block">

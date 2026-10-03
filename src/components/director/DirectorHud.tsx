@@ -61,7 +61,7 @@ export function DirectorHud({ state, onCut, showAnotherTake, onAnotherTake }: Pr
               <span className="dir-rec" aria-hidden />
               Director
             </p>
-            <p className="label hidden min-w-0 flex-1 truncate text-faint lg:block">&ldquo;{state.prompt}&rdquo;</p>
+            <p className="label hidden min-w-0 flex-1 truncate text-dim lg:block">&ldquo;{state.prompt}&rdquo;</p>
             <p className="label ml-auto hidden text-muted md:block">
               {state.mode === "live" ? "Live" : "Offline, scripted"}
             </p>
@@ -70,7 +70,7 @@ export function DirectorHud({ state, onCut, showAnotherTake, onAnotherTake }: Pr
               onClick={onCut}
               className="label ml-auto border border-hairline-strong px-3 py-2 text-ink transition-colors duration-300 hover:border-accent hover:text-accent-hot md:ml-0"
             >
-              Stop <span className="ml-1 text-faint">Esc</span>
+              Stop <span className="ml-1 text-dim">Esc</span>
             </button>
           </div>
         </div>
@@ -106,7 +106,7 @@ export function DirectorHud({ state, onCut, showAnotherTake, onAnotherTake }: Pr
             {state.figure && (
               <p key={state.figure.n} className="label dir-fig hidden max-w-[40ch] text-right text-ink sm:block">
                 <span className="text-accent">Fig. {state.figure.n}</span>
-                <span className="mx-2 text-faint">/</span>
+                <span className="mx-2 text-dim">/</span>
                 {state.figure.label}
               </p>
             )}

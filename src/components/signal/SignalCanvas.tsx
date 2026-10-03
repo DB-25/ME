@@ -3,18 +3,26 @@
 import { useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, EffectComposer, ToneMapping, Vignette } from "@react-three/postprocessing";
-import { ToneMappingMode } from "postprocessing";
+import { ToneMappingMode, type BloomEffect } from "postprocessing";
+import { useRef } from "react";
+import { signalStore } from "@/lib/signal-store";
 import { SignalField, type FieldQuality } from "./SignalField";
 
 const ORBIT_SPEED = 0.11;
 const ORBIT_YAW = 0.16;
 const ORBIT_PITCH = 0.05;
 const PARALLAX = 0.45;
+const BLOOM_BASE = 0.65;
 
 /** Slow idle orbit plus mouse parallax. Nothing allocates per frame. */
-function CameraRig({ reducedMotion, coarse }: { reducedMotion: boolean; coarse: boolean }) {
+/** The hero halftone portrait only tolerates a few degrees of orbit; other chapters get the full sweep. */
+const HERO_ORBIT_SCALE = 0.4;
+const HERO_BLOOM_SCALE = 0.35;
+
+function CameraRig({ reducedMotion, coarse, bloom }: { reducedMotion: boolean; coarse: boolean; bloom: React.RefObject<BloomEffect | null> }) {
   const camera = useThree((s) => s.camera);
   const state = useThree((s) => s.size);
+  const [hero] = useState(() => ({ w: 1 }));
   const pointer = useThreePointer(reducedMotion || coarse);
 
   useFrame((frame, delta) => {
@@ -24,15 +32,20 @@ function CameraRig({ reducedMotion, coarse }: { reducedMotion: boolean; coarse: 
       camera.lookAt(0, 0, 0);
       return;
     }
+    const sig = signalStore.getState();
+    const heroTarget = sig.chapter === "hero" ? 1 : 0;
+    hero.w += (heroTarget - hero.w) * Math.min(1, Math.min(delta, 0.25) * 4);
+    if (bloom.current) bloom.current.intensity = BLOOM_BASE * (1 - (1 - HERO_BLOOM_SCALE) * hero.w);
+    const orbit = 1 - (1 - HERO_ORBIT_SCALE) * hero.w;
     const t = frame.clock.elapsedTime;
     const dist = camera.position.z;
     const k = Math.min(1, Math.min(delta, 0.25) * 3);
     pointer.sx += (pointer.x - pointer.sx) * k;
     pointer.sy += (pointer.y - pointer.sy) * k;
-    const yaw = Math.sin(t * ORBIT_SPEED) * ORBIT_YAW + pointer.sx * 0.12;
-    const pitch = Math.sin(t * ORBIT_SPEED * 0.7 + 1.3) * ORBIT_PITCH + pointer.sy * 0.06;
-    camera.position.x = Math.sin(yaw) * dist + pointer.sx * PARALLAX * 0.3;
-    camera.position.y = Math.sin(pitch) * dist + pointer.sy * PARALLAX * 0.3;
+    const yaw = (Math.sin(t * ORBIT_SPEED) * ORBIT_YAW + pointer.sx * 0.12) * orbit;
+    const pitch = (Math.sin(t * ORBIT_SPEED * 0.7 + 1.3) * ORBIT_PITCH + pointer.sy * 0.06) * orbit;
+    camera.position.x = Math.sin(yaw) * dist + pointer.sx * PARALLAX * 0.3 * orbit;
+    camera.position.y = Math.sin(pitch) * dist + pointer.sy * PARALLAX * 0.3 * orbit;
     camera.lookAt(0, 0, 0);
   });
   void state;
@@ -82,6 +95,7 @@ function FpsProbe() {
 
 export default function SignalCanvas({ quality, onReady }: { quality: FieldQuality; onReady: () => void }) {
   const [hidden, setHidden] = useState(false);
+  const bloomRef = useRef<BloomEffect>(null);
 
   useEffect(() => {
     const sync = () => setHidden(document.hidden);
@@ -102,9 +116,9 @@ export default function SignalCanvas({ quality, onReady }: { quality: FieldQuali
     >
       <color attach="background" args={["#060509"]} />
       <SignalField quality={quality} />
-      <CameraRig reducedMotion={quality.reducedMotion} coarse={quality.coarse} />
+      <CameraRig reducedMotion={quality.reducedMotion} coarse={quality.coarse} bloom={bloomRef} />
       <EffectComposer multisampling={0} enableNormalPass={false}>
-        <Bloom mipmapBlur intensity={quality.coarse ? 0.55 : 0.65} luminanceThreshold={0.3} luminanceSmoothing={0.5} radius={0.7} />
+        <Bloom ref={bloomRef} mipmapBlur intensity={BLOOM_BASE} luminanceThreshold={0.3} luminanceSmoothing={0.5} radius={0.7} />
         <ToneMapping mode={ToneMappingMode.REINHARD} />
         <Vignette eskil={false} offset={0.28} darkness={0.7} />
       </EffectComposer>

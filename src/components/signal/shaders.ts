@@ -51,7 +51,8 @@ attribute vec3 aB;
 attribute vec3 aC;
 attribute vec3 aD;
 attribute vec4 aRand; // x seed, y size jitter, z heat, w phase
-attribute vec4 aTint; // portrait colour (rgb) and brightness (a)
+attribute float aCell; // portrait grid cell size (1 = torso, <1 = finer face grid)
+attribute vec4 aTint; // portrait colour (rgb) and halftone tone (a)
 
 uniform float uMorph;
 uniform float uOverride;
@@ -70,9 +71,11 @@ uniform float uPixelRatio;
 uniform vec3 uOffset;
 uniform float uTintA;
 uniform float uTintB;
+uniform float uFog;
 
 varying vec4 vTint;
 varying float vTintW;
+varying float vCell;
 varying float vHeat;
 varying float vSpark;
 varying float vDepth;
@@ -91,6 +94,7 @@ void main(){
   vec2 pm = stagger(uMorph, seed);
   vec2 po = stagger(uOverride, seed);
   vec2 pc = stagger(uOverrideMix, seed);
+  float tintW = mix(uTintA, uTintB, pm.x) * (1. - po.x);
 
   vec3 base = mix(position, aB, pm.x);
   vec3 over = mix(aC, aD, pc.x);
@@ -109,7 +113,8 @@ void main(){
   // Constant breathing drift.
   float t = uTime;
   float ph = aRand.w * 6.2831853;
-  p += uTurb * 0.022 * vec3(sin(t * 0.55 + ph), sin(t * 0.43 + ph * 2.3), cos(t * 0.37 + ph * 1.7));
+  // The halftone portrait must hold its grid: breathing drift all but stops while it is formed.
+  p += uTurb * 0.022 * (1. - 0.92 * tintW) * vec3(sin(t * 0.55 + ph), sin(t * 0.43 + ph * 2.3), cos(t * 0.37 + ph * 1.7));
   p += uOffset;
 
   vec4 mv = modelViewMatrix * vec4(p, 1.);
@@ -131,14 +136,16 @@ void main(){
 
   float dist = -mv.z;
   float spark = step(0.988, aRand.z);
-  gl_PointSize = uSize * aRand.y * (1. + spark * 0.25) * uPixelRatio * uScale / max(dist, 0.1);
+  float sizeMul = mix(1., mix(0.35, 1., aTint.a) * aCell, tintW);
+  gl_PointSize = uSize * sizeMul * mix(aRand.y, 1., tintW) * (1. + spark * 0.25) * uPixelRatio * uScale / max(dist, 0.1);
 
-  vTint = aTint;
-  vTintW = mix(uTintA, uTintB, pm.x) * (1. - po.x);
+  vTint = vec4(aTint.rgb, aTint.a);
+  vCell = mix(1., aCell, tintW);
+  vTintW = tintW;
   vHeat = aRand.z;
   vSpark = spark;
   vNear = near;
-  vDepth = clamp(1.25 - (dist - 5.5) * 0.09, 0.4, 1.25);
+  vDepth = clamp(1.25 - (dist - 5.5) * uFog, 0.1, 1.25);
 }
 `;
 
@@ -150,6 +157,7 @@ uniform float uHueMix;
 
 varying vec4 vTint;
 varying float vTintW;
+varying float vCell;
 varying float vHeat;
 varying float vSpark;
 varying float vDepth;
@@ -173,7 +181,7 @@ void main(){
   vec3 col = heat < 0.5 ? mix(DEEP, UV, heat * 2.) : mix(UV, HOT, (heat - 0.5) * 2.);
   col = mix(col, SAFFRON, vSpark * (1. - uHueMix));
   col = mix(col, vTint.rgb, vTintW);
-  a *= mix(1., vTint.a, vTintW);
+  a *= mix(1., (2.3 * pow(vTint.a, 1.2) + 0.03) / pow(vCell, 1.3), vTintW);
   vec3 tint = uHueColor * (0.55 + 0.6 * core);
   col = mix(col, tint, uHueMix * 0.85);
   a *= 1. + vSpark * 0.8;

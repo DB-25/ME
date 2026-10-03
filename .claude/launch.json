@@ -20,9 +20,9 @@
         "node_modules/.bin/next",
         "dev",
         "-p",
-        "3100"
+        "3102"
       ],
-      "port": 3100,
+      "port": 3102,
       "env": {
         "PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
       }

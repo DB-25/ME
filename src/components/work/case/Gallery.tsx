@@ -122,7 +122,7 @@ export function Gallery({ project, n }: { project: Project; n: string }) {
                   </div>
                 </div>
                 <figcaption className="label">
-                  <span className="num text-faint">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="num text-dim">{String(i + 1).padStart(2, "0")}</span>
                   <span>{m.caption ?? m.alt}</span>
                 </figcaption>
               </figure>

@@ -59,8 +59,15 @@ export function Nav() {
       else if (Math.abs(dy) > SCROLL_DELTA) setHidden(dy > 0);
       if (Math.abs(dy) > SCROLL_DELTA) last = y;
     };
+    // Keyboard focus inside the bar always brings it back, so Tab never lands on an off-screen link.
+    const onFocusIn = () => setHidden(false);
+    const header = bar.current;
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    header?.addEventListener("focusin", onFocusIn);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      header?.removeEventListener("focusin", onFocusIn);
+    };
   }, []);
 
   const toTop = (e: React.MouseEvent) => {

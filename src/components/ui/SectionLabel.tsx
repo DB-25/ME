@@ -7,7 +7,7 @@ export function SectionLabel({ chapter, text, className = "" }: { chapter: Chapt
   return (
     <p className={`label ${className}`}>
       <span className="text-accent">{c.index}</span>
-      <span className="mx-2 text-faint">/</span>
+      <span className="mx-2 text-dim">/</span>
       {text ?? c.label}
     </p>
   );

@@ -5,12 +5,13 @@
 // Input: RGBA PNG with a transparent background (background-removed half-body cutout).
 //
 // Output layout (little endian), see src/components/signal/formations/portrait.ts:
-//   bytes 0..3    magic "SIG1"
+//   bytes 0..3    magic "SIG4"
 //   bytes 4..7    uint32 N (point count)
-//   bytes 8..11   float32 scale: world units = int16 / scale ... stored as int16 = round(world * 8192)
-//   then N * 3 * int16   x, y, z   (world units * 8192, standard framing: figure height WORLD_HEIGHT, centered)
-//   then N * 3 * uint8   r, g, b   (final particle color, already blended ~60% toward the brand palette)
-// Points are i.i.d. samples, so any prefix of the file is an unbiased subset (mobile uses a prefix).
+//   bytes 8..11   uint32 QUANT (positions are int16 = round(world * QUANT))
+//   then N * 3 * int16   x, y, z   (standard framing: figure height WORLD_HEIGHT, centered)
+//   then N * 5 * uint8   r, g, b, t, c   (t = tone 0..255, mapped by the shader to alpha and size; c = grid cell size relative to the torso, 255 = torso)
+// Halftone approach: particles sit on a jittered grid (face ~2.2x finer than torso), tone lives in brightness and size.
+// The file is shuffled, so any prefix is an unbiased random subset (mobile uses a prefix).
 import sharp from "sharp";
 import fs from "node:fs";
 import path from "node:path";
@@ -27,7 +28,7 @@ const OUT = opt.out || "public/signal/portrait.bin";
 
 const WORLD_HEIGHT = 3.9;
 const QUANT = 8192;
-const BODY_DEPTH = 0.95;
+const BODY_DEPTH = 0.9;
 const BULGE_RADIUS = 26;
 const BRAND_BLEND = 0.6;
 
@@ -118,38 +119,48 @@ const bulge = blur3(mask, BULGE_RADIUS);
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 const boxBlur16 = boxBlur(boxBlur(Lm, 14), 14);
-const blob2 = (x, y, bx, by, sx, sy) => Math.exp(-(((x - bx) / sx) ** 2 + ((y - by) / sy) ** 2));
-// Weights.
-const cdf = new Float64Array(N);
-let total = 0;
-for (let i = 0; i < N; i++) {
-  let w = 0;
-  if (A[i] > 0.5) {
-    const nx = (i % W) / W;
-    const ny = ((i / W) | 0) / H;
-    // Importance: the face, then the hand and phone, read first; the shirt gives texture.
-    const head = blob2(nx, ny, 0.52, 0.1, 0.11, 0.075);
-    const focus = 1 + 2.2 * blob2(nx, ny, 0.22, 0.2, 0.1, 0.075);
-    const body = (0.14 + 0.4 * Math.pow(Lm[i], 1.5) + 1.4 * edge[i] + 0.9 * sil[i] + 0.2 * contrast[i]) * focus;
-    // Face: stretch local contrast so lit planes are dense and shadowed features become gaps.
-    const wide = boxBlur16[i];
-    const loc = Math.min(1, Math.max(0, 0.5 + 3 * (Lm[i] - wide)));
-    const face = (0.05 + 3.4 * loc * loc * loc + 1.6 * edge[i] + 0.9 * sil[i]) * 5.5;
-    w = body * (1 - head) + face * head;
-  }
-  total += w;
-  cdf[i] = total;
+
+// Head region as fractions of the frame: face bbox roughly x 330-600, y 60-380 of 800x1049, plus margin.
+const HEAD = { cx: 0.581, cy: 0.215, rx: 0.2, ry: 0.175 };
+const FACE_FINER = 2.2;
+const HEAD_BULGE = Number(opt.headbulge || 0.7);
+const JITTER = 0.25;
+const headMask = (nx, ny) => 1 - smooth(0.82, 1.12, Math.hypot((nx - HEAD.cx) / HEAD.rx, (ny - HEAD.cy) / HEAD.ry));
+const headDome = (nx, ny) => {
+  const r2 = ((nx - HEAD.cx) / (HEAD.rx * 0.85)) ** 2 + ((ny - HEAD.cy) / (HEAD.ry * 0.95)) ** 2;
+  return Math.sqrt(Math.max(0, 1 - r2));
+};
+
+// ---- Tone preprocessing
+// Unsharp mask, then per-region levels: face 5..95 percentile to 0..1 with gamma 0.8, torso with its own levels.
+const Lblur = boxBlur(Lm, 2);
+const Lu = new Float32Array(N);
+for (let i = 0; i < N; i++) Lu[i] = Lm[i] + 0.9 * (Lm[i] - Lblur[i]);
+const LuF = boxBlur(Lu, 1);
+const LuT = boxBlur(Lu, 2);
+const hmap = new Float32Array(N);
+for (let i = 0; i < N; i++) hmap[i] = headMask((i % W) / W, ((i / W) | 0) / H);
+function percentiles(arr, test, lo, hi) {
+  const v = [];
+  for (let i = 0; i < N; i += 2) if (A[i] > 0.5 && test(i)) v.push(arr[i]);
+  v.sort((a, b) => a - b);
+  return [v[Math.floor(v.length * lo)], v[Math.floor(v.length * hi)]];
+}
+const [fLo, fHi] = percentiles(LuF, (i) => hmap[i] > 0.6, 0.04, 0.9);
+const [tLo, tHi] = percentiles(LuT, (i) => hmap[i] < 0.2, 0.02, 0.98);
+const clamp01 = (x) => Math.min(1, Math.max(0, x));
+const FACE_FLOOR = 0.06;
+const TORSO_FLOOR = 0.2;
+function toneAt(i, hm) {
+  const f = FACE_FLOOR + (1 - FACE_FLOOR) * Math.pow(clamp01((LuF[i] - fLo) / (fHi - fLo)), 0.8);
+  const t = TORSO_FLOOR + (1 - TORSO_FLOOR) * Math.pow(clamp01((LuT[i] - tLo) / (tHi - tLo)), 0.9);
+  let tone = t * (1 - hm) + f * hm;
+  // Keep the silhouette (hair line, shoulders) present even where the source is near black.
+  tone = Math.max(tone, 0.5 * sil[i]);
+  return clamp01(tone);
 }
 
-// bbox of the figure for centering.
-let minX = W, maxX = 0, minY = H, maxY = 0;
-for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (A[y * W + x] > 0.5) {
-  if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y;
-}
-const scale = WORLD_HEIGHT / (maxY - minY);
-const cx = (minX + maxX) / 2;
-const cy = (minY + maxY) / 2;
-
+// ---- Jittered grids
 function mulberry32(a) {
   return () => {
     a = (a + 0x6d2b79f5) >>> 0;
@@ -160,77 +171,118 @@ function mulberry32(a) {
   };
 }
 const rand = mulberry32(2026);
-const blob = (x, y, bx, by, s) => Math.exp(-(((x - bx) / s) ** 2 + ((y - by) / s) ** 2));
+
+let minX = W, maxX = 0, minY = H, maxY = 0;
+let areaHead = 0, areaBody = 0;
+for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+  const i = y * W + x;
+  if (A[i] <= 0.5) continue;
+  if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y;
+  const hm = hmap[i];
+  areaHead += hm; areaBody += 1 - hm;
+}
+const scale = WORLD_HEIGHT / (maxY - minY);
+const cx = (minX + maxX) / 2;
+const cy = (minY + maxY) / 2;
+
+function buildGrid(cellT) {
+  const cellF = cellT / FACE_FINER;
+  const out = [];
+  const pass = (cell, faceGrid) => {
+    for (let gy = 0; gy * cell < H; gy++) {
+      for (let gx = 0; gx * cell < W; gx++) {
+        const px = (gx + 0.5 + (rand() - 0.5) * 2 * JITTER) * cell;
+        const py = (gy + 0.5 + (rand() - 0.5) * 2 * JITTER) * cell;
+        const ix = Math.min(W - 1, Math.floor(px));
+        const iy = Math.min(H - 1, Math.floor(py));
+        const i = iy * W + ix;
+        if (A[i] <= 0.5) continue;
+        const hm = hmap[i];
+        const p = smooth(0.15, 0.85, hm);
+        if (rand() > (faceGrid ? p : 1 - p)) continue;
+        out.push(px, py);
+      }
+    }
+  };
+  pass(cellT, false);
+  pass(cellF, true);
+  return out;
+}
+let cellT = Math.sqrt((areaHead * FACE_FINER * FACE_FINER + areaBody) / COUNT);
+let pts = buildGrid(cellT);
+for (let tries = 0; pts.length / 2 < COUNT && tries < 40; tries++) {
+  cellT *= 0.99;
+  pts = buildGrid(cellT);
+}
+const total = pts.length / 2;
+const order = Array.from({ length: total }, (_, i) => i);
+for (let i = total - 1; i > 0; i--) {
+  const j = Math.floor(rand() * (i + 1));
+  [order[i], order[j]] = [order[j], order[i]];
+}
+const N_OUT = Math.min(COUNT, total);
 
 const header = Buffer.alloc(12);
-header.write("SIG1", 0, "ascii");
-header.writeUInt32LE(COUNT, 4);
+header.write("SIG4", 0, "ascii");
+header.writeUInt32LE(N_OUT, 4);
 header.writeUInt32LE(QUANT, 8);
-const pos = Buffer.alloc(COUNT * 6);
-const col = Buffer.alloc(COUNT * 3);
+const pos = Buffer.alloc(N_OUT * 6);
+const col = Buffer.alloc(N_OUT * 5);
 const prev = opt.preview ? Buffer.alloc(W * H * 3) : null;
-const side = opt.side ? Buffer.alloc(W * H * 3) : null;
+const SKIN_HUE = 0.13;
+let headCount = 0;
 
-for (let p = 0; p < COUNT; p++) {
-  const target = rand() * total;
-  let lo = 0, hi = N - 1;
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1;
-    if (cdf[mid] < target) lo = mid + 1; else hi = mid;
-  }
-  const x = lo % W;
-  const y = (lo / W) | 0;
-  const fx = x + rand();
-  const fy = y + rand();
+for (let n = 0; n < N_OUT; n++) {
+  const k = order[n];
+  const fx = pts[k * 2];
+  const fy = pts[k * 2 + 1];
+  const ix = Math.min(W - 1, Math.floor(fx));
+  const iy = Math.min(H - 1, Math.floor(fy));
+  const i = iy * W + ix;
   const nx = fx / W;
   const ny = fy / H;
+  const hm = hmap[i];
+  if (hm > 0.5) headCount++;
 
-  // Round the body: circular profile from the silhouette inward.
-  const t = Math.min(1, Math.max(0, (bulge[lo] - 0.5) / 0.5));
+  // Depth: round body, head ellipsoid, mild luminance relief (capped so the grid holds from the front).
+  const t = clamp01((bulge[i] - 0.5) / 0.5);
   const dome = Math.sqrt(Math.max(0, 1 - (1 - t) * (1 - t)));
   let z = (dome - 0.45) * BODY_DEPTH;
-  // Luminance relief: lighter reads slightly forward, so patterns and features gain texture.
-  z += (Lb[lo] - 0.5) * 0.16 + (Lm[lo] - Lb[lo]) * 0.12;
-  // The phone hand reaches toward the camera; the head leans a touch forward.
-  z += 0.42 * blob(nx, ny, 0.22, 0.2, 0.17) + 0.16 * blob(nx, ny, 0.56, 0.1, 0.16);
-  z += (rand() - 0.5) * 0.04;
+  z += (Lb[i] - 0.5) * 0.05;
+  z += HEAD_BULGE * hm * headDome(nx, ny) + 0.12 * hm;
+  pos.writeInt16LE(Math.round((fx - cx) * scale * QUANT), n * 6);
+  pos.writeInt16LE(Math.round(-(fy - cy) * scale * QUANT), n * 6 + 2);
+  pos.writeInt16LE(Math.round(z * QUANT), n * 6 + 4);
 
-  const wx = (fx - cx) * scale;
-  const wy = -(fy - cy) * scale;
-  pos.writeInt16LE(Math.round(wx * QUANT), p * 6);
-  pos.writeInt16LE(Math.round(wy * QUANT), p * 6 + 2);
-  pos.writeInt16LE(Math.round(z * QUANT), p * 6 + 4);
-
-  // Color: source color boosted slightly, pulled ~60% toward the ultraviolet ramp by luminance.
-  const headW = blob2(nx, ny, 0.52, 0.1, 0.11, 0.075);
-  const stretched = Math.min(1, Math.max(0, 0.5 + 3 * (Lm[lo] - boxBlur16[lo])));
-  const l = Lm[lo] * (1 - headW) + stretched * headW;
-  const ramp = Math.pow(l, 0.75);
-  const pal = ramp < 0.6
-    ? UV_DEEP.map((c, k) => c + (UV[k] - c) * (ramp / 0.6))
-    : UV.map((c, k) => c + (HOT[k] - c) * ((ramp - 0.6) / 0.4) * 0.7);
-  for (let k = 0; k < 3; k++) {
-    const src = rgba[lo * 4 + k] / 255;
-    const boosted = Math.min(1, src * 1.15 + 0.05);
-    // The face carries ~5x more points per area, so each of its particles is dimmed to keep the total even.
-    col[p * 3 + k] = Math.round(255 * (boosted * (1 - BRAND_BLEND) + pal[k] * BRAND_BLEND) / (1 + 1.4 * headW));
+  // Color: tone-mapped ultraviolet ramp, with a whisper of the source hue on skin.
+  const tone = toneAt(i, hm);
+  const pal = tone < 0.55
+    ? UV_DEEP.map((c, q) => c + (UV[q] - c) * (tone / 0.55))
+    : UV.map((c, q) => c + (HOT[q] - c) * ((tone - 0.55) / 0.45));
+  const mx = Math.max(rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2], 1) / 255;
+  for (let q = 0; q < 3; q++) {
+    const srcN = Math.min(1, rgba[i * 4 + q] / 255 / mx);
+    col[n * 5 + q] = Math.round(255 * (pal[q] * (1 - SKIN_HUE * hm) + srcN * SKIN_HUE * hm));
   }
+  col[n * 5 + 3] = Math.round(255 * tone);
+  col[n * 5 + 4] = Math.round(255 * (1 / (1 + (FACE_FINER - 1) * smooth(0.15, 0.85, hm))));
   if (prev) {
     const o = (Math.min(H - 1, Math.floor(fy)) * W + Math.min(W - 1, Math.floor(fx))) * 3;
-    for (let k = 0; k < 3; k++) prev[o + k] = Math.min(255, prev[o + k] + col[p * 3 + k] * 0.9);
+    for (let q = 0; q < 3; q++) prev[o + q] = Math.min(255, prev[o + q] + col[n * 5 + q] * Math.pow(tone, 1.2) * 2.2);
   }
 }
 
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, Buffer.concat([header, pos, col]));
-console.log(`baked ${COUNT} points from ${W}x${H} -> ${OUT} (${((12 + COUNT * 9) / 1024).toFixed(0)} KB)`);
+console.log(`baked ${N_OUT} points (${headCount} in the head, cells ${(cellT / FACE_FINER).toFixed(2)}/${cellT.toFixed(2)}px) from ${W}x${H} -> ${OUT} (${((12 + N_OUT * 11) / 1024).toFixed(0)} KB)`);
 
 if (prev) {
-  await sharp(prev, { raw: { width: W, height: H, channels: 3 } })
-    .blur(0.8)
-    .modulate({ brightness: 1.6 })
-    .png()
-    .toFile(opt.preview);
+  await sharp(prev, { raw: { width: W, height: H, channels: 3 } }).png().toFile(opt.preview);
   console.log("preview ->", opt.preview);
-  await sharp(opt.preview).extract({ left: 200, top: 0, width: 300, height: 330 }).resize(900, 990, { kernel: "nearest" }).toFile(opt.preview.replace(/\.png$/, "-head.png"));
+  const L0 = Math.round(W * (HEAD.cx - HEAD.rx));
+  const T0 = Math.round(H * (HEAD.cy - HEAD.ry));
+  await sharp(opt.preview)
+    .extract({ left: L0, top: Math.max(0, T0), width: Math.round(W * HEAD.rx * 2), height: Math.round(H * HEAD.ry * 2) })
+    .resize({ width: 900, kernel: "nearest" })
+    .toFile(opt.preview.replace(/\.png$/, "-head.png"));
 }

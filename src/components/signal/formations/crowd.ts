@@ -1,10 +1,11 @@
 import { gauss, mulberry32 } from "./rng";
 
-const COLS = 96;
-const ROWS = 52;
-const WIDTH = 5.6;
-const DEPTH = 3.8;
-const TILT = -0.95; // radians about X, looking down at the floor
+const COLS = 160;
+const ROWS = 64;
+const WIDTH = 12;
+const DEPTH = 5.4;
+/** Radians about X: shallow, so the field reads as a receding floor seen from above at dusk. */
+const TILT = -1.22;
 const PERSON_RADIUS = 0.0035;
 
 /**
@@ -20,7 +21,9 @@ export function crowdFormation(count: number): Float32Array {
     for (let c = 0; c < COLS; c++) {
       const u = ((c + (r % 2 ? 0.5 : 0)) / COLS) * 2 - 1;
       const v = (r / ROWS) * 2 - 1;
-      if (u * u + v * v > 1) continue;
+      // Far rows thin out so the floor dissolves into the distance instead of ending on an edge.
+      const far = Math.min(1, Math.max(0, (v - 0.1) / 0.9));
+      if (rand() < far * far * 0.8) continue;
       people.push((u * WIDTH) / 2, (v * DEPTH) / 2);
     }
   }

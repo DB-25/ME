@@ -33,7 +33,7 @@ const WARM_ORDER: FormationId[] = ["noise", "monogram", "portrait", "globe", "ne
 
 const cache = new Map<string, Float32Array>();
 
-type AsyncEntry = { positions: Float32Array; tint: Float32Array; loading: boolean };
+type AsyncEntry = { positions: Float32Array; tint: Float32Array; cell: Float32Array; loading: boolean };
 const asyncCache = new Map<string, AsyncEntry>();
 const readyListeners = new Set<(id: FormationId) => void>();
 
@@ -48,6 +48,11 @@ export function getPortraitTint(count: number): Float32Array {
   return ensureAsync("portrait", count).tint;
 }
 
+/** Per-particle grid cell size (1 = torso, smaller = finer face grid). */
+export function getPortraitCell(count: number): Float32Array {
+  return ensureAsync("portrait", count).cell;
+}
+
 function ensureAsync(id: FormationId, count: number): AsyncEntry {
   const key = `${id}:${count}`;
   const hit = asyncCache.get(key);
@@ -59,13 +64,15 @@ function ensureAsync(id: FormationId, count: number): AsyncEntry {
     tint[i * 4 + 2] = 1;
     tint[i * 4 + 3] = 1;
   }
-  const entry: AsyncEntry = { positions: new Float32Array(getFormation("noise", count)), tint, loading: true };
+  const cell = new Float32Array(count).fill(1);
+  const entry: AsyncEntry = { cell, positions: new Float32Array(getFormation("noise", count)), tint, loading: true };
   asyncCache.set(key, entry);
   loadPortrait(count).then((data) => {
     entry.loading = false;
     if (!data) return;
     entry.positions.set(data.positions);
     entry.tint.set(data.tint);
+    entry.cell.set(data.cell);
     readyListeners.forEach((cb) => cb(id));
   });
   return entry;

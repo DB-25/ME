@@ -39,7 +39,7 @@
 }
 .cs-step:last-child { border-bottom: 1px solid var(--color-hairline); }
 .cs-step p { margin: 0; font-size: clamp(1.1rem, 1.55vw, 1.4rem); line-height: 1.55; text-wrap: pretty; }
-.cs-step-n { font-family: var(--font-mono); font-size: clamp(1.25rem, 2.4vw, 2rem); line-height: 1.1; color: var(--color-faint); transition: color 0.6s var(--cs-ease); }
+.cs-step-n { font-family: var(--font-mono); font-size: clamp(1.25rem, 2.4vw, 2rem); line-height: 1.1; color: var(--color-dim); transition: color 0.6s var(--cs-ease); }
 .cs-step.is-on { color: var(--color-ink); }
 .cs-step.is-on .cs-step-n { color: var(--pa); }
 
@@ -79,7 +79,7 @@
 /* Stack */
 .cs-stack { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.08em 0.4em; font-size: clamp(1.6rem, 3.6vw, 3.4rem); font-weight: 500; letter-spacing: -0.035em; line-height: 1.14; }
 .cs-stack li { transition: color 0.3s; }
-.cs-stack li::after { content: "/"; margin-left: 0.4em; color: var(--color-faint); font-weight: 300; }
+.cs-stack li::after { content: "/"; margin-left: 0.4em; color: var(--color-dim); font-weight: 300; }
 .cs-stack li:last-child::after { content: ""; }
 .cs-stack li:hover { color: var(--color-accent-hot); }
 
@@ -136,6 +136,6 @@
 .cs-nav-name { color: var(--color-ink); }
 @media (max-width: 767px) {
   .cs-nav-in { grid-template-columns: auto 1fr auto; gap: 12px; padding-block: 12px; }
-  .cs-nav-name, .cs-nav-where > .text-faint, .cs-nav-next-name { display: none; }
+  .cs-nav-name, .cs-nav-where > .text-dim, .cs-nav-next-name { display: none; }
   .cs-nav-where { text-align: center; }
 }

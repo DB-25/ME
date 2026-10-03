@@ -156,7 +156,7 @@ export function Preloader() {
         <span className="label !text-ink">CALIBRATING SIGNAL</span>
         <span className="label text-right">
           <span className="text-accent">DB</span>
-          <span className="mx-2 text-faint">/</span>
+          <span className="mx-2 text-dim">/</span>
           PORTFOLIO
         </span>
       </div>

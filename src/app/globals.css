@@ -6,7 +6,8 @@
   --color-void-2: #0c0a12;
   --color-ink: #eeeaf6;
   --color-muted: #8b8798;
-  --color-faint: #4a4656;
+  --color-faint: #4a4656; /* decoration only (rules, ticks, dots); fails contrast as text */
+  --color-dim: #7d788f; /* quietest readable text, 4.8:1 on void */
   --color-hairline: rgb(238 234 246 / 0.08);
   --color-hairline-strong: rgb(238 234 246 / 0.16);
   --color-accent: #8b7bff;

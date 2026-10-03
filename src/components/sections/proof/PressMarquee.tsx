@@ -36,13 +36,13 @@ function Strip({ list, hidden }: { list: Outlet[]; hidden?: boolean }) {
             href={o.href}
             target="_blank"
             rel="noopener noreferrer"
-            tabIndex={hidden ? -1 : undefined}
+            tabIndex={-1}
             data-cursor="read"
             title={o.title}
             className="group inline-flex items-baseline gap-3 text-[clamp(2.75rem,7.2vw,7.5rem)] font-medium leading-none tracking-[-0.045em] text-muted transition-colors duration-300 hover:text-ink focus-visible:text-ink"
           >
             {o.name}
-            <span className="label num !text-faint">{o.year}</span>
+            <span className="label num !text-dim">{o.year}</span>
           </a>
         </li>
       ))}
@@ -50,14 +50,15 @@ function Strip({ list, hidden }: { list: Outlet[]; hidden?: boolean }) {
   );
 }
 
-/** A slow, endless drift of outlet names. Pauses on hover or focus, static with reduced motion. */
+/** A slow, endless drift of outlet names. Pauses on hover, static with reduced motion. Hidden from assistive tech and the tab order (PressIndex is the accessible list). */
 export function PressMarquee({ items }: { items: Recognition[] }) {
   const list = outlets(items);
   return (
     <div className="mt-[clamp(72px,11vw,170px)]">
       <style>{CSS}</style>
       <p className="label shell mb-5">As covered by</p>
-      <div className="press-marquee overflow-hidden border-y border-hairline py-[clamp(20px,3vw,44px)]">
+      {/* Decorative: the same outlets are listed, focusable, in PressIndex below. */}
+      <div aria-hidden className="press-marquee overflow-hidden border-y border-hairline py-[clamp(20px,3vw,44px)]">
         <div className="press-track">
           <Strip list={list} />
           <Strip list={list} hidden />

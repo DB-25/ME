@@ -132,7 +132,7 @@ export function Director() {
           </div>
           <div className="mt-4 flex items-center justify-between gap-6">
             <p className="label">
-              <span className="text-accent">Enter</span> to begin <span className="mx-2 text-faint">/</span>{" "}
+              <span className="text-accent">Enter</span> to begin <span className="mx-2 text-dim">/</span>{" "}
               <span className="text-accent">Esc</span> to stop
             </p>
             <button

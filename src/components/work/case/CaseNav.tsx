@@ -52,9 +52,9 @@ export function CaseNav({ name, nextSlug, nextName }: { name: string; nextSlug: 
         <Link href="/#work" className="cs-nav-back label link">
           <span aria-hidden>&larr; </span>All work
         </Link>
-        <p className="cs-nav-where label" aria-live="polite">
+        <p className="cs-nav-where label">
           <span className="cs-nav-name">{name}</span>
-          <span className="text-faint"> / </span>
+          <span className="text-dim"> / </span>
           {label}
         </p>
         <Link href={caseHref(nextSlug)} className="cs-nav-next label link" aria-label={`Next project: ${nextName}`}>

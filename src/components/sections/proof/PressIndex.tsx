@@ -14,7 +14,7 @@ export function PressIndex({ items }: { items: Recognition[] }) {
               <p className="label num col-span-3 md:col-span-1">{r.year}</p>
               <p className="label col-span-9 !text-ink md:col-span-3">
                 {r.issuer}
-                <span className="ml-3 !text-faint">{KIND_LABEL[r.kind]}</span>
+                <span className="ml-3 !text-dim">{KIND_LABEL[r.kind]}</span>
               </p>
               <div className="col-span-12 md:col-span-7">
                 <p className="group-hover:text-accent-hot group-focus-visible:text-accent-hot text-[clamp(1.0625rem,1.5vw,1.375rem)] leading-[1.3] tracking-[-0.02em] text-ink transition-colors duration-300">{r.title}</p>

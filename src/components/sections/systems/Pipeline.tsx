@@ -127,7 +127,7 @@ export function Pipeline({ track }: Props) {
               <span aria-hidden className="mb-5 hidden h-px bg-accent/60 md:block" />
             )}
 
-            <h3 className={`flex items-baseline gap-x-3 text-[clamp(1.5rem,2.5vw,2.4rem)] font-medium leading-none tracking-[-0.04em] text-ink transition-colors duration-500 group-data-[state=idle]/stage:text-faint md:flex-col md:gap-y-2 ${pinned ? "md:items-center" : ""}`}>
+            <h3 className={`flex items-baseline gap-x-3 text-[clamp(1.5rem,2.5vw,2.4rem)] font-medium leading-none tracking-[-0.04em] text-ink transition-colors duration-500 group-data-[state=idle]/stage:text-dim md:flex-col md:gap-y-2 ${pinned ? "md:items-center" : ""}`}>
               <span className="label num order-first !tracking-[0.08em] transition-colors duration-500 group-data-[state=active]/stage:!text-accent group-data-[state=lit]/stage:!text-accent">
                 {String(i + 1).padStart(2, "0")}
               </span>
@@ -139,7 +139,7 @@ export function Pipeline({ track }: Props) {
                 s.label
               )}
             </h3>
-            <p className="label mt-3 transition-colors duration-500 group-data-[state=idle]/stage:!text-faint">{s.component}</p>
+            <p className="label mt-3 transition-colors duration-500 group-data-[state=idle]/stage:!text-dim">{s.component}</p>
             <p
               className={`mt-3 max-w-[16rem] text-[0.875rem] leading-[1.45] text-ink/70 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)] transition-[opacity,transform] duration-700 ease-[var(--ease-out-expo)] group-data-[state=idle]/stage:translate-y-2 group-data-[state=idle]/stage:opacity-0 group-data-[state=lit]/stage:translate-y-2 group-data-[state=lit]/stage:opacity-0 ${pinned ? "mx-auto" : ""}`}
             >

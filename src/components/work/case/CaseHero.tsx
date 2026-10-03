@@ -18,7 +18,7 @@ export function CaseHero({ project, index, total }: { project: Project; index: n
         <CaseLabel n="03" text={`Work, ${project.featured ? "selected" : "the lab"}`} />
         <p className="label num cs-index" aria-label={`Project ${index + 1} of ${total}`}>
           <span className="cs-index-n">{pad(index + 1)}</span>
-          <span className="text-faint"> / {pad(total)}</span>
+          <span className="text-dim"> / {pad(total)}</span>
         </p>
       </div>
 

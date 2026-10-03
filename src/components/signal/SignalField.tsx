@@ -6,8 +6,8 @@ import * as THREE from "three";
 import { CHAPTERS, chapterById } from "@/lib/chapters";
 import type { FormationId } from "@/lib/director/protocol";
 import { signalStore, type SignalOverride } from "@/lib/signal-store";
-import { getFormation, getPortraitTint, onFormationReady, prepareCustomPoints, warmFormations } from "./formations";
-import { CHAPTER_BRIGHTNESS, FORMATION_LOOK, OVERRIDE_LOOK } from "./look";
+import { getFormation, getPortraitCell, getPortraitTint, onFormationReady, prepareCustomPoints, warmFormations } from "./formations";
+import { CHAPTER_LOOK, CHAPTER_LOOK_MOBILE, FORMATION_LOOK, NO_CHAPTER_LOOK, OVERRIDE_LOOK } from "./look";
 import { FRAGMENT, VERTEX } from "./shaders";
 
 export type FieldQuality = { count: number; sizeBoost: number; reducedMotion: boolean; coarse: boolean };
@@ -87,6 +87,7 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     }
     geo.setAttribute("aRand", new THREE.BufferAttribute(rand, 4));
     geo.setAttribute("aTint", new THREE.BufferAttribute(getPortraitTint(count), 4));
+    geo.setAttribute("aCell", new THREE.BufferAttribute(getPortraitCell(count), 1));
     // Placeholder so the geometry is valid before the first formation lands.
     const noise = getFormation("noise", count);
     const noiseAttr = new THREE.BufferAttribute(noise, 3);
@@ -119,6 +120,7 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
         uSize: { value: PARTICLE_WORLD_SIZE },
         uPixelRatio: { value: 1 },
         uOffset: { value: new THREE.Vector3() },
+        uFog: { value: 0.09 },
         uTintA: { value: 0 },
         uTintB: { value: 0 },
         uAlpha: { value: 0.5 },
@@ -143,6 +145,8 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
         if (a) a.needsUpdate = true;
         const tint = geometry.getAttribute("aTint");
         if (tint) tint.needsUpdate = true;
+        const cell = geometry.getAttribute("aCell");
+        if (cell) cell.needsUpdate = true;
       }),
     [attrs, geometry],
   );
@@ -165,6 +169,13 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     shownSlot: 0 as 0 | 1,
     energy: 0,
     brightness: 0,
+    lx: 0,
+    ly: 0,
+    lz: 0,
+    lscale: 1,
+    fog: 0.09,
+    hasChapters: true,
+    frame: 0,
     alpha: 0.5,
     sizeMul: 1,
     fit: 3,
@@ -256,8 +267,31 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     let toId = chapter.formation;
     let m = s.morph;
     const eb = m * m * (3 - 2 * m);
-    let brightness = CHAPTER_BRIGHTNESS[prev.id] + (CHAPTER_BRIGHTNESS[chapter.id] - CHAPTER_BRIGHTNESS[prev.id]) * eb;
+    const looks = size.width / size.height > 1.2 ? CHAPTER_LOOK : CHAPTER_LOOK_MOBILE;
+    const lp = looks[prev.id];
+    const lc = looks[chapter.id];
+    let brightness = lp.brightness + (lc.brightness - lp.brightness) * eb;
+    let lookX = lp.x + (lc.x - lp.x) * eb;
+    let lookY = lp.y + (lc.y - lp.y) * eb;
+    let lookZ = lp.z + (lc.z - lp.z) * eb;
+    let lookScale = lp.scale + (lc.scale - lp.scale) * eb;
     if (idx === 0) fromId = toId;
+
+    // Routes without chapters (case studies) settle into a dim noise drift.
+    if (++r.frame % 20 === 1) r.hasChapters = document.querySelector("[data-chapter]") !== null;
+    const noChapters = !r.hasChapters;
+    if (noChapters) {
+      fromId = "noise";
+      toId = "noise";
+      m = 0;
+      brightness = NO_CHAPTER_LOOK.brightness;
+      lookX = NO_CHAPTER_LOOK.x;
+      lookY = NO_CHAPTER_LOOK.y;
+      lookZ = NO_CHAPTER_LOOK.z;
+      lookScale = NO_CHAPTER_LOOK.scale;
+      r.introPhase = "done";
+    }
+    let introW = 1;
 
     // ---- intro: noise converges into the DB monogram while the preloader runs,
     // then the monogram dissolves into whatever scroll wants (the portrait).
@@ -277,6 +311,7 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
         toId = "monogram";
         m = reducedMotion ? 1 : easeInOut(clamp01(waited / INTRO_COALESCE_SECONDS));
         brightness = 0.25 + 0.65 * conv;
+        introW = 0;
       } else {
         const p = clamp01((now - r.introMorphStart) / 1000 / (reducedMotion ? 0.4 : INTRO_MORPH_SECONDS));
         const e = easeInOut(p);
@@ -284,6 +319,7 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
         m = e;
         brightness = 0.9 + (brightness - 0.9) * e;
         spread = 1;
+        introW = e;
         if (p >= 1) r.introPhase = "done";
       }
     }
@@ -339,20 +375,33 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     const lookB = FORMATION_LOOK[toId];
     const mm = reducedMotion ? m : m * m * (3 - 2 * m);
     let alpha = lookA.alpha + (lookB.alpha - lookA.alpha) * mm;
-    const wide = size.width / size.height > 1.2 ? 1 : 0;
-    const offsetX = (lookA.offsetX + (lookB.offsetX - lookA.offsetX) * mm) * wide * (1 - ov);
+    let fog = lookA.fog + (lookB.fog - lookA.fog) * mm;
+    // Chapter look fades in with the intro and out while the Director's drawing owns the field.
+    const calm = introW * (1 - ov);
+    lookX *= calm;
+    lookY *= calm;
+    lookZ *= calm;
+    lookScale = 1 + (lookScale - 1) * calm;
+    // The Director (override or streaming energy) brings the field up to full light.
+    brightness += (1 - brightness) * Math.min(1, r.energy * 1.5);
     let sizeMul = lookA.size + (lookB.size - lookA.size) * mm;
     let fit = lookA.fit + (lookB.fit - lookA.fit) * mm;
     brightness = brightness + (OVERRIDE_LOOK.brightness - brightness) * ov;
     alpha = alpha + (OVERRIDE_LOOK.alpha - alpha) * ov;
     sizeMul = sizeMul + (OVERRIDE_LOOK.size - sizeMul) * ov;
     fit = fit + (OVERRIDE_LOOK.fit - fit) * ov;
+    fog = fog + (OVERRIDE_LOOK.fog - fog) * ov;
     // Light smoothing keeps brightness changes from flickering on jumpy scroll input.
     const k = Math.min(1, dt * 6);
     r.brightness += (brightness - r.brightness) * k;
     r.alpha += (alpha - r.alpha) * k;
     r.sizeMul += (sizeMul - r.sizeMul) * k;
     r.fit += (fit - r.fit) * k;
+    r.fog += (fog - r.fog) * k;
+    r.lx += (lookX - r.lx) * k;
+    r.ly += (lookY - r.ly) * k;
+    r.lz += (lookZ - r.lz) * k;
+    r.lscale += (lookScale - r.lscale) * k;
     r.energy += (s.energy - r.energy) * Math.min(1, dt * 4);
 
     // ---- hue tint
@@ -377,17 +426,18 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     u.uOverrideMix.value = ovMix;
     u.uStagger.value = reducedMotion ? 0 : 0.45;
     u.uTurb.value = reducedMotion ? 0 : 1;
-    u.uSpread.value = spread;
+    u.uSpread.value = spread * r.lscale;
+    u.uFog.value = r.fog;
     u.uEnergy.value = r.energy;
     u.uBrightness.value = r.brightness;
     u.uAlpha.value = r.alpha;
     u.uHueMix.value = r.hueMix;
-    (u.uOffset.value as THREE.Vector3).set(offsetX, 0, 0);
-
     // Sprite size: fold look multiplier into point scale without touching the resize-derived base.
     const aspect = size.width / size.height;
     const z = Math.min(BASE_CAMERA_Z * MAX_PULLBACK, Math.max(BASE_CAMERA_Z, r.fit / (HALF_TAN_FOV * aspect)));
     camera.position.z = z;
+    const visibleH = 2 * z * HALF_TAN_FOV;
+    (u.uOffset.value as THREE.Vector3).set(r.lx * visibleH * aspect, r.ly * visibleH, r.lz);
     u.uScale.value = (size.height / (2 * HALF_TAN_FOV)) * r.sizeMul;
     u.uSize.value = PARTICLE_WORLD_SIZE * sizeBoost * Math.pow(z / BASE_CAMERA_Z, 0.85);
   });

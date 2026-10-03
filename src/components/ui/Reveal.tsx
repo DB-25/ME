@@ -31,7 +31,7 @@ export function Reveal({ as: Tag = "div", children, className, mode = "lines", d
       }
       const scrollTrigger = immediate ? undefined : { trigger: el, start: "top 85%", once: true };
       if (mode === "lines") {
-        const split = SplitText.create(el, { type: "lines", mask: "lines", linesClass: "reveal-line" });
+        const split = SplitText.create(el, { type: "lines", mask: "lines", linesClass: "reveal-line", aria: "none" });
         gsap.fromTo(
           split.lines,
           { yPercent: 110 },

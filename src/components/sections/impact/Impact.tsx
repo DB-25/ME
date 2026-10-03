@@ -38,13 +38,14 @@ const EXTRA = metrics.filter((m) => !PLACED.has(m.label)).map((metric) => ({ met
 
 function Source({ metric }: { metric: Metric }) {
   const ref = sourceRef(metric.source);
-  if (!ref.href) return <span className="label !text-faint">{ref.label}</span>;
+  if (!ref.href) return <span className="label !text-dim">{ref.label}</span>;
   return (
     <a
       href={ref.href}
       target="_blank"
       rel="noopener noreferrer"
       data-cursor="read"
+      aria-label={`${ref.label}, for ${metric.label}`}
       className="label link inline-block !text-muted hover:!text-ink"
     >
       {ref.label}
