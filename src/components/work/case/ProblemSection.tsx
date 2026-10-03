@@ -1,5 +1,6 @@
 import type { Project } from "@/content";
 import { Reveal } from "@/components/ui/Reveal";
+import { tie } from "../meta";
 import { CaseLabel } from "./CaseLabel";
 
 export function ProblemSection({ project, n }: { project: Project; n: string }) {
@@ -16,7 +17,7 @@ export function ProblemSection({ project, n }: { project: Project; n: string }) 
         </div>
         <div className="col-span-12 md:col-span-8">
           <Reveal as="p" className="cs-statement">
-            {project.problem}
+            {tie(project.problem)}
           </Reveal>
         </div>
       </div>

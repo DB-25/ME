@@ -25,7 +25,7 @@ function BostonClock() {
     return () => window.clearInterval(id);
   }, []);
   return (
-    <p className="label">
+    <p className="label !text-[12px] !text-ink/70">
       Boston <span className="num inline-block min-w-[9ch] text-ink">{now || "--:-- ---"}</span>
     </p>
   );
@@ -35,15 +35,15 @@ export function SiteFooter() {
   return (
     <footer className="border-t border-hairline py-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-baseline md:justify-between">
-        <p className="label">&copy; 2026 Dhruv Kamalesh Kumar</p>
+        <p className="label !text-[12px] !text-ink/70">&copy; 2026 Dhruv Kamalesh Kumar</p>
         <BostonClock />
-        <button type="button" onClick={() => scrollToTarget("#hero")} className="label link w-fit text-left hover:!text-ink">
+        <button type="button" onClick={() => scrollToTarget("#hero")} className="label link w-fit text-left !text-[12px] !text-ink/70 hover:!text-ink">
           Back to top
         </button>
       </div>
       <div className="mt-3 flex flex-col gap-1 md:flex-row md:justify-between">
-        <p className="label !text-dim">{BUILT_WITH}</p>
-        <p className="label hidden !text-dim md:block">Try typing my handle.</p>
+        <p className="label !text-[12px] !text-ink/60">{BUILT_WITH}</p>
+        <p className="label hidden !text-[12px] !text-ink/60 md:block">Try typing my handle.</p>
       </div>
     </footer>
   );

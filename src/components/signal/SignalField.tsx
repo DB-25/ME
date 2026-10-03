@@ -29,6 +29,7 @@ import {
 } from "./fieldFrame";
 import { BASE_PARTICLE_SIZE, createFieldBuffers } from "./fieldMaterial";
 import { createReading, fieldMotion, stepReading, timeScaleFor, type ReadingState } from "./readingMode";
+import { FRAME_H } from "./fromSvg";
 import { getFormation, prepareCustomPoints, warmFormations } from "./formations";
 
 export type FieldQuality = { count: number; sizeBoost: number; reducedMotion: boolean; coarse: boolean; maxDpr: number };
@@ -53,6 +54,10 @@ const POINTER_FADE_RATE = 5;
 const REDUCED_SHADER_TIME = 3;
 /** Formations generated ahead of the visitor: the current chapter's and the next two. */
 const WARM_AHEAD = 2;
+/** Director drawings: at most this share of viewport height, and the bottom edge stays above the caption lane. */
+const DRAWING_MAX_HEIGHT = 0.55;
+const DRAWING_BOTTOM_LIMIT = 0.3;
+const DRAWING_LIFT_MARGIN = 0.02;
 const SPARK_READING_CUT = 0.6;
 
 function parseHex(hex: string, out: THREE.Color): boolean {
@@ -108,7 +113,6 @@ function writeUniforms(
   u.uTurb.value = opts.reduced ? 0 : opts.still ? TURBULENCE_STILL : TURBULENCE * (1 - TURBULENCE_READING_SHARE * opts.reading);
   u.uDensity.value = smooth.density;
   u.uSpark.value = smooth.spark * (1 - SPARK_READING_CUT * opts.reading);
-  u.uSpread.value = scene.spread * smooth.lscale;
   u.uFog.value = smooth.fog;
   u.uEnergy.value = smooth.energy;
   u.uBrightness.value = smooth.brightness;
@@ -121,7 +125,13 @@ function writeUniforms(
   const z = Math.min(BASE_CAMERA_Z * MAX_PULLBACK, Math.max(BASE_CAMERA_Z, smooth.fit / (HALF_TAN_FOV * aspect)));
   camera.position.z = z;
   const visibleH = 2 * z * HALF_TAN_FOV;
-  (u.uOffset.value as THREE.Vector3).set(smooth.lx * visibleH * aspect, smooth.ly * visibleH, smooth.lz);
+  // Director drawing: shrink to fit the height budget and lift clear of the caption lane, eased with the override.
+  const fit = Math.min(1, (DRAWING_MAX_HEIGHT * visibleH) / FRAME_H);
+  const heightShare = (FRAME_H * fit) / visibleH;
+  const lift = Math.max(0, heightShare / 2 - (0.5 - DRAWING_BOTTOM_LIMIT)) + DRAWING_LIFT_MARGIN;
+  const drawing = r.override.points ? ov.value : 0;
+  u.uSpread.value = scene.spread * smooth.lscale * (1 + (fit - 1) * drawing);
+  (u.uOffset.value as THREE.Vector3).set(smooth.lx * visibleH * aspect, (smooth.ly + lift * drawing) * visibleH, smooth.lz);
   u.uScale.value = (size.height / (2 * HALF_TAN_FOV)) * smooth.sizeMul;
   u.uSize.value = BASE_PARTICLE_SIZE * opts.sizeBoost * Math.pow(z / BASE_CAMERA_Z, 0.85);
 }
@@ -259,6 +269,7 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     if (s.override !== o.last) {
       const dur = reducedMotion ? OVERRIDE_SECONDS_REDUCED : OVERRIDE_SECONDS;
       o.last = s.override;
+      if (s.override) o.points = s.override.kind === "points";
       if (s.override) {
         const attr = overrideAttr(s.override);
         const active = o.value.target > 0.5 || o.value.value > 0.01;

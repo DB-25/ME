@@ -50,8 +50,8 @@ export function EmailLink({ email, onActivate }: { email: string; onActivate: ()
       data-cursor="write"
       className="email-link block whitespace-nowrap font-medium leading-[1.02] tracking-[-0.05em]"
     >
-      <span className="block md:inline">{letters(local, 0)}</span>
-      <span className="block md:inline">{letters(`@${domain}`, local.length)}</span>
+      <span>{letters(local, 0)}</span>
+      <span>{letters(`@${domain}`, local.length)}</span>
     </a>
   );
 }

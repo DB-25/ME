@@ -5,6 +5,7 @@ import type { Metric, Project } from "@/content";
 import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
 import { gsap, EASE_OUT, prefersReducedMotion } from "@/lib/motion";
+import { tie } from "../meta";
 import { CaseLabel } from "./CaseLabel";
 import { DrawRule } from "./DrawRule";
 import { assetUrl } from "@/lib/asset";
@@ -20,13 +21,14 @@ function parts(m: Metric): { n: number; suffix: string } | null {
   return text + suffix === m.value ? { n: m.numeric, suffix } : null;
 }
 
-/** Receipts never show a local file path: URLs become links, files become a short name. */
-function receipt(source: string): { text: string; href?: string } {
-  if (/^https?:\/\//.test(source)) return { text: new URL(source).hostname.replace(/^www\./, ""), href: source };
-  if (/\.tex$/.test(source)) return { text: "Resume" };
-  if (/ME\.csv$/.test(source)) return { text: "Interview notes" };
-  if (/^git log/.test(source)) return { text: "Git history" };
-  return { text: source.split("/").pop() ?? source };
+/** A receipt chip exists only for a public page, labelled by its host. Files and logs stay off the page. */
+function receipt(source: string): { text: string; href: string } | null {
+  if (!/^https?:\/\//.test(source)) return null;
+  try {
+    return { text: new URL(source).hostname.replace(/^www\./, ""), href: source };
+  } catch {
+    return null;
+  }
 }
 
 export function Outcomes({ project, n }: { project: Project; n: string }) {
@@ -84,7 +86,7 @@ export function Outcomes({ project, n }: { project: Project; n: string }) {
               <li key={m.label} className="cs-out">
                 <DrawRule />
                 <div className="cs-out-grid grid-12">
-                  <p className="cs-out-v num" style={{ ["--len" as string]: m.value.length, ["--cap" as string]: m.value.length <= 3 ? 21 : m.value.length <= 5 ? 16 : 12.5 }} data-in>
+                  <p className="cs-out-v num" data-one={m.value.startsWith("1") ? "" : undefined} style={{ ["--len" as string]: m.value.length, ["--cap" as string]: m.value.length <= 3 ? 21 : m.value.length <= 5 ? 16 : 12.5 }} data-in>
                     {p ? (
                       <>
                         <span data-count={p.n}>{m.value.replace(p.suffix, "")}</span>
@@ -96,22 +98,20 @@ export function Outcomes({ project, n }: { project: Project; n: string }) {
                   </p>
                   <div className="cs-out-text">
                     <h3 className="cs-out-label" data-in>
-                      {m.label}
+                      {tie(m.label)}
                     </h3>
                     <p className="cs-out-ctx" data-in>
-                      {m.context}
+                      {tie(m.context)}
                     </p>
-                    <p className="label cs-out-src" data-in>
-                      Source:{" "}
-                      {r.href ? (
+                    {r ? (
+                      <p className="label cs-out-src" data-in>
+                        Source:{" "}
                         <a href={assetUrl(r.href)} target="_blank" rel="noopener noreferrer" className="link !text-ink">
                           {r.text}
                           <span aria-hidden> &#8599;</span>
                         </a>
-                      ) : (
-                        <span className="!text-ink">{r.text}</span>
-                      )}
-                    </p>
+                      </p>
+                    ) : null}
                   </div>
                 </div>
               </li>

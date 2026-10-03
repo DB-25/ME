@@ -28,7 +28,7 @@ export function StaticJourney() {
                 <div className="col-span-12 md:col-span-5">
                   <h3 className="text-[clamp(1.35rem,4vw,2rem)] font-medium leading-[1.1] tracking-[-0.03em] text-ink">{b.title}</h3>
                   {b.org && <p className="label mt-3">{b.org}</p>}
-                  <p className="mt-4 max-w-[34rem] text-[1.0625rem] leading-[1.55] text-ink/70 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">{b.body}</p>
+                  <p className="mt-4 max-w-[34rem] text-[1.0625rem] leading-[1.55] text-ink/80 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">{b.body}</p>
                 </div>
               </FadeIn>
             </li>

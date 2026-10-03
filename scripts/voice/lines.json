@@ -353,8 +353,8 @@
     ]
   },
   {
-    "id": "eae1296889",
-    "text": "It started with a Flutter app for thousands of students. It now ships to families and state agencies.",
+    "id": "31df750c18",
+    "text": "Before Boston, I built a Flutter app for thousands of students. Now I ship to families and state agencies.",
     "tags": [
       "tour",
       "intro",
@@ -840,8 +840,8 @@
     ]
   },
   {
-    "id": "aa9a9e7569",
-    "text": "A-IEP. A special-education plan, in words a parent actually uses.",
+    "id": "c55561fd9e",
+    "text": "A-IEP. A special‑education plan, in words a parent actually uses.",
     "tags": [
       "project-intro",
       "project:a-iep"
@@ -872,8 +872,8 @@
     ]
   },
   {
-    "id": "b36dd5d9d5",
-    "text": "Public Voice. A voice survey that asks one smart follow-up, then lets you go.",
+    "id": "3f21c02b55",
+    "text": "Public Voice. A voice survey that asks one smart follow‑up, then lets you go.",
     "tags": [
       "project-intro",
       "project:public-voice"
@@ -904,8 +904,8 @@
     ]
   },
   {
-    "id": "16413a560e",
-    "text": "Course Delivery SMS. An eight-day video course that nudges you by text.",
+    "id": "53a7b9df29",
+    "text": "Course Delivery SMS. An eight‑day video course that nudges you by text.",
     "tags": [
       "project-intro",
       "project:course-delivery"
@@ -928,16 +928,16 @@
     ]
   },
   {
-    "id": "75558dc58d",
-    "text": "Vedira. A Flutter app for AI-generated lessons.",
+    "id": "b225e88a6a",
+    "text": "Vedira. A Flutter app for AI‑generated lessons.",
     "tags": [
       "project-intro",
       "project:vedira"
     ]
   },
   {
-    "id": "373386848b",
-    "text": "Plastic Usage Classification. Computer vision coursework that scored an eighty-eight point seven seven percent F1.",
+    "id": "71d71fe3f2",
+    "text": "Plastic Usage Classification. Computer vision coursework: sorting plastic into four categories from a photo.",
     "tags": [
       "project-intro",
       "project:plastic-usage-classification"
@@ -1016,8 +1016,8 @@
     ]
   },
   {
-    "id": "382656eed0",
-    "text": "More than twenty thousand people used my first app every day.",
+    "id": "88bed79cc8",
+    "text": "More than twenty thousand people used the Acharya app every day.",
     "tags": [
       "metric",
       "project:acharya-erp"

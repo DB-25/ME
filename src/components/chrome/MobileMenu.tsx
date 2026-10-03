@@ -5,13 +5,24 @@ import { profile } from "@/content";
 import { gsap, prefersReducedMotion } from "@/lib/motion";
 import { lockScroll } from "./scroll-lock";
 import { assetUrl } from "@/lib/asset";
+import { ReelButton } from "@/components/reel";
 import { NAV_ITEMS } from "./nav-items";
 import { SectionLink } from "./SectionLink";
+
+const CSS = `
+.menu-cell {
+  display: flex; align-items: center; justify-content: center; gap: 0.5em; width: 100%; min-height: 48px;
+  border: 1px solid var(--color-hairline-strong); border-radius: 2px;
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-ink);
+}
+.menu-esc { border: 1px solid var(--color-hairline-strong); border-radius: 2px; padding: 1px 5px; font-size: 10px; }
+@media (hover: none) { .menu-esc { display: none; } }
+`;
 
 type Props = { open: boolean; onClose: () => void; toggle: RefObject<HTMLButtonElement | null> };
 
 function focusables(root: HTMLElement, toggle: HTMLElement | null): HTMLElement[] {
-  const links = Array.from(root.querySelectorAll<HTMLElement>("a[href]"));
+  const links = Array.from(root.querySelectorAll<HTMLElement>("a[href], button:not([disabled])"));
   return toggle ? [toggle, ...links] : links;
 }
 
@@ -50,6 +61,8 @@ export function MobileMenu({ open, onClose, toggle }: Props) {
     const focusTimer = window.setTimeout(() => firstLink?.focus(), 80);
 
     const onKey = (e: KeyboardEvent) => {
+      // The showreel dialog (a native modal) owns Esc and Tab while it is open.
+      if (document.querySelector("dialog[open]")) return;
       if (e.key === "Escape") {
         e.preventDefault();
         onClose();
@@ -80,6 +93,15 @@ export function MobileMenu({ open, onClose, toggle }: Props) {
     };
   }, [open, onClose, toggle]);
 
+  const linkedIn = profile.links.find((l) => l.label === "LinkedIn");
+  const gitHub = profile.links.find((l) => l.label === "GitHub");
+  const cells: { label: string; href: string; external: boolean }[] = [
+    { label: "Résumé", href: assetUrl(profile.resumeHref), external: true },
+    { label: "Email", href: `mailto:${profile.email}`, external: false },
+    ...(linkedIn ? [{ label: "LinkedIn", href: linkedIn.href, external: true }] : []),
+    ...(gitHub ? [{ label: "GitHub", href: gitHub.href, external: true }] : []),
+  ];
+
   return (
     <div
       ref={root}
@@ -87,35 +109,53 @@ export function MobileMenu({ open, onClose, toggle }: Props) {
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
-      className="invisible fixed inset-0 z-[70] flex flex-col justify-between bg-void/[0.96] px-[var(--gutter)] pb-[max(var(--gutter),env(safe-area-inset-bottom))] pt-24 md:hidden"
+      className="invisible fixed inset-0 z-[70] flex flex-col bg-void px-[var(--gutter)] pb-[max(var(--gutter),env(safe-area-inset-bottom))] pt-[88px] md:hidden"
     >
-      <ul className="flex flex-col">
+      <style>{CSS}</style>
+      <ul className="flex flex-1 flex-col justify-center">
         {NAV_ITEMS.map((c) => (
-          <li key={c.id} className="overflow-hidden border-b border-hairline">
+          <li key={c.id} className="overflow-hidden border-b border-hairline first:border-t">
             <SectionLink
               data-line
               id={c.id}
               onNavigate={onClose}
               // Let the scroll lock release before Lenis is asked to move.
               delayMs={120}
-              className="block py-[0.55rem] text-ink"
+              className="block py-4 text-ink"
             >
-              <span className="display text-[clamp(2.1rem,9.5vw,3rem)]">{c.label}</span>
+              <span className="display text-[clamp(2.4rem,11vw,3.25rem)]">{c.label}</span>
             </SectionLink>
           </li>
         ))}
       </ul>
 
-      <div className="flex items-end justify-between gap-6">
+      <div className="flex flex-col gap-2 pt-6">
+        <ul className="grid grid-cols-2 gap-2">
+          {cells.map((c) => (
+            <li key={c.label} className="overflow-hidden">
+              <a
+                data-line
+                href={c.href}
+                {...(c.external ? { target: "_blank", rel: "noopener" } : {})}
+                className="menu-cell"
+              >
+                {c.label}
+                <span aria-hidden className="text-accent-hot">
+                  ↗
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
         <div className="overflow-hidden">
-          <a data-line href={assetUrl(profile.resumeHref)} target="_blank" rel="noopener" className="label block py-3 !text-ink">
-            Résumé (PDF) ↗
-          </a>
+          <div data-line>
+            <ReelButton className="menu-cell w-full" />
+          </div>
         </div>
         <div className="overflow-hidden">
-          <a data-line href={`mailto:${profile.email}`} className="label block py-3 !text-ink">
-            {profile.email}
-          </a>
+          <button data-line type="button" onClick={onClose} className="menu-cell w-full !border-transparent !text-muted">
+            Close <span className="menu-esc">Esc</span>
+          </button>
         </div>
       </div>
     </div>

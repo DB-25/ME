@@ -1,7 +1,8 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { CHAPTERS } from "@/lib/chapters";
+import { CHAPTERS, chapterById } from "@/lib/chapters";
 import { useSignal } from "@/lib/signal-store";
 import { gsap, scrollToTarget } from "@/lib/motion";
 import { plainLabel } from "./nav-items";
@@ -32,8 +33,16 @@ function measure(): number[] {
   return px.map((v) => v / railPx);
 }
 
-/** Thin right-edge rail: scroll fill + one tick per chapter, current tick in accent. */
+/**
+ * Right-edge rail, home page only and only from 1024px up. It lives entirely inside the 24px
+ * page gutter (12px wide, 6px from the edge) so it never touches copy at any viewport width.
+ */
 export function ScrollProgress() {
+  return usePathname() === "/" ? <Rail /> : null;
+}
+
+/** Scroll fill + one tick per chapter (current in accent), a vertical readout of the current chapter, labels on hover/focus. */
+function Rail() {
   const ready = useSignal((s) => s.ready);
   const chapter = useSignal((s) => s.chapter);
   const root = useRef<HTMLDivElement>(null);
@@ -70,16 +79,18 @@ export function ScrollProgress() {
     gsap.fromTo(root.current, { opacity: 0 }, { opacity: 1, duration: 1.2, ease: "expo.out", delay: 0.6 });
   }, [ready]);
 
+  const current = chapterById(chapter);
+
   return (
     <nav
       ref={root}
       aria-label="Chapters"
-      className="fixed right-[6px] top-1/2 z-[55] h-[44vh] min-h-[192px] w-4 -translate-y-1/2 opacity-0 md:right-3"
+      className="fixed right-[6px] top-1/2 z-[55] h-[44vh] min-h-[192px] w-3 -translate-y-1/2 opacity-0 max-lg:hidden"
     >
-      <div className="absolute right-[7px] top-0 h-full w-px bg-hairline-strong" />
+      <div className="absolute right-[5px] top-0 h-full w-px bg-hairline-strong" />
       <div
         ref={fill}
-        className="absolute right-[7px] top-0 h-full w-px origin-top bg-accent/70"
+        className="absolute right-[5px] top-0 h-full w-px origin-top bg-accent/70"
         style={{ transform: "scaleY(0)" }}
       />
       {CHAPTERS.map((c, i) => {
@@ -94,20 +105,27 @@ export function ScrollProgress() {
               e.preventDefault();
               scrollToTarget(`#${c.id}`);
             }}
-            className="group absolute right-0 flex h-6 w-6 -translate-y-1/2 items-center justify-end max-md:pointer-events-none"
+            className="group absolute right-0 flex h-6 w-[18px] -translate-y-1/2 items-center justify-end"
             style={{ top: `${ratios[i] * 100}%` }}
           >
-            <span className="label pointer-events-none absolute right-7 whitespace-nowrap opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 max-md:hidden">
-              <span className="text-accent">{c.index}</span> {plainLabel(c.id, c.label)}
+            <span className="label pointer-events-none absolute right-[26px] whitespace-nowrap border border-hairline-strong bg-void/90 px-2 py-1 !text-ink opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
+              <span className="text-accent-hot">{c.index}</span> {plainLabel(c.id, c.label)}
             </span>
             <span
               className={`block h-px transition-[width,background-color] duration-500 ease-out-expo ${
-                active ? "w-4 bg-accent" : "w-2 bg-faint group-hover:w-3 group-hover:bg-muted"
+                active ? "w-3 bg-accent" : "w-1.5 bg-faint group-hover:w-2.5 group-hover:bg-muted"
               }`}
             />
           </a>
         );
       })}
+      {/* Persistent label for the current chapter, set vertically so it stays inside the gutter. */}
+      <p
+        aria-hidden
+        className="label absolute right-0 top-full mt-4 whitespace-nowrap !text-[10px] !leading-none !text-accent-hot [writing-mode:vertical-rl]"
+      >
+        {current.index} {plainLabel(current.id, current.label)}
+      </p>
     </nav>
   );
 }

@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { projects } from "@/content";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
-import { ScrollTrigger } from "@/lib/motion";
 import { FeaturedIndex } from "./FeaturedIndex";
 import { LabTable } from "./LabTable";
 import { pad } from "./meta";
@@ -44,32 +43,27 @@ export function WorkIndex() {
     };
   }, []);
 
-  useEffect(() => {
-    const t = window.setTimeout(() => ScrollTrigger.refresh(), 1100);
-    return () => window.clearTimeout(t);
-  }, [spotlight]);
-
   const picked = projects.find((p) => p.slug === spotlight);
   const featuredPick = featured.some((p) => p.slug === spotlight) ? spotlight : null;
   const labPick = lab.some((p) => p.slug === spotlight) ? spotlight : null;
 
   return (
     <section id="work" data-chapter="work" aria-labelledby="work-heading" className="wk sx-in relative">
-      <div className="sx-out pb-[clamp(96px,14vw,200px)] pt-[clamp(64px,8vw,120px)]">
+      <div className="sx-out pb-[clamp(64px,8vw,120px)] pt-[clamp(48px,5.5vw,80px)]">
         <div className="shell">
           <div className="flex items-baseline justify-between">
             <SectionLabel chapter="work" />
             <p className="label num">{pad(featured.length)} selected</p>
           </div>
-          <div className="grid-12 mt-8 items-end gap-y-8 md:mt-12">
-            <h2 id="work-heading" className="col-span-12">
-              <Reveal as="span" className="display block text-[clamp(3.25rem,11vw,11.5rem)]">
+          <div className="grid-12 mt-5 items-end gap-y-5 md:mt-7">
+            <h2 id="work-heading" className="col-span-12 lg:col-span-7">
+              <Reveal as="span" className="display block text-[clamp(2.75rem,7vw,6.5rem)]">
                 Selected work
               </Reveal>
             </h2>
-            <div className="col-span-12 lg:col-span-5 lg:col-start-8">
+            <div className="col-span-12 lg:col-span-5 lg:pb-3">
               <Reveal mode="fade" delay={0.1}>
-                <p className="lede max-w-[34ch]">
+                <p className="lede max-w-[42ch]">
                   Production systems, one hackathon podium and the app where it started. Each one opens into a full case study with the
                   problem, the architecture and the receipts.
                 </p>
@@ -78,20 +72,17 @@ export function WorkIndex() {
           </div>
         </div>
 
-        <div className="shell mt-[clamp(48px,8vw,120px)]">
+        <div className="shell mt-[clamp(28px,3.6vw,52px)]">
           <FeaturedIndex projects={featured} spotlight={featuredPick} />
         </div>
 
-        <div className="shell mt-[clamp(96px,14vw,200px)]" aria-labelledby="lab-heading">
+        <div className="shell mt-[clamp(64px,8vw,120px)]" aria-labelledby="lab-heading">
           <div className="grid-12 items-end gap-y-6">
             <div className="col-span-12 lg:col-span-7">
-              <p className="label">
-                <span className="text-accent">{pad(featured.length + 1)}</span>
-                <span className="mx-2 text-dim">/</span>Everything else
-              </p>
+              <p className="label">The lab</p>
               <h3 id="lab-heading" className="mt-6">
                 <Reveal as="span" className="headline block">
-                  The lab
+                  Everything else
                 </Reveal>
               </h3>
             </div>

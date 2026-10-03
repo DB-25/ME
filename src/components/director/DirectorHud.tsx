@@ -12,22 +12,24 @@ const LOG_ROWS = 3;
 
 type Props = {
   state: DirectorState;
+  /** Stop a take in progress, or close the bar once it has ended. */
   onCut: () => void;
-  showAnotherTake: boolean;
+  /** Close the bar and take the visitor back to the Director for another go. */
   onAnotherTake: () => void;
 };
 
-export function DirectorHud({ state, onCut, showAnotherTake, onAnotherTake }: Props) {
+export function DirectorHud({ state, onCut, onAnotherTake }: Props) {
   const running = state.phase !== "idle";
+  const finished = state.phase === "done";
   const [mounted, setMounted] = useState(false);
   const [on, setOn] = useState(false);
   const [still, setStill] = useState(false);
   const againRef = useRef<HTMLButtonElement>(null);
 
-  // Focus has to land somewhere sensible when the take ends away from the input.
+  // When the take ends the focus moves to "Again", so the keyboard has somewhere sensible to be.
   useEffect(() => {
-    if (showAnotherTake) againRef.current?.focus({ preventScroll: true });
-  }, [showAnotherTake]);
+    if (finished) againRef.current?.focus({ preventScroll: true });
+  }, [finished]);
 
   // Mount the overlay, then slide the bars in on the next frame; reverse on exit.
   useEffect(() => {
@@ -55,7 +57,7 @@ export function DirectorHud({ state, onCut, showAnotherTake, onAnotherTake }: Pr
   const overlay =
     mounted &&
     createPortal(
-      <div className={`${on ? "dir-on" : ""} ${still ? "dir-still" : ""}`} data-director-hud>
+      <div className={`${on ? "dir-on" : ""} ${finished ? "dir-done" : ""} ${still ? "dir-still" : ""}`} data-director-hud>
         <div
           className="dir-bar dir-bar-top dir-hairline-top flex items-center"
           style={{ height: "clamp(48px, 7vh, 72px)" }}
@@ -70,13 +72,24 @@ export function DirectorHud({ state, onCut, showAnotherTake, onAnotherTake }: Pr
               {state.mode === "live" ? "Live" : "Scripted tour"}
             </p>
             <div className="ml-auto flex items-center gap-3 md:ml-0">
-              <VoiceToggle />
+              {finished ? (
+                <button
+                  ref={againRef}
+                  type="button"
+                  onClick={onAnotherTake}
+                  className="label border border-accent px-3 py-2 text-ink transition-colors duration-300 hover:text-accent-hot"
+                >
+                  <span className="text-accent">&uarr;</span> Again
+                </button>
+              ) : (
+                <VoiceToggle />
+              )}
               <button
                 type="button"
                 onClick={onCut}
                 className="label border border-hairline-strong px-3 py-2 text-ink transition-colors duration-300 hover:border-accent hover:text-accent-hot"
               >
-                Stop <span className="ml-1 text-dim">Esc</span>
+                {finished ? "Close" : "Stop"} <span className="ml-1 text-dim">Esc</span>
               </button>
             </div>
           </div>
@@ -141,13 +154,6 @@ export function DirectorHud({ state, onCut, showAnotherTake, onAnotherTake }: Pr
         {state.spoken}
       </div>
       {overlay}
-      {showAnotherTake &&
-        createPortal(
-          <button ref={againRef} type="button" onClick={onAnotherTake} className="label link dir-again border border-hairline-strong bg-void/80 px-4 py-3 text-ink backdrop-blur-sm">
-            <span className="text-accent">&uarr;</span> Again
-          </button>,
-          document.body,
-        )}
     </>
   );
 }

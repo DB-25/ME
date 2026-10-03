@@ -16,7 +16,7 @@ export const featuredMoreProjects: Project[] = [
       transcript: FILM_TRANSCRIPTS["public-voice"],
     },
     name: "Public Voice",
-    tagline: "A voice survey that asks one smart follow-up, then lets you go.",
+    tagline: "A voice survey that asks one smart follow‑up, then lets you go.",
     year: "2026",
     role: "Technical lead",
     owned: "Technical lead: I set the technical direction and built the 2025 voice survey prototype it grew from, while two teammates wrote most of the production code.",
@@ -27,10 +27,10 @@ export const featuredMoreProjects: Project[] = [
     problem:
       "After-course surveys return six-word answers. Interviews are rich but too slow to run after every course. InnovateUS needed something in between.",
     approach: [
-      "A no-login link opens a short survey. People answer by voice or text, and every question can be skipped.",
+      "A no-login link opens a short survey. People answer by voice or text, in English or Spanish, and every question can be skipped.",
       "When an answer is vague, an AI asks one targeted follow-up, never more than two. Then it extracts the task, the workflow, the outcome and the public benefit.",
       "Privacy is the product: no stored audio, PII redaction in the backend, and results reviewed at the cohort level.",
-      "It grew from a voice survey prototype I built in July 2025 on OpenAI's realtime API. I set the technical direction while two teammates did most of the build.",
+      "It grew from a voice survey prototype I built in July 2025 on OpenAI’s realtime API.",
     ],
     architecture: {
       nodes: [
@@ -46,19 +46,26 @@ export const featuredMoreProjects: Project[] = [
     },
     outcomes: [
       {
-        value: "3 min",
-        numeric: 3,
-        suffix: " min",
-        label: "To finish a survey",
-        context: "Design target from the README, not a measured median.",
+        value: "Live",
+        label: "In production at InnovateUS",
+        context: "Open at publicvoice.innovate-us.org, no login needed.",
         source: SRC.publicVoiceReadme,
         projectSlug: "public-voice",
       },
       {
-        value: "2",
-        numeric: 2,
-        label: "Languages",
-        context: "English and Spanish.",
+        value: "0",
+        numeric: 0,
+        label: "Audio recordings stored",
+        context: "Answers are transcribed and personal details are redacted before anything is saved.",
+        source: SRC.publicVoiceReadme,
+        projectSlug: "public-voice",
+      },
+      {
+        value: "3 min",
+        numeric: 3,
+        suffix: " min",
+        label: "Design target to finish a survey",
+        context: "The survey is built to take about three minutes.",
         source: SRC.publicVoiceReadme,
         projectSlug: "public-voice",
       },
@@ -115,17 +122,17 @@ export const featuredMoreProjects: Project[] = [
     tagline: "Where the shipping started: one Flutter app, thousands of students.",
     year: "2021 to 2023",
     role: "Software Engineer (Flutter)",
-    owned: "I built the Flutter app and owned it from design to deployment, then trained interns to take over the codebase.",
+    owned: "The Flutter app, start to finish, then the handoff to the interns I trained.",
     org: "Acharya Institutes",
     featured: true,
     category: "mobile",
     accent: "#F0997B",
     problem:
-      "Students and staff at Acharya Institutes needed attendance, marks and payments in one place. The app's store rating had sunk to 1.2 stars.",
+      "Students and staff at Acharya Institutes needed attendance, marks and payments in one place. The app’s store rating had sunk to 1.2 stars.",
     approach: [
-      "I built a cross-platform Flutter app and owned it from design to deployment.",
+      "Design, code and deployment all sat with me.",
       "Attendance, internal assessment marks and payments (via Razorpay) run on one codebase for Android and iOS.",
-      "I trained interns to take over the codebase when I moved on.",
+      "When I moved on, interns I had trained took over the codebase.",
     ],
     outcomes: [
       {
@@ -140,7 +147,7 @@ export const featuredMoreProjects: Project[] = [
       {
         value: "1.2 to 4.5",
         label: "App store rating",
-        context: "Self-reported in my resume.",
+        context: "From 1.2 stars to 4.5 while I owned the app.",
         source: SRC.resume,
         projectSlug: "acharya-erp",
       },
@@ -163,14 +170,6 @@ export const featuredMoreProjects: Project[] = [
         width: 880,
         height: 720,
         caption: "Fee payment for students, self-attendance for staff, on the same codebase.",
-      },
-      {
-        src: "/stills/acharya-erp/03.jpg",
-        alt: "Analytics slide from the 2022 internship deck showing Acharya ERP users by country, with India at 20K and Singapore, United States and Nepal far smaller.",
-        kind: "image",
-        width: 1600,
-        height: 800,
-        caption: "An early analytics snapshot from my 2022 internship deck, before the app reached 20,000+ daily users.",
       },
     ],
   },

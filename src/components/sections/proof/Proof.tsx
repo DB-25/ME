@@ -4,6 +4,7 @@ import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { FadeIn } from "../origin/FadeIn";
+import { Scrim } from "../Scrim";
 import { AwardList } from "./AwardList";
 import { PressIndex } from "./PressIndex";
 import { PressMarquee } from "./PressMarquee";
@@ -21,14 +22,15 @@ export function Proof() {
       <div className="sx-out">
         <div className="shell pt-[clamp(88px,11vw,170px)]">
           <header className="grid-12 gap-y-6">
-            <div className="col-span-12 md:col-span-7">
+            <div className="relative col-span-12 md:col-span-7">
+              <Scrim shape="left" strength={0.85} inset="-12% -8% -12% -24px" />
               <SectionLabel chapter="proof" />
               <Reveal as="h2" className="headline mt-5 !text-[clamp(2.5rem,5.6vw,5.5rem)]">
                 <span id="proof-title">
                   Proof, in other people&rsquo;s <Emph>words</Emph>
                 </span>
               </Reveal>
-              <FadeIn delay={0.15} className="label mt-6 flex flex-wrap gap-x-6 gap-y-1">
+              <FadeIn delay={0.15} className="label mt-6 flex flex-wrap gap-x-6 gap-y-1 !text-[12px] !text-ink/75">
                 <span>
                   <span className="text-ink">{count("award")}</span> awards
                 </span>

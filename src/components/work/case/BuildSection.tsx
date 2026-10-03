@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import type { Project } from "@/content";
 import { Reveal } from "@/components/ui/Reveal";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/motion";
-import { pad } from "../meta";
+import { pad, tie } from "../meta";
 import { CaseLabel } from "./CaseLabel";
 
 /** Numbered steps. The step nearest the reading line lights up (number turns accent, text to ink). */
@@ -59,7 +59,7 @@ export function BuildSection({ project, n }: { project: Project; n: string }) {
               <span className="cs-step-n num" data-in>
                 {pad(i + 1)}
               </span>
-              <p data-in>{step}</p>
+              <p data-in>{tie(step)}</p>
             </li>
           ))}
         </ol>

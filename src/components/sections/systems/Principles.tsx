@@ -10,7 +10,7 @@ export function Principles() {
   return (
     <div className="relative">
       <Scrim strength={0.78} inset="-10% -4%" />
-      <p className="label">Principles</p>
+      <p className="label !text-[12px] !text-ink/70">Principles</p>
       <ol className="mt-6 grid border-b border-hairline md:grid-cols-2 md:gap-x-[var(--gutter)]">
         {PRINCIPLES.map((text, i) => (
           <li key={text} className="grid grid-cols-[2.25rem_1fr] gap-x-3 border-t border-hairline py-6 md:py-8">

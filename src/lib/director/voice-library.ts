@@ -162,7 +162,7 @@ const AUTHORED = {
   introRole: ["I'm an AI engineer at the Burnes Center, from Bangalore to Boston.", "tour", "intro"],
   introOneLiner: ["I ship AI products end to end, from first prototype to thousands of real users.", "tour", "intro"],
   introStart: [
-    "It started with a Flutter app for thousands of students. It now ships to families and state agencies.",
+    "Before Boston, I built a Flutter app for thousands of students. Now I ship to families and state agencies.",
     "tour", "intro", "origin",
   ],
   contactLine: ["The email is the large link. The resume is beside it.", "tour", "contact"],
@@ -285,7 +285,7 @@ export const OWNED_LINE: Record<string, VoiceLine> = Object.fromEntries(
 /** One sentence per headline number, keyed by its label. A new metric falls back to its value and label. */
 const METRIC_TEXT: Record<string, string> = {
   "Families using A-IEP": "More than one thousand families use A-IEP.",
-  "Daily users on my first app": "More than twenty thousand people used my first app every day.",
+  "Daily users on Acharya ERP": "More than twenty thousand people used the Acharya app every day.",
   "State employees with access": "More than forty-four thousand state employees have access to the sandbox I co-built.",
   "AI tools shipped": "The AI for Impact program has shipped twenty-six AI tools for government and civic partners.",
   "Engineers mentored": "I have mentored more than fifty student engineers, from prototype to production.",

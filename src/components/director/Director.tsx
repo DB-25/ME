@@ -5,31 +5,27 @@ import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { isDirectorConfigured } from "@/lib/director/client";
-import { scrollToTarget } from "@/lib/motion";
 import { DirectorHud } from "./DirectorHud";
+import { goToSection } from "./executor";
 import { lineAudio } from "./lineAudio";
 import { VoiceToggle } from "./VoiceToggle";
 import "./director.css";
 import { useDirectorRun } from "./useDirectorRun";
 
-const TAKES = [
-  "I'm a founder",
-  "I'm hiring an AI engineer",
-  "Show me the hardest problem",
-  "Draw me a pani puri",
-];
+/** Guided tours: the primary way in. Each label is also the request, so the HUD shows what was chosen. */
+const TOURS = ["I'm a founder", "I'm hiring", "I'm an engineer", "Surprise me", "Draw me a pani puri"];
 
-const FOCUS_DELAY_MS = 1400;
+const FOCUS_DELAY_MS = 900;
 
 export function Director() {
-  const { state, run, cut } = useDirectorRun();
+  const { state, run, cut, dismiss } = useDirectorRun();
   const [value, setValue] = useState("");
   const [inView, setInView] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const wasRunning = useRef(false);
   const live = isDirectorConfigured();
-  const running = state.phase !== "idle";
+  const running = state.phase === "running" || state.phase === "outro";
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -61,8 +57,10 @@ export function Director() {
   };
 
   const anotherTake = () => {
-    scrollToTarget("#director");
-    window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), FOCUS_DELAY_MS);
+    dismiss();
+    void goToSection("director").then(() =>
+      window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), FOCUS_DELAY_MS),
+    );
   };
 
   const empty = value.length === 0;
@@ -73,7 +71,7 @@ export function Director() {
       id="director"
       data-chapter="director"
       aria-labelledby="director-title"
-      className="relative flex min-h-screen items-center py-28 md:py-36"
+      className="relative flex min-h-screen items-center py-24 md:py-28"
     >
       {/* Feathered on every side: no edge for the eye to catch where the section ends. */}
       <div
@@ -87,7 +85,7 @@ export function Director() {
       />
       <div
         className="shell relative w-full transition-opacity duration-700 ease-[var(--ease-out-expo)]"
-        style={{ opacity: running ? 0.06 : 1 }}
+        style={{ opacity: running ? 0.14 : 1 }}
         inert={running}
       >
         <div className="slate flex flex-wrap items-center gap-x-8 gap-y-2 pb-5">
@@ -103,25 +101,47 @@ export function Director() {
           </Reveal>
         </h2>
 
-        <p className="lede mt-8 max-w-[52ch]">
-          Tell the site who you are or what you want. It scrolls, spotlights the work and redraws the particles behind
-          this page.
+        <p className="lede mt-6 max-w-[52ch] md:mt-8">
+          Pick a guided tour. The site scrolls, spotlights the work and redraws the particles behind this page.
         </p>
 
-        <form onSubmit={onSubmit} className="relative mt-16 md:mt-24" aria-label="Tell the Director what you want">
-          <label htmlFor="director-input" className="label mb-4 block">
-            Your line, then Enter
+        <div className="mt-10 md:mt-12">
+          <p id="director-tours" className="label mb-4">
+            Choose a guided tour
+          </p>
+          <ul
+            className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5"
+            aria-labelledby="director-tours"
+          >
+            {TOURS.map((tour, i) => (
+              <li key={tour} className={i === TOURS.length - 1 ? "col-span-2 md:col-span-1" : undefined}>
+                <button
+                  type="button"
+                  disabled={running}
+                  onClick={() => submit(tour)}
+                  className="group flex h-full min-h-[7rem] w-full flex-col justify-between gap-8 border border-hairline-strong px-5 py-5 text-left transition-[border-color,background-color] duration-300 hover:border-accent hover:bg-accent/[0.06] focus-visible:border-accent disabled:opacity-40"
+                >
+                  <span className="label text-dim">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="flex items-end justify-between gap-3 text-[clamp(1.125rem,1.7vw,1.5rem)] font-medium leading-tight tracking-[-0.025em] text-ink">
+                    {tour}
+                    <span aria-hidden className="text-accent transition-transform duration-300 group-hover:translate-x-1">
+                      &rarr;
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <form onSubmit={onSubmit} className="relative mt-9 max-w-[56rem] md:mt-10" aria-label="Or tell the Director who you are">
+          <label htmlFor="director-input" className="label mb-3 block">
+            Or type who you are
           </label>
           <div
-            className="relative border-b border-hairline-strong pb-4 transition-colors duration-300 focus-within:border-accent"
-            style={{ fontSize: "clamp(1.5rem, 4.6vw, 4rem)", lineHeight: 1.15 }}
+            className="relative border-b border-hairline-strong pb-3 transition-colors duration-300 focus-within:border-accent"
+            style={{ fontSize: "clamp(1.125rem, 2.4vw, 1.75rem)", lineHeight: 1.2 }}
           >
-            {empty && (
-              <span
-                aria-hidden
-                className="director-caret pointer-events-none absolute left-0 top-[0.2em] h-[0.76em] w-[0.42ch] bg-accent-hot"
-              />
-            )}
             <input
               id="director-input"
               ref={inputRef}
@@ -133,52 +153,36 @@ export function Director() {
               spellCheck={false}
               enterKeyHint="go"
               maxLength={160}
-              placeholder="I'm a founder, I'm hiring, draw me something"
-              className={`director-input w-full text-[1em] leading-[inherit] bg-transparent font-medium tracking-[-0.035em] text-ink outline-none placeholder:text-muted/50 disabled:opacity-40 ${
-                empty ? "pl-[0.7ch]" : ""
-              }`}
+              placeholder="Who you are, or what you want"
+              className="director-input w-full bg-transparent text-[1em] font-medium leading-[inherit] tracking-[-0.025em] text-ink outline-none placeholder:text-muted/50 disabled:opacity-40"
             />
           </div>
-          <div className="mt-4 flex items-center justify-between gap-6">
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
             <p className="label">
               <span className="text-accent">Enter</span> to begin <span className="mx-2 text-dim">/</span>{" "}
               <span className="text-accent">Esc</span> to stop
             </p>
-            <VoiceToggle className="ml-auto" />
-            <button
-              type="submit"
-              disabled={empty || running}
-              className="label link text-ink transition-opacity disabled:pointer-events-none disabled:opacity-30"
-            >
-              Begin &rarr;
-            </button>
+            <div className="ml-auto flex items-center gap-4">
+              <VoiceToggle />
+              <button
+                type="submit"
+                disabled={empty || running}
+                className="label link text-ink transition-opacity disabled:pointer-events-none disabled:opacity-30"
+              >
+                Begin &rarr;
+              </button>
+            </div>
           </div>
         </form>
 
-        <ul className="mt-12 flex flex-wrap gap-x-3 gap-y-3" aria-label="Suggested takes">
-          {TAKES.map((take) => (
-            <li key={take}>
-              <button
-                type="button"
-                disabled={running}
-                onClick={() => submit(take)}
-                className="label border border-hairline-strong px-3 py-2 text-muted transition-[color,border-color,background-color] duration-300 hover:border-accent hover:text-ink focus-visible:border-accent disabled:opacity-40"
-              >
-                {take}
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        {!live && (
-          <p className="mt-8 max-w-[62ch] text-[0.8125rem] leading-relaxed text-muted">
-            This is a scripted tour, written by hand from the real content and routed by keyword. The live version runs
-            a tool-calling model on a Cloudflare Worker. It is switched off right now.
-          </p>
-        )}
+        <p className="mt-7 max-w-[60ch] text-[0.8125rem] leading-relaxed text-muted">
+          {live
+            ? "A tool-calling model plans each tour live, and speaks lines I recorded."
+            : "This is a scripted tour. The live version, a tool-calling model, is offline for now."}
+        </p>
       </div>
 
-      <DirectorHud state={state} onCut={cut} showAnotherTake={state.afterglow && !running && !inView} onAnotherTake={anotherTake} />
+      <DirectorHud state={state} onCut={cut} onAnotherTake={anotherTake} />
     </section>
   );
 }

@@ -10,7 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const root = `${SITE_URL}${BASE_PATH}`;
   return [
     { url: `${root}/`, changeFrequency: "monthly", priority: 1 },
-    ...projects.map((p) => ({
+    ...projects.filter((p) => !p.compact).map((p) => ({
       url: `${root}/work/${p.slug}/`,
       changeFrequency: "yearly" as const,
       priority: 0.7,

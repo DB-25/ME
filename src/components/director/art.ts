@@ -26,6 +26,8 @@ const polyline = (pts: Array<[number, number]>) => path(pts.map(([x, y], i) => `
 
 type Point = [number, number];
 type Disc = { x: number; y: number; r: number };
+/** What can hide a line: a disc (with clearance around it) or any region given as a test. */
+type Hider = Disc | ((p: Point) => boolean);
 
 const polar = (cx: number, cy: number, r: number, deg: number): Point => {
   const a = (deg * Math.PI) / 180;
@@ -44,8 +46,9 @@ function arc(cx: number, cy: number, r: number, from: number, to: number): strin
  * Walk a curve by angle and keep only the runs that fall outside every
  * hiding disc. This is how a near shape "covers" a far one with no fill.
  */
-function trace(at: (deg: number) => Point, from: number, to: number, hides: Disc[] = [], step = 3, minLen = 0): string {
-  const covered = ([x, y]: Point) => hides.some((h) => Math.hypot(x - h.x, y - h.y) < h.r + HIDE_GAP);
+function trace(at: (deg: number) => Point, from: number, to: number, hides: Hider[] = [], step = 3, minLen = 0): string {
+  const covered = (p: Point) =>
+    hides.some((h) => (typeof h === "function" ? h(p) : Math.hypot(p[0] - h.x, p[1] - h.y) < h.r + HIDE_GAP));
   const runs: Point[][] = [];
   let run: Point[] = [];
   for (let deg = from; deg <= to + 1e-6; deg += step) {
@@ -68,8 +71,8 @@ const ellipseAt = (cx: number, cy: number, rx: number, ry: number) => (deg: numb
 
 /* ---------- pani puri ---------- */
 
-/** A whole puri: a ball, an optional cut where a nearer one covers it, and a sheen. */
-function puri(d: Disc, hides: Disc[] = []): string {
+/** A whole puri: a ball, cut where nearer things cover it, with a short sheen stroke. */
+function puri(d: Disc, hides: Hider[] = []): string {
   const [sx, sy] = polar(d.x, d.y, d.r * 0.56, 200);
   const [ex, ey] = polar(d.x, d.y, d.r * 0.56, 245);
   return (
@@ -78,51 +81,62 @@ function puri(d: Disc, hides: Disc[] = []): string {
   );
 }
 
-/** A puri tapped open: a torn rim, with two chickpeas of filling heaped above it. */
-function crackedPuri({ x, y, r }: Disc): string {
-  const left: Point = [x - r * 0.88, y - r * 0.48];
-  const right: Point = [x + r * 0.88, y - r * 0.48];
+/** A puri tapped open: a torn rim, and filling heaped above it. */
+function crackedPuri(d: Disc, hides: Hider[] = []): string {
+  const { x, y, r } = d;
   const rim: Point[] = [
-    [x - r * 0.46, y - r * 0.84],
-    [x - r * 0.1, y - r * 0.56],
-    [x + r * 0.3, y - r * 0.88],
+    [x + r * 0.88, y - r * 0.48],
+    [x + r * 0.34, y - r * 0.9],
+    [x + r * 0.08, y - r * 0.56],
+    [x - r * 0.3, y - r * 0.9],
+    [x - r * 0.88, y - r * 0.48],
   ];
   const heap =
-    circle(x - r * 0.48, y - r * 1.32, 14) + circle(x + r * 0.3, y - r * 1.28, 13) + circle(x - r * 0.09, y - r * 1.86, 12);
-  const torn = rim.map(([tx, ty]) => `L${f(tx)} ${f(ty)}`).join(" ");
-  return (
-    path(`M${f(right[0])} ${f(right[1])} A${r} ${r} 0 1 1 ${f(left[0])} ${f(left[1])} ${torn} L${f(right[0])} ${f(right[1])}`) +
-    heap
-  );
+    circle(x - r * 0.4, y - r * 1.42, 11) + circle(x + r * 0.34, y - r * 1.38, 10) + circle(x - r * 0.04, y - r * 1.92, 9);
+  // The shell is the whole circle but for the opening, which spans -151 to -29 degrees.
+  return trace(ringAt(d), 331.4, 568.6, hides, 4, 30) + polyline(rim) + heap;
 }
 
-/** The pani jug, drawn upright around the origin; the caller tilts it. */
-const JUG =
-  `<ellipse cx="0" cy="-74" rx="32" ry="10"/>` +
-  path("M-32 -74 C-36 -42 -56 -24 -56 14 C-56 52 -36 76 0 76 C36 76 56 52 56 14 C56 -24 36 -42 32 -74") +
-  path("M-32 -74 Q-46 -80 -54 -98") +
-  path("M-52 -4 Q0 16 52 -4") +
-  path("M38 -54 C90 -58 96 26 56 34");
-
+/** The bowl: a shallow ellipse seen at an angle, a body that tapers to a foot, puris heaped inside. */
 function paniPuri(): string {
-  const plate = { x: 256, y: 402, rx: 224, ry: 68 };
-  const front: Disc = { x: 252, y: 366, r: 56 };
-  const whole: Disc[] = [
-    { x: 104, y: 358, r: 46 },
-    { x: 398, y: 356, r: 46 },
-    { x: 168, y: 316, r: 38 },
+  const bowl = { x: 190, y: 400, rx: 160, ry: 40 };
+  const frontRimY = (x: number) => bowl.y + bowl.ry * Math.sqrt(Math.max(0, 1 - ((x - bowl.x) / bowl.rx) ** 2));
+  /** Anything just above the front lip or below it is behind the bowl's wall, so it is cut. */
+  const insideWall = ([x, y]: Point) => Math.abs(x - bowl.x) < bowl.rx && y > frontRimY(x) - 10;
+
+  const front: Disc[] = [
+    { x: 96, y: 402, r: 34 },
+    { x: 190, y: 402, r: 34 },
+    { x: 284, y: 402, r: 34 },
   ];
-  const [left, right, back] = whole;
+  const middle: Disc[] = [
+    { x: 143, y: 336, r: 34 },
+    { x: 237, y: 336, r: 34 },
+  ];
+  const top: Disc = { x: 190, y: 268, r: 38 };
+
+  const bowlBody = path(
+    `M${bowl.x - bowl.rx} ${bowl.y} C${bowl.x - bowl.rx + 6} ${bowl.y + 58} ${bowl.x - 100} 494 ${bowl.x - 56} 494 H${bowl.x + 56} C${bowl.x + 100} 494 ${bowl.x + bowl.rx - 6} ${bowl.y + 58} ${bowl.x + bowl.rx} ${bowl.y}`,
+  );
+
+  /* the pani, in a separate cup, with a few strokes rising off it */
+  const cup =
+    `<ellipse cx="424" cy="428" rx="42" ry="10"/>` +
+    path("M382 428 L394 498 H454 L466 428") +
+    path("M398 450 Q424 462 450 450") +
+    path("M404 398 Q394 384 404 370") +
+    path("M424 392 Q434 376 424 360") +
+    path("M444 398 Q434 384 444 370");
+
   return (
-    /* plate: its back rim is cut where a puri stands in front of it */
-    trace(ellipseAt(plate.x, plate.y, plate.rx, plate.ry), 0, 360, [...whole, front], 3, 36) +
-    puri(back, [left, front]) +
-    puri(left) +
-    puri(right) +
-    crackedPuri(front) +
-    /* the jug, tipped over the open puri, and the pour */
-    `<g transform="translate(350 214) rotate(-36)">${JUG}</g>` +
-    path("M254 184 C246 204 262 222 254 238")
+    /* back rim, cut where puris stand in front of it; the front lip is whole */
+    trace(ellipseAt(bowl.x, bowl.y, bowl.rx, bowl.ry), 180, 360, [...front, ...middle, top], 3, 36) +
+    trace(ellipseAt(bowl.x, bowl.y, bowl.rx, bowl.ry), 0, 180, [], 3) +
+    bowlBody +
+    crackedPuri(top) +
+    middle.map((d) => puri(d)).join("") +
+    front.map((d) => puri(d, [insideWall])).join("") +
+    cup
   );
 }
 

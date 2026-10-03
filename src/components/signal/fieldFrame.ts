@@ -80,6 +80,8 @@ export type OverrideState = {
   value: Tween;
   mix: Tween;
   shownSlot: 0 | 1;
+  /** True while the held override is a Director drawing (points), which gets its own framing. */
+  points: boolean;
 };
 
 export type AdaptState = {
@@ -119,7 +121,7 @@ export function createIntro(now: number): IntroState {
 }
 
 export function createOverrideState(): OverrideState {
-  return { last: null, value: new Tween(0), mix: new Tween(0), shownSlot: 0 };
+  return { last: null, value: new Tween(0), mix: new Tween(0), shownSlot: 0, points: false };
 }
 
 export function createAdapt(now: number, count: number): AdaptState {

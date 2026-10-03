@@ -39,20 +39,32 @@ const CSS = `
   #hero .hero-last { font-size: clamp(3rem, 8.4vw, 10rem); }
 }
 #hero .hero-cta {
-  display: inline-flex; align-items: center; gap: 0.3em; min-height: 44px; padding-inline: 2px;
-  font-size: 13.5px; font-weight: 500; color: var(--color-ink);
+  display: inline-flex; align-items: center; gap: 0.3em; min-height: 40px; padding-inline: 2px;
+  font-size: 13.5px; font-weight: 500; color: var(--color-muted);
   transition: color 0.25s;
 }
 #hero .hero-cta-text {
   text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px;
   text-decoration-color: rgb(238 234 246 / 0.28); transition: text-decoration-color 0.25s;
 }
-#hero .hero-cta[data-primary] .hero-cta-text { text-decoration-color: var(--color-accent); }
+#hero .hero-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; min-height: 44px; padding-inline: 18px;
+  border: 1px solid rgb(238 234 246 / 0.38); border-radius: 2px; text-shadow: none;
+  font-size: 14px; font-weight: 500; color: var(--color-ink);
+  transition: color 0.25s, background-color 0.25s, border-color 0.25s;
+}
+#hero .hero-btn-solid { background: var(--color-ink); border-color: var(--color-ink); color: var(--color-void); }
+#hero .hero-btn:hover { border-color: var(--color-accent-hot); color: var(--color-accent-hot); }
+#hero .hero-btn-solid:hover { background: var(--color-accent-hot); color: var(--color-void); }
+#hero .hero-btn-arrow { transition: transform 0.35s var(--ease-out-expo); }
+#hero .hero-btn:hover .hero-btn-arrow { transform: translate(2px, 2px); }
+#hero .hero-btn:not(.hero-btn-solid) .hero-btn-arrow { color: var(--color-accent-hot); }
+#hero .hero-btn:not(.hero-btn-solid):hover .hero-btn-arrow { transform: translate(2px, -2px); }
 #hero .hero-cta:hover { color: var(--color-accent-hot); }
 #hero .hero-cta:hover .hero-cta-text { text-decoration-color: var(--color-accent-hot); }
 #hero .hero-cta-arrow { color: var(--color-accent-hot); transition: transform 0.35s var(--ease-out-expo); }
 #hero .hero-cta:hover .hero-cta-arrow { transform: translate(2px, -2px); }
-@media (min-width: 768px) { #hero .hero-cta { min-height: 32px; font-size: 14px; } }
+@media (min-width: 768px) { #hero .hero-cta { min-height: 32px; font-size: 14px; } #hero .hero-btn { min-height: 40px; } }
 /* The story, proof and links can sit over bright particles (noise phase, band edge): soft scrim. */
 #hero .hero-stack { position: relative; isolation: isolate; }
 #hero .hero-stack::before {

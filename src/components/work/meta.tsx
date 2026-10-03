@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Media, Project } from "@/content";
 
 export const CATEGORY_LABEL: Record<Project["category"], string> = {
@@ -53,3 +54,24 @@ export const KIND_LABEL: Record<NonNullable<Project["links"][number]["kind"]>, s
   doc: "Read",
   award: "Award",
 };
+
+/** Compact lab projects are table rows only: no case study page exists for them. */
+export const hasCase = (p: Project) => !p.compact;
+
+/** Keep a hyphenated compound ("co-op", "follow-up") on one line. Returns text and nowrap spans. */
+export function tie(text: string): ReactNode {
+  const parts = text.split(/([A-Za-z0-9]+(?:-[A-Za-z0-9]+)+)/);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <span key={i} className="nb">
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  );
+}
+
+/** Long names wrap onto two lines, so size a display title by its longest line, not the whole string. */
+export const titleLen = (name: string) => (name.length <= 14 ? name.length : Math.ceil(name.length * 0.7));

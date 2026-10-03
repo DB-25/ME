@@ -30,7 +30,7 @@ export const timeline: TimelineEntry[] = [
     place: "Bangalore, India",
     title: "Software Engineer, Flutter",
     org: "Acharya Institutes",
-    body: "Built the Acharya ERP app from design to deployment. It reached 20,000+ daily users and its store rating climbed from 1.2 to 4.5. I trained interns to take it over.",
+    body: "Built the Acharya ERP app in Flutter. It reached 20,000+ daily users, and I trained interns to take it over.",
     kind: "work",
   },
   {
@@ -52,7 +52,7 @@ export const timeline: TimelineEntry[] = [
   {
     year: "2024",
     place: "Boston, MA",
-    title: "Governor's Citation",
+    title: "Governor’s Citation",
     org: "Commonwealth of Massachusetts",
     body: "On June 26 Governor Healey and Lieutenant Governor Driscoll signed a citation recognizing my work in the InnovateMA program. GovTech quoted me a few days later.",
     kind: "milestone",
@@ -86,7 +86,7 @@ export const timeline: TimelineEntry[] = [
     place: "Boston, MA",
     title: "Lead AI Engineer on A-IEP",
     org: "The Burnes Center for Social Change",
-    body: "Took the AI-EP prototype to a production, open source platform that helps parents read their child's IEP in their own language. I made my first commit in February.",
+    body: "Took the AI‑EP prototype to production as A‑IEP, an open source platform that helps parents read their child’s IEP in their own language. I made my first commit in February.",
     kind: "work",
   },
   {
@@ -94,7 +94,7 @@ export const timeline: TimelineEntry[] = [
     place: "Boston, MA",
     title: "Procurement AI wins at NASPO",
     org: "NASPO",
-    body: "The ABE and One-L tools won the Cronin Gold Award and the Academic Collaboration Award for Massachusetts OSD and the Burnes Center. I was part of the team behind them.",
+    body: "The ABE and One‑L tools won the Cronin Gold Award and the Academic Collaboration Award for Massachusetts OSD and the Burnes Center. I was part of the team behind them.",
     kind: "milestone",
   },
   {
@@ -102,7 +102,7 @@ export const timeline: TimelineEntry[] = [
     place: "Boston, MA",
     title: "From shipping to measuring",
     org: "The Burnes Center for Social Change",
-    body: "Public Voice and the Public Engagement Coach for InnovateUS. In July I audited A-IEP, found no automated check on accuracy, and started a synthetic IEP benchmark.",
+    body: "Public Voice and the Public Engagement Coach for InnovateUS. In July I audited A‑IEP, found no automated check on accuracy, and started a synthetic IEP benchmark.",
     kind: "work",
   },
   {
@@ -117,7 +117,7 @@ export const timeline: TimelineEntry[] = [
     place: "Boston, MA",
     title: "Course Delivery SMS",
     org: "The Burnes Center for Social Change",
-    body: "Started an 8-day, text-paced video course platform for InnovateUS. Sixty-five commits in the first three days.",
+    body: "Started an 8-day, text-paced video course platform for InnovateUS. 65 commits in the first three days.",
     kind: "work",
   },
   {

@@ -21,12 +21,12 @@ export type ChapterLook = {
 export const CHAPTER_LOOK: Record<ChapterId, ChapterLook> = {
   hero: { brightness: 0.8, x: 0, y: 0.03, z: 0, scale: 1, rightDim: 0.4 },
   origin: { brightness: 0.85, x: 0.22, y: 0, z: 0, scale: 0.85, rightDim: 0 },
-  systems: { brightness: 0.55, x: 0.22, y: 0, z: 0, scale: 1, rightDim: 0 },
+  systems: { brightness: 0.45, x: 0.28, y: 0, z: 0, scale: 1, rightDim: 0 },
   work: { brightness: 0.22, x: 0, y: 0, z: -5, scale: 1.25, rightDim: 0 },
   impact: { brightness: 0.42, x: 0, y: -0.32, z: 0, scale: 1, rightDim: 0 },
-  proof: { brightness: 0.42, x: 0.16, y: 0.08, z: 0, scale: 0.88, rightDim: 0 },
+  proof: { brightness: 0.45, x: 0.22, y: 0.14, z: 0, scale: 0.8, rightDim: 0 },
   director: { brightness: 0.26, x: 0, y: 0, z: -1, scale: 1.1, rightDim: 0 },
-  human: { brightness: 0.9, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
+  human: { brightness: 0.9, x: 0.2, y: 0, z: 0, scale: 0.7, rightDim: 0 },
   contact: { brightness: 1, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
 };
 
@@ -36,14 +36,14 @@ export const CHAPTER_LOOK: Record<ChapterId, ChapterLook> = {
  */
 export const CHAPTER_LOOK_MOBILE: Record<ChapterId, ChapterLook> = {
   hero: { brightness: 0.85, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
-  origin: { brightness: 0.4, x: 0, y: 0, z: 0, scale: 0.75, rightDim: 0 },
-  systems: { brightness: 0.4, x: 0, y: 0, z: 0, scale: 0.75, rightDim: 0 },
+  origin: { brightness: 0.4, x: 0, y: 0.36, z: 0, scale: 0.55, rightDim: 0 },
+  systems: { brightness: 0.3, x: 0, y: -0.28, z: 0, scale: 0.6, rightDim: 0 },
   work: { brightness: 0.3, x: 0, y: 0, z: -3, scale: 1, rightDim: 0 },
   impact: { brightness: 0.4, x: 0, y: -0.2, z: 0, scale: 0.75, rightDim: 0 },
-  proof: { brightness: 0.4, x: 0, y: 0, z: 0, scale: 0.75, rightDim: 0 },
+  proof: { brightness: 0.3, x: 0, y: 0.3, z: 0, scale: 0.7, rightDim: 0 },
   director: { brightness: 0.3, x: 0, y: 0, z: -1, scale: 0.75, rightDim: 0 },
-  human: { brightness: 0.6, x: 0, y: 0.12, z: 0, scale: 0.6, rightDim: 0 },
-  contact: { brightness: 1, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
+  human: { brightness: 0.5, x: 0, y: 0.3, z: 0, scale: 0.55, rightDim: 0 },
+  contact: { brightness: 1, x: 0, y: 0.22, z: 0, scale: 0.6, rightDim: 0 },
 };
 
 /** Shown when the route has no chapters (case studies): a dim, calm drift. */

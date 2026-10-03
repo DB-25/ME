@@ -46,18 +46,25 @@
   50% { opacity: 0.25; }
 }
 
-/* Subtitles. Everything here is out of layout flow: fixed boxes, a fixed-size scrim,
-   and a caption that is laid out whole before any word is highlighted, so nothing
-   reflows or moves while a line plays. */
+/* Caption lane. A fixed band just above the HUD footer, two lines at most, over a soft
+   void scrim that fades out upward (no box, no edge). Everything here is out of layout
+   flow, and a caption is laid out whole before any word is lit, so nothing reflows. */
 .dir-scrim {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 83;
-  height: clamp(240px, 42vh, 440px);
+  height: calc(var(--dir-bottom) + 230px);
   pointer-events: none;
-  background: linear-gradient(to top, rgb(6 5 9 / 0.82), rgb(6 5 9 / 0.52) 55%, rgb(6 5 9 / 0));
+  background: linear-gradient(
+    to top,
+    rgb(6 5 9 / 0.96) 0,
+    rgb(6 5 9 / 0.92) calc(var(--dir-bottom) + 70px),
+    rgb(6 5 9 / 0.6) calc(var(--dir-bottom) + 140px),
+    rgb(6 5 9 / 0.22) calc(var(--dir-bottom) + 200px),
+    rgb(6 5 9 / 0)
+  );
   opacity: 0;
   transition: opacity 0.6s var(--ease-out-expo);
 }
@@ -67,31 +74,32 @@
   position: fixed;
   left: 0;
   right: 0;
+  bottom: var(--dir-bottom);
   z-index: 84;
   display: flex;
   justify-content: center;
   pointer-events: none;
-  padding-inline: var(--gutter);
+  padding: 0 var(--gutter) clamp(14px, 2.4vh, 26px);
   opacity: 0;
   transition: opacity 0.6s var(--ease-out-expo);
 }
 .dir-on .dir-sub-wrap { opacity: 1; }
 .dir-sub {
-  max-width: 26ch;
+  max-width: 40ch;
   text-align: center;
   font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1.12;
-  font-size: clamp(1.25rem, 3.4vw, 2.75rem);
+  letter-spacing: -0.025em;
+  line-height: 1.18;
+  font-size: clamp(1.05rem, 2.1vw, 1.65rem);
   text-wrap: balance;
-  /* Room for three lines always, so the box never changes size between captions. */
-  min-height: 3.36em;
+  /* Two lines, always: the box never changes size between captions. */
+  min-height: 2.36em;
   display: flex;
   align-items: flex-end;
   justify-content: center;
 }
 @media (min-width: 900px) {
-  .dir-sub { max-width: 34ch; }
+  .dir-sub { max-width: 52ch; }
 }
 .dir-cap {
   margin: 0;
@@ -103,11 +111,26 @@
 }
 /* Unspoken words are dim, the word being spoken is lit, spoken words settle to ink. Colour only. */
 .dir-w {
-  color: rgb(238 234 246 / 0.34);
+  color: rgb(238 234 246 / 0.4);
   transition: color 0.28s ease-out;
 }
 .dir-w.is-now { color: var(--color-accent-hot); }
 .dir-w.is-said { color: var(--color-ink); }
+
+/* After a take: the top bar stays (with "Again"); the footer, lane and scrim leave. */
+.dir-done .dir-bar-bottom { transform: translateY(101%); }
+.dir-done .dir-scrim,
+.dir-done .dir-sub-wrap { opacity: 0; }
+
+/* Far moves cut instead of scrolling past every chapter: the content fades, the page
+   jumps unseen, and the content fades back. The particle field is never faded. */
+#main { transition: opacity 0.42s ease-out; }
+html.dir-cut #main { opacity: 0; transition-duration: 0.24s; }
+
+/* Room below the last chapter while a take runs, so even the contact section can be
+   scrolled up out of the caption lane. Removed again, after a gentle settle, when the take ends. */
+html { --dir-lane-vh: 34; }
+html.dir-lane #main { padding-bottom: calc(var(--dir-lane-vh) * 1vh); }
 
 /* Log: always three rows tall. A new line rolls the rows up by one instead of resizing the bar. */
 .dir-log { height: calc(3 * 1.6em); overflow: hidden; }
@@ -133,22 +156,9 @@
   to { opacity: 1; }
 }
 
-/* "Another take" after a run */
-.dir-again {
-  position: fixed;
-  left: 50%;
-  bottom: 28px;
-  z-index: 70;
-  transform: translateX(-50%);
-  animation: dir-again-in 0.9s var(--ease-out-expo) both;
-}
-@keyframes dir-again-in {
-  from { opacity: 0; transform: translate(-50%, 12px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .dir-bar { transition: none; }
+  #main { transition: none; }
   .dir-cap, .dir-log-roll, .dir-fig { animation: none; }
   .dir-w { transition: none; }
   .dir-rec { animation: none; }

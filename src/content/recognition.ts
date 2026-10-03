@@ -2,13 +2,13 @@ import type { Recognition } from "./types";
 
 export const recognition: Recognition[] = [
   {
-    title: "Governor's Citation, InnovateMA",
+    title: "Governor’s Citation, InnovateMA",
     issuer: "Commonwealth of Massachusetts, signed by Gov. Maura Healey and Lt. Gov. Kimberley Driscoll",
     year: "2024",
     kind: "award",
     image: {
       src: "/photos/governors-citation.jpg",
-      alt: "The Governor's Citation from the Commonwealth of Massachusetts awarded to Dhruv Kamalesh Kumar, signed by Governor Maura Healey and Lieutenant Governor Kimberley Driscoll.",
+      alt: "The Governor’s Citation from the Commonwealth of Massachusetts awarded to Dhruv Kamalesh Kumar, signed by Governor Maura Healey and Lieutenant Governor Kimberley Driscoll.",
       width: 1600,
       height: 1236,
     },
@@ -20,7 +20,7 @@ export const recognition: Recognition[] = [
     year: "2025",
     kind: "award",
     href: "https://www.naspo.org/awards/george-cronin-awards/winners/2025/",
-    note: "Won by Massachusetts OSD for its dual AI agents, ABE and One-L, built with the Burnes Center. I was part of the team behind them.",
+    note: "Won by Massachusetts OSD for its dual AI agents, ABE and One‑L, built with the Burnes Center. I was part of the team behind them.",
   },
   {
     title: "Academic Collaboration Award",
@@ -39,7 +39,7 @@ export const recognition: Recognition[] = [
     note: "VCT Scout, with Aravind Dasarathy, Rudra Sett and Akshay Gunjur Surya Prakash. More than 3,200 participants.",
   },
   {
-    title: "Best Cross-Regional Team Submission",
+    title: "Best Cross‑Regional Team Submission",
     issuer: "AWS and Riot Games",
     year: "2024",
     kind: "award",
@@ -76,25 +76,25 @@ export const recognition: Recognition[] = [
   },
   {
     title: "Governor Healey meets with Northeastern students working on an AI project",
-    issuer: "Massachusetts Governor's Office",
+    issuer: "Massachusetts Governor’s Office",
     year: "2024",
     kind: "press",
     href: "https://www.mass.gov/news/governor-healey-meets-with-northeastern-students-working-with-administration-on-ai-project-under-innovatema-partnership",
   },
   {
-    title: "OSD's process innovations earn national recognition",
+    title: "OSD’s process innovations earn national recognition",
     issuer: "Mass.gov",
     year: "2025",
     kind: "press",
     href: "https://www.mass.gov/news/osds-process-innovations-earn-national-recognition",
   },
   {
-    title: "Unboxing the prompt: how community feedback helped us build better AI",
+    title: "Unboxing the prompt: how community feedback and AI helped us build better AI together",
     issuer: "Reboot Democracy",
     year: "2026",
     kind: "press",
     href: "https://rebootdemocracy.ai/blog/unboxing-the-prompt-how-community-feedback-and-ai-helped-us-build-better-ai-together",
-    note: "My post (February 3, 2026) on how parents saw the A-IEP prompts and reshaped them.",
+    note: "My post (February 3, 2026) on how parents saw the A‑IEP prompts and reshaped them.",
   },
   {
     title: "Presented the GenAI Sandbox work to Governor Healey",
@@ -110,7 +110,7 @@ export const recognition: Recognition[] = [
     year: "2026",
     kind: "talk",
     href: "https://innovate-us.org/ai-for-coding-from-zero-experience-to-a-working-website",
-    note: "I taught this free 45 minute workshop on March 27, 2026. Participants prompted AI step by step to build a working website with no coding background.",
+    note: "I taught this 45 minute workshop on March 27, 2026. Participants prompted AI step by step to build a working website with no coding background.",
   },
   {
     title: "Prompting Lab Office Hours: Bring your AI Questions",
@@ -126,7 +126,7 @@ export const recognition: Recognition[] = [
     year: "2026",
     kind: "press",
     href: "https://rebootdemocracy.ai/blog/project-spotlight-co-designing-with-communities",
-    note: "Published October 1, 2026 on the A-IEP pilot in San Francisco, where more than 200 families took part.",
+    note: "Published October 1, 2026 on the A‑IEP pilot in San Francisco, where more than 200 families took part.",
   },
   {
     title: "This is My Architecture: MassHealth Helper",

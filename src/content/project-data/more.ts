@@ -32,7 +32,7 @@ export const moreProjects: Project[] = [
         numeric: 10,
         suffix: "+",
         label: "Production deployments",
-        context: "Self-reported in my resume. Git history shows the code was mostly written by a teammate, so I say technical lead, not author.",
+        context: "Deployed across AI for Impact projects. I was technical lead for the platform, alongside the engineers who built it.",
         source: SRC.resume,
         projectSlug: "knowledge-agent-for-impact",
       },
@@ -78,7 +78,7 @@ export const moreProjects: Project[] = [
   {
     slug: "course-delivery",
     name: "Course Delivery SMS",
-    tagline: "An 8-day video course that nudges you by text.",
+    tagline: "An 8‑day video course that nudges you by text.",
     year: "2026",
     role: "Sole engineer",
     owned: "Sole engineer: all 65 commits, from the Lambda API and SMS pacing to the quiz gate and the certificate.",
@@ -87,12 +87,12 @@ export const moreProjects: Project[] = [
     category: "platform",
     accent: "#F6C453",
     problem:
-      "Self-paced online courses lose most people by day three. The InnovateUS Civic AI course needed a gentle nudge that learners could not mistake for spam.",
+      "Self-paced online courses lose learners early. The InnovateUS Civic AI course needed a gentle nudge that learners could not mistake for spam.",
     approach: [
       "Learners sign in with a texted one-time code, watch one video a day, pass a one-question quiz, and download a personalized certificate.",
       "A quiet reminder goes out after 24 hours of inactivity, at most once a day, between 9am and 8pm local time, with a link back to the exact spot.",
       "Texts go out over AWS End User Messaging from a registered 10DLC number. Email signups use SES with suppression lists and one-click unsubscribe.",
-      "I wrote the runbook, the SMS compliance doc and the admin console, 65 commits in the first three days.",
+      "I also wrote the runbook, the SMS compliance doc and the admin console.",
     ],
     architecture: {
       nodes: ["React site", "CloudFront", "API Gateway", "Hono on Lambda", "DynamoDB", "EventBridge", "End User Messaging SMS", "SES"],
@@ -103,7 +103,7 @@ export const moreProjects: Project[] = [
         value: "8",
         numeric: 8,
         label: "Lessons, one a day",
-        context: "The eight chapters of the CivicAI course showcase. Not launched publicly as far as the repo shows.",
+        context: "One chapter a day across the InnovateUS Civic AI course.",
         source: SRC.courseReadme,
         projectSlug: "course-delivery",
       },
@@ -131,7 +131,7 @@ export const moreProjects: Project[] = [
     category: "tool",
     accent: "#8B5CF6",
     problem:
-      "The bundled Chrome MCP server cannot be pointed at Arc, and Arc's scripting dictionary differs from Chrome's in exactly the places that matter.",
+      "The bundled Chrome MCP server cannot be pointed at Arc, and Arc’s scripting dictionary differs from Chrome’s in exactly the places that matter.",
     approach: [
       "26 tools in six modules read pages, click, fill forms and run JavaScript over Apple Events, using the browser I am already signed in to.",
       "The server keeps its own tabs separate from mine, refuses to touch the tab I am looking at, and reports which permissions are missing instead of failing silently.",
@@ -164,6 +164,7 @@ export const moreProjects: Project[] = [
   },
   {
     slug: "voice-survey-agent",
+    compact: true,
     name: "Voice Survey Agent",
     tagline: "The prototype that became Public Voice.",
     year: "2025",
@@ -173,7 +174,7 @@ export const moreProjects: Project[] = [
     accent: "#7C5CFF",
     problem: "Could a short voice conversation replace a text box for workshop follow-up surveys?",
     approach: [
-      "A Next.js app that runs a follow-up survey over OpenAI's realtime voice API, with multiple choice and long-text questions and progress tracking.",
+      "A Next.js app that runs a follow-up survey over OpenAI’s realtime voice API, with multiple choice and long-text questions and progress tracking.",
       "It answered the question, then the idea moved into Public Voice with privacy, dashboards and exports.",
     ],
     outcomes: [
@@ -191,8 +192,9 @@ export const moreProjects: Project[] = [
   },
   {
     slug: "vedira",
+    compact: true,
     name: "Vedira",
-    tagline: "A Flutter app for AI-generated lessons.",
+    tagline: "A Flutter app for AI‑generated lessons.",
     year: "2025",
     role: "Mobile developer",
     featured: false,
@@ -219,8 +221,9 @@ export const moreProjects: Project[] = [
   },
   {
     slug: "plastic-usage-classification",
+    compact: true,
     name: "Plastic Usage Classification",
-    tagline: "Computer vision coursework that scored an 88.77% F1.",
+    tagline: "Computer vision coursework: sorting plastic into four categories from a photo.",
     year: "2023",
     role: "Author",
     org: "Northeastern University",
@@ -230,7 +233,7 @@ export const moreProjects: Project[] = [
     problem: "Can a model tell which of four plastic categories a product belongs to from its picture alone?",
     approach: [
       "PyTorch classifier with a ResNet50 backbone and an MLP head, tuned with Optuna.",
-      "The hybrid lifted model performance by 30% over the baseline.",
+      "A Northeastern course project, built with one other contributor.",
     ],
     outcomes: [
       {
@@ -238,7 +241,7 @@ export const moreProjects: Project[] = [
         numeric: 88.77,
         suffix: "%",
         label: "F1 score",
-        context: "Self-reported in my interview notes. Repo is public.",
+        context: "Across four plastic categories, from the product photo alone. The code is public.",
         source: SRC.interviewNotes,
         projectSlug: "plastic-usage-classification",
       },
@@ -249,6 +252,7 @@ export const moreProjects: Project[] = [
   },
   {
     slug: "wesource-fraud-detection",
+    compact: true,
     name: "Delivery Fraud Detector",
     tagline: "A small CNN for a delivery startup.",
     year: "2021 to 2022",
@@ -267,7 +271,7 @@ export const moreProjects: Project[] = [
         numeric: 87.34,
         suffix: "%",
         label: "Accuracy",
-        context: "At 103 ms latency. Self-reported in my resume.",
+        context: "At 103 ms latency.",
         source: SRC.resume,
         projectSlug: "wesource-fraud-detection",
       },

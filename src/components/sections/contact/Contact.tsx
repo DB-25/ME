@@ -30,7 +30,7 @@ const CSS = `
   transform: translateY(calc(var(--k) * -0.16em));
   transition: transform 0.45s var(--ease-out-expo), color 0.45s var(--ease-out-expo);
 }
-.email-link { font-size: clamp(2.4rem, 13.4vw, 4.5rem); }
+.email-link { font-size: clamp(1.5rem, calc((100vw - 2 * var(--gutter)) / 11.6), 4.5rem); }
 @media (min-width: 768px) { .email-link { font-size: min(7.6vw, 7.9rem); } }
 .email-link:focus-visible { outline-offset: 10px; }
 `;
@@ -45,7 +45,8 @@ export function Contact() {
       <style>{CSS}</style>
       <div className="sx-out shell flex flex-1 flex-col justify-between gap-16 pt-[16vh] md:pt-[14vh]">
         <div className="relative">
-          <Scrim shape="left" strength={0.7} inset="-12% -4% -12% -24px" />
+          <Scrim shape="band" strength={0.82} inset="-12% -4% -12% -24px" className="md:hidden" />
+          <Scrim shape="hold" strength={0.7} inset="-12% -4% -12% -24px" className="hidden md:block" />
           <SectionLabel chapter="contact" className="mb-6" />
           <h2 id="contact-title" className="max-w-[14ch] text-[clamp(2.6rem,6.4vw,6.75rem)] font-medium leading-[0.96] tracking-[-0.04em]">
             <Reveal as="span" className="block">
@@ -57,10 +58,11 @@ export function Contact() {
           </Reveal>
         </div>
 
-        <div>
+        <div className="relative">
+          <Scrim shape="band" strength={0.82} inset="-14% -4% -10% -4%" />
           <div className="mb-4 flex items-baseline justify-between gap-4">
-            <p className="label">Write to me</p>
-            <p className="label !text-accent-hot" role="status" aria-live="polite">
+            <p className="label !text-[12px] !text-ink/75">Write to me</p>
+            <p className="label !text-[12px] !text-accent-hot" role="status" aria-live="polite">
               {copied ? "COPIED" : state === "failed" ? "COPY FAILED. SELECT IT BY HAND." : ""}
             </p>
           </div>
@@ -72,7 +74,7 @@ export function Contact() {
               type="button"
               onClick={copy}
               aria-label={`Copy ${profile.email} to clipboard`}
-              className="label inline-flex w-fit items-center border border-hairline-strong px-5 py-3 !text-ink transition-colors duration-300 hover:border-accent hover:!text-accent-hot"
+              className="label inline-flex w-fit !text-[12px] items-center border border-hairline-strong px-5 py-3 !text-ink transition-colors duration-300 hover:border-accent hover:!text-accent-hot"
             >
               {copied ? "Copied" : "Copy address"}
             </button>
@@ -83,7 +85,7 @@ export function Contact() {
                     href={l.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="label link !text-ink hover:!text-accent-hot"
+                    className="label link !text-[12px] !text-ink hover:!text-accent-hot"
                   >
                     {l.label}
                     <span aria-hidden className="ml-1 text-muted">
@@ -96,7 +98,10 @@ export function Contact() {
           </div>
         </div>
 
-        <SiteFooter />
+        <div className="relative">
+          <Scrim shape="band" strength={0.8} inset="-10% -4% 0 -4%" />
+          <SiteFooter />
+        </div>
       </div>
 
       <p

@@ -21,7 +21,7 @@ const SHADOW = "[text-shadow:0_0_12px_rgb(6_5_9/1),0_0_28px_rgb(6_5_9/0.9)]";
 
 function Source({ metric }: { metric: Metric }) {
   const ref = sourceRef(metric.source);
-  if (!ref.href) return <span className="label !text-dim">{ref.label}</span>;
+  if (!ref.href) return <span className="label !text-[12px] !text-ink/65">{ref.label}</span>;
   return (
     <a
       href={assetUrl(ref.href)}
@@ -29,7 +29,7 @@ function Source({ metric }: { metric: Metric }) {
       rel="noopener noreferrer"
       data-cursor="read"
       aria-label={`${ref.label}, for ${metric.label}`}
-      className="label link inline-block !text-muted hover:!text-ink"
+      className="label link inline-block !text-[12px] !text-ink/70 hover:!text-ink"
     >
       {ref.label}
     </a>
@@ -79,7 +79,7 @@ export function Impact() {
 
         <div className="mt-[clamp(40px,6vw,88px)] grid-12 items-end gap-y-8">
           <FadeIn className="col-span-12 border-t border-hairline-strong pt-4 md:col-span-8">
-            <p className="label !text-ink">{LEAD.label}</p>
+            <p className="label !text-[12px] !text-ink">{LEAD.label}</p>
             <div className="mt-[clamp(10px,1.6vw,22px)]">
               <Figure metric={LEAD} size="text-[clamp(4.75rem,20vw,20rem)]" />
             </div>
@@ -93,7 +93,7 @@ export function Impact() {
           {LARGE.map((m, i) => (
             <li key={m.label} className={`col-span-12 md:col-span-6 ${i === 1 ? "md:mt-[5vw]" : ""}`}>
               <FadeIn className="border-t border-hairline-strong pt-4">
-                <p className="label !text-ink">{m.label}</p>
+                <p className="label !text-[12px] !text-ink">{m.label}</p>
                 <div className="mt-[clamp(10px,1.6vw,22px)]">
                   <Figure metric={m} size="text-[clamp(3.75rem,9vw,9rem)]" />
                 </div>
@@ -107,7 +107,7 @@ export function Impact() {
           {MEDIUM.map((m, i) => (
             <li key={m.label} className={`col-span-12 md:col-span-4 ${i === 1 ? "md:mt-[3vw]" : i === 2 ? "md:mt-[6vw]" : ""}`}>
               <FadeIn className="border-t border-hairline-strong pt-4">
-                <p className="label !text-ink">{m.label}</p>
+                <p className="label !text-[12px] !text-ink">{m.label}</p>
                 <div className="mt-[clamp(8px,1.2vw,16px)]">
                   <Figure metric={m} size="text-[clamp(3.25rem,6vw,6rem)]" />
                 </div>
@@ -124,8 +124,8 @@ export function Impact() {
                 <Scrim strength={0.75} />
                 <Figure metric={m} size="text-[clamp(2.5rem,4.4vw,4.25rem)]" />
                 <div>
-                  <p className="label !text-ink">{m.label}</p>
-                  <p className={`mt-2 max-w-[28rem] text-[0.875rem] leading-[1.5] text-ink/75 ${SHADOW}`}>{m.context}</p>
+                  <p className="label !text-[12px] !text-ink">{m.label}</p>
+                  <p className={`mt-2 max-w-[28rem] text-[0.9375rem] leading-[1.5] text-ink/80 ${SHADOW}`}>{m.context}</p>
                   <p className="mt-2">
                     <Source metric={m} />
                   </p>

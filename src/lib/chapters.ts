@@ -7,7 +7,7 @@ export const CHAPTERS: Chapter[] = [
   { id: "hero", index: "00", label: "Signal", formation: "signal" },
   { id: "impact", index: "01", label: "Impact", formation: "crowd" },
   { id: "work", index: "02", label: "Work", formation: "noise" },
-  { id: "origin", index: "03", label: "Origin", formation: "globe" },
+  { id: "origin", index: "03", label: "About", formation: "globe" },
   { id: "systems", index: "04", label: "How I build", formation: "network" },
   { id: "proof", index: "05", label: "Proof", formation: "constellation" },
   { id: "director", index: "06", label: "Director", formation: "noise" },

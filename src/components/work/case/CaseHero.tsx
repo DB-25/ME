@@ -1,6 +1,6 @@
 import type { Project } from "@/content";
 import { Reveal } from "@/components/ui/Reveal";
-import { CATEGORY_LABEL, pad } from "../meta";
+import { CATEGORY_LABEL, pad, tie, titleLen } from "../meta";
 import { CaseLabel } from "./CaseLabel";
 import { DrawRule } from "./DrawRule";
 
@@ -23,30 +23,33 @@ export function CaseHero({ project, index, total }: { project: Project; index: n
         </p>
       </div>
 
-      <h1 className="cs-title" style={{ ["--len" as string]: project.name.length }}>
-        <Reveal as="span" immediate delay={0.1} className="block">
-          {project.name}
-        </Reveal>
-      </h1>
-
-      <div className="grid-12 cs-hero-sub">
-        <Reveal as="p" mode="fade" immediate delay={0.4} className="lede cs-tagline col-span-12 md:col-span-6">
-          {project.tagline}
-        </Reveal>
+      <div className="cs-hero-body">
+        <div className="cs-hero-main">
+          <h1 className="cs-title" style={{ ["--len" as string]: titleLen(project.name) }}>
+            <Reveal as="span" immediate delay={0.1} className="block">
+              {project.name}
+            </Reveal>
+          </h1>
+          <Reveal as="p" mode="fade" immediate delay={0.4} className="lede cs-tagline">
+            {tie(project.tagline)}
+          </Reveal>
+        </div>
         {(project.owned || lead) && (
-          <Reveal mode="fade" immediate delay={0.55} className="cs-owned col-span-12 md:col-span-5 md:col-start-8">
+          <Reveal mode="fade" immediate delay={0.55} className="cs-owned">
             {project.owned && (
               <section aria-labelledby="cs-owned-k">
                 <p id="cs-owned-k" className="label cs-owned-k">
                   What I owned
                 </p>
-                <p className="cs-owned-v">{project.owned}</p>
+                <p className="cs-owned-v">{tie(project.owned)}</p>
               </section>
             )}
             {lead && (
               <p className="cs-lead">
-                <span className="cs-lead-v num">{lead.value}</span>
-                <span className="cs-lead-l label">{lead.label}</span>
+                <span className="cs-lead-v num" data-one={lead.value.startsWith("1") ? "" : undefined}>
+                  {lead.value}
+                </span>
+                <span className="cs-lead-l label">{tie(lead.label)}</span>
               </p>
             )}
           </Reveal>
@@ -58,7 +61,7 @@ export function CaseHero({ project, index, total }: { project: Project; index: n
         {meta.map((m) => (
           <div key={m.k}>
             <dt className="label">{m.k}</dt>
-            <dd>{m.v}</dd>
+            <dd>{tie(m.v)}</dd>
           </div>
         ))}
       </dl>

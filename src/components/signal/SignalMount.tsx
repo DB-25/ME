@@ -20,7 +20,7 @@ const SMALL_VIEWPORT = 768;
 const IDLE_TIMEOUT_MS = 1200;
 const LIGHT_DELAY_MS = 2500;
 const FALLBACK_DELAY_MS = 150;
-const FADE_IN = "opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1)";
+const FADE_IN = "opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1)";
 const INTERACTION_EVENTS = ["scroll", "wheel", "touchstart", "pointerdown", "keydown"] as const;
 
 function pickQuality(): FieldQuality {
@@ -81,20 +81,22 @@ function afterInteractionOrDelay(cb: () => void): () => void {
   return stop;
 }
 
-/** load -> first paint -> (phones: first scroll or 2.5s) -> idle -> boot. Returns a cancel function. */
+/** Desktop: first paint -> boot. Phones: load -> first paint -> first input or 2.5s -> idle -> boot. Returns a cancel function. */
 function scheduleBoot(deferToInput: boolean, boot: () => void): () => void {
   let cancelStage: () => void = () => {};
   const idleStage = () => {
     cancelStage = onIdle(boot);
   };
   const gateStage = () => {
-    cancelStage = deferToInput ? afterInteractionOrDelay(idleStage) : onIdle(boot);
+    // Desktop (fine pointer) mounts straight after first paint; phones wait for input or a short delay.
+    if (deferToInput) cancelStage = afterInteractionOrDelay(idleStage);
+    else boot();
   };
   const paintStage = () => {
     cancelStage = afterPaint(gateStage);
   };
   let loadListener = false;
-  if (document.readyState === "complete") paintStage();
+  if (!deferToInput || document.readyState === "complete") paintStage();
   else {
     loadListener = true;
     window.addEventListener("load", paintStage, { once: true });

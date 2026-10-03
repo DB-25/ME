@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from "react";
 import { gsap, EASE_OUT, prefersReducedMotion } from "@/lib/motion";
+import { Scrim } from "../Scrim";
 import { rankFor, ROUND_SIZE, useAimTrainer, type Burst, type Pos } from "./useAimTrainer";
 
 const fmt = (n: number | null) => (n === null ? "000" : String(n).padStart(3, "0"));
@@ -10,10 +11,10 @@ const BURST_SPOKES = 8;
 function Stat({ label, value, dim }: { label: string; value: string; dim?: boolean }) {
   return (
     <div className="min-w-0">
-      <p className="label">{label}</p>
+      <p className="label !text-[12px] !text-ink/75">{label}</p>
       <p className={`num font-mono text-[15px] md:text-[17px] ${dim ? "text-dim" : label === "TARGET" ? "text-ink" : "text-valorant"}`}>
         {value}
-        <span className="ml-1 text-[10px] text-muted">{label === "TARGET" ? "" : "MS"}</span>
+        <span className="ml-1 text-[11px] text-ink/70">{label === "TARGET" ? "" : "MS"}</span>
       </p>
     </div>
   );
@@ -164,7 +165,8 @@ export function AimTrainer() {
 
   return (
     <div>
-      <div className="mb-4 grid grid-cols-4 gap-3" data-aim-hud>
+      <div className="relative mb-4 grid max-w-[24rem] grid-cols-4 gap-3" data-aim-hud>
+        <Scrim shape="band" strength={0.9} inset="-30% -8% -30% -16px" />
         <Stat label="TARGET" value={`${Math.min(t.hits.length + (playing ? 1 : 0), ROUND_SIZE)}/${ROUND_SIZE}`} dim={t.phase === "idle"} />
         <Stat label="LAST" value={fmt(t.last)} dim={t.last === null} />
         <Stat label="AVG" value={fmt(t.average)} dim={t.average === null} />

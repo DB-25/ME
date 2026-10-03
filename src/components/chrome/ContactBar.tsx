@@ -28,7 +28,7 @@ main { overflow-x: clip; }
 /**
  * Mobile-only sticky contact bar: Résumé, Email, LinkedIn. Visible at every scroll
  * depth after the hero (and from the start on routes without one), hidden while the
- * mobile menu or the Director HUD is open.
+ * mobile menu or the Director HUD is open. Absent on /work/* (the case page has its own dock).
  *
  * Contract: anything that takes over the screen can hide this bar by adding a class
  * from COVERING_CLASSES to `document.body` (the mobile menu adds `menu-open`; the
@@ -36,7 +36,10 @@ main { overflow-x: clip; }
  * child of body works too.
  */
 export function ContactBar() {
-  const isHome = usePathname() === "/";
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+  // Case studies render their own mobile dock.
+  const hasOwnDock = pathname.startsWith("/work");
   const [scrolled, setScrolled] = useState(false);
   const [covered, setCovered] = useState(false);
 
@@ -54,6 +57,8 @@ export function ContactBar() {
     mo.observe(document.body, { attributes: true, attributeFilter: ["class"], childList: true });
     return () => mo.disconnect();
   }, []);
+
+  if (hasOwnDock) return null;
 
   const show = (scrolled || !isHome) && !covered;
   const linkedIn = profile.links.find((l) => l.label === "LinkedIn");

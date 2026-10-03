@@ -45,10 +45,16 @@ export type Project = {
   owned?: string;
   org?: string;
   featured: boolean;
+  /** Lab project too thin for its own page: listed as a row only, no /work/<slug>/ page. */
+  compact?: boolean;
   category: "gov-ai" | "platform" | "hackathon" | "mobile" | "lab" | "tool";
   problem: string;
   approach: string[];
-  architecture?: { nodes: string[]; flow: string };
+  /**
+   * `nodes` is one linear pipeline. When a project ships two systems (ABE and One-L), either put a "|" entry
+   * between the two runs of nodes, or fill `lanes`; the diagram then draws one lane per system.
+   */
+  architecture?: { nodes: string[]; flow: string; lanes?: { name: string; nodes: string[] }[] };
   outcomes: Metric[];
   /** Launch film shown at the top of the case study and as the work-list preview. */
   film?: Film;

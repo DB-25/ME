@@ -7,7 +7,8 @@ const SIZE = VIEWBOX * RASTER_SCALE;
 const MAX_LENGTH = 120_000;
 const MAX_ELEMENTS = 2_000;
 const FRAME_W = 4.4;
-const FRAME_H = 3.4;
+/** World height of the tallest drawing; the field frames it against the viewport (see SignalField). */
+export const FRAME_H = 3.4;
 const Z_JITTER = 0.008;
 const XY_JITTER = 0.15;
 const ALPHA_LIT = 160;

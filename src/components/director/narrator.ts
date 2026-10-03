@@ -23,27 +23,48 @@ const TIMED_CHARS_PER_SECOND = 17;
 const TIMED_MIN_MS = 700;
 /** A beat of silence between lines. */
 const GAP_MS = 220;
-/** Chunks longer than this are split at a clause break so a caption stays within three lines. */
-const MAX_CHUNK_CHARS = 96;
+/** Chunks longer than this are split at a clause break so a caption stays within two lines. */
+const MAX_CHUNK_CHARS = 84;
+const MAX_CHUNK_CHARS_NARROW = 62;
+const NARROW_PX = 640;
+
+const maxChunk = () => (typeof window !== "undefined" && window.innerWidth < NARROW_PX ? MAX_CHUNK_CHARS_NARROW : MAX_CHUNK_CHARS);
 
 const SENTENCE_END = /(?<=[.!?])\s+(?=[A-Z0-9"'])/;
 const CLAUSE_BREAK = /(?<=[,:;])\s+/;
 
-/** Split a line into captions: sentences, then clauses for the long ones. */
+/** Break a run of words into the fewest pieces of at most `max` characters, as even as it can. */
+function evenSplit(text: string, max: number): string[] {
+  if (text.length <= max) return [text];
+  const pieces = Math.ceil(text.length / max);
+  const target = text.length / pieces;
+  const out: string[] = [];
+  let current = "";
+  for (const word of text.split(" ")) {
+    if (current && current.length + word.length + 1 > target + 6 && out.length < pieces - 1) {
+      out.push(current);
+      current = word;
+    } else current = current ? `${current} ${word}` : word;
+  }
+  return [...out, current];
+}
+
+/** Split a line into captions: sentences, then clauses, then even pieces for anything still too long for two lines. */
 export function toChunks(text: string): string[] {
+  const max = maxChunk();
   return text
     .split(SENTENCE_END)
     .map((s) => s.trim())
     .filter(Boolean)
     .flatMap((sentence) => {
-      if (sentence.length <= MAX_CHUNK_CHARS) return [sentence];
+      if (sentence.length <= max) return [sentence];
       const out: string[] = [];
       for (const part of sentence.split(CLAUSE_BREAK)) {
         const last = out[out.length - 1];
-        if (last && last.length + part.length < MAX_CHUNK_CHARS * 0.6) out[out.length - 1] = `${last} ${part}`;
+        if (last && last.length + part.length < max * 0.6) out[out.length - 1] = `${last} ${part}`;
         else out.push(part);
       }
-      return out;
+      return out.flatMap((part) => evenSplit(part, max));
     });
 }
 

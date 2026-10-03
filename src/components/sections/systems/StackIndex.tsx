@@ -16,26 +16,19 @@ const KNOWN = new Set(stack.flatMap((g) => g.items));
 
 export function StackIndex() {
   return (
-    <div className="relative">
-      <Scrim strength={0.78} inset="-12% -4%" />
-      <p className="label">What I reach for</p>
+    <div className="relative md:max-w-[52%]">
+      <Scrim shape="hold" strength={0.84} inset="-12% -22% -12% -28px" />
+      <p className="label !text-[12px] !text-ink/70">What I reach for</p>
       <dl className="mt-6 border-b border-hairline">
         {LINES.map((line) => (
-          <FadeIn key={line.name} className="grid gap-x-[var(--gutter)] gap-y-2 border-t border-hairline py-5 md:grid-cols-[14rem_1fr] md:py-6">
-            <dt className="label md:pt-[0.7em]">{line.name}</dt>
+          <FadeIn key={line.name} className="grid gap-x-[var(--gutter)] gap-y-2 border-t border-hairline py-5 md:grid-cols-[9.5rem_1fr] md:py-6">
+            <dt className="label !text-[12px] !text-ink/70 md:pt-[0.55em]">{line.name}</dt>
             <dd>
-              <ul className="flex flex-wrap items-baseline gap-x-[0.9em] gap-y-1 text-[clamp(1.125rem,1.8vw,1.625rem)] leading-[1.35] tracking-[-0.02em] text-ink">
+              <ul className="flex flex-wrap items-baseline gap-x-[1.5em] gap-y-1 text-[clamp(1.125rem,1.7vw,1.5rem)] leading-[1.35] tracking-[-0.02em] text-ink [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">
                 {line.items
                   .filter((item) => KNOWN.has(item))
-                  .map((item, i, all) => (
-                    <li key={item} className="flex items-baseline gap-x-[0.9em]">
-                      {item}
-                      {i < all.length - 1 && (
-                        <span aria-hidden className="text-faint">
-                          /
-                        </span>
-                      )}
-                    </li>
+                  .map((item) => (
+                    <li key={item}>{item}</li>
                   ))}
               </ul>
             </dd>

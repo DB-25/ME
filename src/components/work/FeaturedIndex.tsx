@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import type { Project } from "@/content";
 import {
   gsap,
@@ -11,8 +11,8 @@ import {
 } from "@/lib/motion";
 import { assetUrl, caseHref } from "./asset";
 import { CATEGORY_LABEL, pad, previewImage } from "./meta";
-import { CursorPreview, type PreviewItem } from "./CursorPreview";
 import { useDesktopHover } from "./useDesktopHover";
+import { useRowFilm } from "./useRowFilm";
 
 type Props = { projects: Project[]; spotlight: string | null };
 
@@ -60,6 +60,7 @@ function Row({
   index,
   active,
   spot,
+  films,
   onHover,
   onFocusChange,
 }: {
@@ -67,11 +68,14 @@ function Row({
   index: number;
   active: boolean;
   spot: boolean;
+  films: boolean;
   onHover: (slug: string | null, e: React.PointerEvent) => void;
   onFocusChange: (slug: string | null) => void;
 }) {
   const img = previewImage(project);
   const lead = project.outcomes[0];
+  const frame = useRef<HTMLElement>(null);
+  useRowFilm(frame, project.film ? assetUrl(project.film.src) : undefined, active, films);
   return (
     <li
       className="wk-row"
@@ -82,7 +86,6 @@ function Row({
       <Link
         href={caseHref(project.slug)}
         className="wk-link"
-        data-cursor="open"
         onPointerEnter={(e) => onHover(project.slug, e)}
         onFocus={() => onFocusChange(project.slug)}
         onBlur={() => onFocusChange(null)}
@@ -102,9 +105,9 @@ function Row({
         </div>
 
         {img ? (
-          <figure className="wk-inline" data-thumb={img.thumb ? "" : undefined} data-reveal>
+          <figure ref={frame} className="wk-inline" data-cursor="open" data-thumb={img.thumb ? "" : undefined} data-reveal>
             <picture>
-              {img.src43 ? <source media="(max-width: 559px)" srcSet={assetUrl(img.src43)} /> : null}
+              {img.src43 ? <source media="(max-width: 559px), (min-width: 900px)" srcSet={assetUrl(img.src43)} /> : null}
               <img
                 src={assetUrl(img.src)}
                 alt={img.alt}
@@ -140,38 +143,18 @@ function Row({
         ) : null}
 
         <div className="wk-pick" aria-hidden={!spot}>
-          <div className="wk-pick-in">
-            <div className="wk-pick-body">
-              <div className="wk-pick-media" data-thumb={img?.thumb ? "" : undefined}>
-                {img ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={assetUrl(img.src)}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <div className="wk-pick-type">
-                    <span>{project.name}</span>
-                  </div>
-                )}
-              </div>
-              <div className="wk-pick-side">
-                <dl className="wk-pick-facts">
-                  {project.outcomes.map((o) => (
-                    <div key={o.label}>
-                      <dt className="label">{o.label}</dt>
-                      <dd className="num">{o.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <p className="wk-pick-cta label">
-                  {project.role} <span aria-hidden>/</span> Open case study{" "}
-                  <span aria-hidden>&rarr;</span>
-                </p>
-              </div>
-            </div>
+          <div className="wk-pick-body">
+            <dl className="wk-pick-facts">
+              {project.outcomes.slice(0, 3).map((o) => (
+                <div key={o.label}>
+                  <dd className="num">{o.value}</dd>
+                  <dt className="label">{o.label}</dt>
+                </div>
+              ))}
+            </dl>
+            <p className="wk-pick-cta label">
+              {project.role} <span aria-hidden>/</span> Open case study <span aria-hidden>&rarr;</span>
+            </p>
           </div>
         </div>
       </Link>
@@ -184,22 +167,6 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
   const [hover, setHover] = useState<string | null>(null);
   const [focus, setFocus] = useState<string | null>(null);
   const desktop = useDesktopHover();
-
-  const items = useMemo<PreviewItem[]>(
-    () =>
-      projects.map((p) => {
-        const img = previewImage(p);
-        return {
-          slug: p.slug,
-          name: p.name,
-          src: img ? assetUrl(img.src) : undefined,
-          raw: img ? !img.thumb : false,
-          video: p.film ? assetUrl(p.film.src) : undefined,
-          alt: img?.alt ?? p.name,
-        };
-      }),
-    [projects],
-  );
 
   // Entrance: names rise inside their masks, details fade up, once per row.
   useEffect(() => {
@@ -255,12 +222,6 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
       });
   }, [spotlight]);
 
-  // The expanding row changes document height: let ScrollTrigger re-measure after it settles.
-  useEffect(() => {
-    const t = window.setTimeout(() => ScrollTrigger.refresh(), 1100);
-    return () => window.clearTimeout(t);
-  }, [spotlight]);
-
   const current = hover ?? focus;
   return (
     <>
@@ -278,12 +239,12 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
             index={i}
             active={current === p.slug || spotlight === p.slug}
             spot={spotlight === p.slug}
+            films={desktop}
             onHover={(slug, e) => e.pointerType === "mouse" && setHover(slug)}
             onFocusChange={setFocus}
           />
         ))}
       </ol>
-      {desktop ? <CursorPreview items={items} activeSlug={hover} /> : null}
     </>
   );
 }

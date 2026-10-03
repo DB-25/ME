@@ -29,7 +29,7 @@ const go = (chapter: Extract<DirectorAction, { name: "goto_chapter" }>["args"]["
   act: { name: "goto_chapter", args: { chapter } },
 });
 const show = (slug: string): Step[] => (has(slug) ? [{ act: { name: "show_project", args: { slug } } }] : []);
-const open = (slug: string): Step[] => (has(slug) ? [{ act: { name: "open_case_study", args: { slug } } }] : []);
+const open = (slug: string): Step[] => (has(slug) && !project(slug)?.compact ? [{ act: { name: "open_case_study", args: { slug } } }] : []);
 const draw = (art: ArtId, label: string): Step => ({ act: { name: "draw", args: { svg: ART[art], label } } });
 const hue = (hex: string | null): Step => ({ act: { name: "set_hue", args: { hex } } });
 const form = (formation: Extract<DirectorAction, { name: "form" }>["args"]["formation"]): Step => ({

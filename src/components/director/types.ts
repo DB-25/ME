@@ -1,6 +1,7 @@
 import type { Caption } from "./narrator";
 
-export type RunPhase = "idle" | "running" | "outro";
+/** "done": the take has ended; the top bar stays up briefly with "Again". */
+export type RunPhase = "idle" | "running" | "outro" | "done";
 export type DirectorMode = "live" | "offline";
 
 export type LogLine = { id: number; text: string };
@@ -19,8 +20,6 @@ export type DirectorState = {
   figure: Figure | null;
   /** performance.now() at the start of the take, for the timecode. */
   startedAt: number;
-  /** A take has finished and the visitor has not started another. */
-  afterglow: boolean;
 };
 
 export const INITIAL_STATE: DirectorState = {
@@ -33,7 +32,6 @@ export const INITIAL_STATE: DirectorState = {
   log: [],
   figure: null,
   startedAt: 0,
-  afterglow: false,
 };
 
 /** Event fired on window when the Director spotlights a project in the Work chapter. */

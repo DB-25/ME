@@ -16,7 +16,7 @@ export function SystemsHeader() {
       </div>
       <FadeIn delay={0.15} className="relative col-span-12 md:col-span-4 md:col-start-9 md:self-end">
         <Scrim strength={0.7} />
-        <p className="label">Architecture: {PIPELINE_SOURCE.name}</p>
+        <p className="label !text-[12px] !text-ink/70">Architecture: {PIPELINE_SOURCE.name}</p>
         <p className="lede mt-3 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">{PIPELINE_SOURCE.tagline}</p>
       </FadeIn>
     </header>

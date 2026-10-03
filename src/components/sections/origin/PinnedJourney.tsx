@@ -148,7 +148,7 @@ export function PinnedJourney() {
                           </p>
                         )}
                       </div>
-                      <p data-part className="col-span-3 max-w-[30rem] pt-[1.55rem] text-[clamp(0.9375rem,1.15vw,1.0625rem)] leading-[1.55] text-ink/70 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">
+                      <p data-part className="col-span-3 max-w-[30rem] pt-[1.55rem] text-[clamp(0.9375rem,1.15vw,1.0625rem)] leading-[1.55] text-ink/80 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">
                         {b.body}
                       </p>
                     </div>

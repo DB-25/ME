@@ -134,7 +134,7 @@ export function SystemsFlow() {
 
   return (
     <div ref={wrap} className="sys-flow relative">
-      <Scrim shape="left" strength={0.7} inset="-6% -4% -6% -24px" />
+      <Scrim shape="hold" strength={0.84} inset="-4% -26% -4% -28px" />
       <svg
         ref={svg}
         className="sys-svg"
@@ -171,8 +171,8 @@ export function SystemsFlow() {
         {STAGES.map((s) => (
           <li key={s.id} className="sys-row" data-lit="">
             <h3 className="text-[clamp(1.375rem,2.2vw,1.875rem)] font-medium leading-none tracking-[-0.035em] text-ink">{s.label}</h3>
-            <p className="label mt-2">{s.component}</p>
-            <p className="mt-2 max-w-[28rem] text-[0.875rem] leading-[1.45] text-ink/75 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">{s.line}</p>
+            <p className="label mt-1.5 !text-[12px] !text-ink/70">{s.component}</p>
+            <p className="mt-1.5 max-w-[28rem] text-[0.9375rem] leading-[1.4] text-ink/85 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">{s.line}</p>
           </li>
         ))}
       </ol>

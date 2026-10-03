@@ -1,6 +1,6 @@
 import "./case.css";
 import { projects, type Project } from "@/content";
-import { pad } from "../meta";
+import { hasCase, pad } from "../meta";
 import { ArchitectureDiagram } from "./ArchitectureDiagram";
 import { BuildSection } from "./BuildSection";
 import { CaseFilm } from "./CaseFilm";
@@ -15,7 +15,7 @@ import { StackList } from "./StackList";
 
 /** Featured projects hand off to the next featured one, lab projects to the next lab one. */
 export function neighbours(project: Project) {
-  const group = projects.filter((p) => p.featured === project.featured);
+  const group = projects.filter((p) => hasCase(p) && p.featured === project.featured);
   const index = group.findIndex((p) => p.slug === project.slug);
   const next = group[(index + 1) % group.length];
   return { group, index, next, nextIndex: (index + 1) % group.length };

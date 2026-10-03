@@ -6,7 +6,7 @@ import type { DirectorAction, DirectorEvent, DirectorMessage } from "@/lib/direc
 import { isDirectorConfigured, remember, streamDirector } from "@/lib/director/client";
 import { explainMatch, offlineDirector } from "@/lib/director/offline";
 import { signalStore } from "@/lib/signal-store";
-import { runAction, releaseStage, sleep } from "./executor";
+import { releaseStage, reserveLane, runAction, sleep } from "./executor";
 import { Narrator, type Caption } from "./narrator";
 import { shouldPlayVoice } from "@/lib/director/voice";
 import { findLine } from "@/lib/director/voice-library";
@@ -29,6 +29,8 @@ const MAX_ACTIONS = 14;
 
 /** Set on <body> while a take runs, so site chrome (the mobile contact bar) can step aside. */
 const ACTIVE_CLASS = "director-active";
+/** After a take ends, the top bar lingers (with "Again") until the visitor moves on or this long passes. */
+const DONE_HOLD_MS = 9000;
 
 export function useDirectorRun() {
   const router = useRouter();
@@ -60,6 +62,7 @@ export function useDirectorRun() {
       abortRef.current?.abort();
       narratorRef.current?.dispose();
       releaseStage();
+      reserveLane(false);
     };
   }, [patch]);
 
@@ -70,15 +73,39 @@ export function useDirectorRun() {
     return () => document.body.classList.remove(ACTIVE_CLASS);
   }, [active]);
 
+  /** Close the HUD after a finished take. */
+  const dismiss = useCallback(() => {
+    if (stateRef.current.phase === "done") patch({ phase: "idle", caption: null });
+  }, [patch]);
+
+  /** Stop a take in progress, or close the HUD once it is over. */
   const cut = useCallback(() => {
-    abortRef.current?.abort();
-  }, []);
+    if (abortRef.current) abortRef.current.abort();
+    else dismiss();
+  }, [dismiss]);
+
+  // A finished take leaves the top bar up. The visitor's next move, or a pause, closes it.
+  const done = state.phase === "done";
+  useEffect(() => {
+    if (!done) return;
+    const close = () => dismiss();
+    const timer = window.setTimeout(close, DONE_HOLD_MS);
+    const opts = { passive: true } as const;
+    window.addEventListener("wheel", close, opts);
+    window.addEventListener("touchmove", close, opts);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("wheel", close);
+      window.removeEventListener("touchmove", close);
+    };
+  }, [done, dismiss]);
 
   const run = useCallback(
     async (rawPrompt: string) => {
       const prompt = rawPrompt.trim();
       const narrator = narratorRef.current;
-      if (!prompt || !narrator || stateRef.current.phase !== "idle") return;
+      const phase = stateRef.current.phase;
+      if (!prompt || !narrator || (phase !== "idle" && phase !== "done")) return;
 
       const ctrl = new AbortController();
       const { signal } = ctrl;
@@ -109,9 +136,9 @@ export function useDirectorRun() {
         spoken: "",
         log: [],
         figure: null,
-        afterglow: false,
         startedAt: performance.now(),
       });
+      reserveLane(true);
 
       const energy = setInterval(() => {
         const { energy: e, set } = signalStore.getState();
@@ -212,12 +239,14 @@ export function useDirectorRun() {
         // Navigating away: the HUD stays until the route swaps and this hook unmounts.
         if (!navigating) {
           releaseStage();
-          patch({ phase: "idle", afterglow: true });
+          reserveLane(false);
+          // A take that ran to its end leaves the top bar up; a stopped one clears at once.
+          patch(signal.aborted ? { phase: "idle", caption: null } : { phase: "done", caption: null });
         }
       }
     },
     [patch, router],
   );
 
-  return { state, run, cut };
+  return { state, run, cut, dismiss };
 }

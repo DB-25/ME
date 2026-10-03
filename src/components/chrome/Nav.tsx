@@ -15,6 +15,23 @@ import { SectionLink } from "./SectionLink";
 
 const SHOW_NEAR_TOP = 80;
 const SCROLL_DELTA = 6;
+const DESKTOP_QUERY = "(min-width: 768px)";
+
+const CSS = `
+.chrome-nav-inner { transition: padding .45s var(--ease-out-expo); }
+/* Desktop never hides the bar: past the top it condenses into a slim translucent strip. */
+@media (min-width: 768px) {
+  .chrome-nav { transition: background-color .35s, border-color .35s, backdrop-filter .35s; border-bottom: 1px solid transparent; }
+  .chrome-nav[data-compact="true"] {
+    mix-blend-mode: normal;
+    background: rgb(6 5 9 / 0.74);
+    border-bottom-color: var(--color-hairline);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+  }
+  .chrome-nav[data-compact="true"] .chrome-nav-inner { padding-block: 12px; }
+}
+`;
 
 export function goTo(id: string) {
   scrollToTarget(`#${id}`);
@@ -31,8 +48,9 @@ export function Nav() {
   }, [open]);
   const closeMenu = useCallback(() => setOpen(false), []);
 
-  // Hide on scroll down, show on scroll up.
+  // Mobile: hide on scroll down, show on scroll up. Desktop: stay, condensed, once off the top.
   useEffect(() => {
+    const desktop = window.matchMedia(DESKTOP_QUERY);
     let last = window.scrollY;
     let hidden = false;
     const setHidden = (h: boolean) => {
@@ -40,9 +58,15 @@ export function Nav() {
       hidden = h;
       gsap.to(bar.current, { yPercent: h ? -110 : 0, duration: 0.7, ease: "expo.out", overwrite: "auto" });
     };
+    const syncCompact = () => bar.current?.setAttribute("data-compact", String(desktop.matches && window.scrollY >= SHOW_NEAR_TOP));
     const onScroll = () => {
       const y = window.scrollY;
       const dy = y - last;
+      syncCompact();
+      if (desktop.matches) {
+        setHidden(false);
+        return;
+      }
       if (openRef.current || y < SHOW_NEAR_TOP) setHidden(false);
       else if (Math.abs(dy) > SCROLL_DELTA) setHidden(dy > 0);
       if (Math.abs(dy) > SCROLL_DELTA) last = y;
@@ -50,15 +74,18 @@ export function Nav() {
     // Keyboard focus inside the bar always brings it back, so Tab never lands on an off-screen link.
     const onFocusIn = () => setHidden(false);
     const header = bar.current;
+    syncCompact();
     window.addEventListener("scroll", onScroll, { passive: true });
+    desktop.addEventListener("change", onScroll);
     header?.addEventListener("focusin", onFocusIn);
     return () => {
       window.removeEventListener("scroll", onScroll);
+      desktop.removeEventListener("change", onScroll);
       header?.removeEventListener("focusin", onFocusIn);
     };
   }, []);
 
-  const logoClass = "font-sans text-[15px] font-semibold tracking-[-0.04em] text-ink";
+  const logoClass = "inline-flex font-sans text-[15px] font-semibold tracking-[-0.04em] text-ink";
   // The visible text is "DB", so the accessible name starts with it (WCAG 2.5.3). The dot is decoration.
   const logo = (
     <Magnetic strength={0.4} pad={10}>
@@ -69,24 +96,33 @@ export function Nav() {
 
   return (
     <>
-      <header ref={bar} className="chrome-nav fixed inset-x-0 top-0 z-[80] mix-blend-difference">
-        <div className="mx-auto grid max-w-[var(--maxw)] grid-cols-[1fr_auto] items-center px-[var(--gutter)] py-5 md:grid-cols-[1fr_auto_1fr]">
-          {isHome ? (
-            <a
-              href="#hero"
-              onClick={(e) => {
-                e.preventDefault();
-                goTo("hero");
-              }}
-              className={logoClass}
-            >
-              {logo}
-            </a>
-          ) : (
-            <Link href="/" className={logoClass}>
-              {logo}
-            </Link>
-          )}
+      <style>{CSS}</style>
+      <header ref={bar} data-compact="false" className="chrome-nav fixed inset-x-0 top-0 z-[80] mix-blend-difference">
+        <div className="chrome-nav-inner mx-auto grid max-w-[var(--maxw)] grid-cols-[1fr_auto] items-center px-[var(--gutter)] py-5 md:grid-cols-[1fr_auto_1fr]">
+          <div className="flex items-center gap-5 justify-self-start">
+            {isHome ? (
+              <a
+                href="#hero"
+                onClick={(e) => {
+                  e.preventDefault();
+                  goTo("hero");
+                }}
+                className={logoClass}
+              >
+                {logo}
+              </a>
+            ) : (
+              <Link href="/" className={logoClass}>
+                {logo}
+              </Link>
+            )}
+            {!isHome && (
+              <Link href="/#work" className="label -my-3 inline-flex items-center gap-1.5 py-3 !text-ink md:hidden">
+                <span aria-hidden>←</span>
+                Work
+              </Link>
+            )}
+          </div>
 
           <ChapterIndicator className="max-md:hidden" />
 

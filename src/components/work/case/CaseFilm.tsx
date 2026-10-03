@@ -18,10 +18,14 @@ export function CaseFilm({ project }: { project: Project }) {
   const film = project.film;
   const video = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
+  // The still stays up until the first frame is really playing, so a slow start never shows a black box.
+  const [started, setStarted] = useState(false);
+  const [showText, setShowText] = useState(false);
   const [muted, setMuted] = useState(true);
   const userPaused = useRef(false);
   const transcriptId = useId();
   const hasVertical = Boolean(film?.vertical);
+  const still = useRef<HTMLImageElement>(null);
 
   // Pick the source once, at mount (vertical on phones, landscape elsewhere). The <video> renders
   // without a src, so only the chosen file is ever fetched; autoplay waits for the frame to be in view.
@@ -30,8 +34,11 @@ export function CaseFilm({ project }: { project: Project }) {
     if (!el || !film) return;
     const tall = Boolean(film.vertical) && window.matchMedia(PHONE_QUERY).matches;
     const pick = tall && film.vertical ? film.vertical : film;
+    // Buffer right away (the film sits directly under the title) so autoplay on scroll-in starts within a beat.
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    el.preload = saveData ? "metadata" : "auto";
     el.src = assetUrl(pick.src);
-    if (tall && film.vertical) el.poster = assetUrl(film.vertical.poster);
+    if (tall && film.vertical && still.current) still.current.src = assetUrl(film.vertical.poster);
     if (prefersReducedMotion()) return;
     const io = new IntersectionObserver(
       ([entry]) => {
@@ -74,7 +81,6 @@ export function CaseFilm({ project }: { project: Project }) {
       <div className="cs-film-frame" data-vertical={hasVertical ? "" : undefined}>
         <video
           ref={video}
-          poster={assetUrl(film.thumb ?? film.poster)}
           aria-label={film.title}
           aria-describedby={film.transcript ? transcriptId : undefined}
           muted
@@ -82,9 +88,25 @@ export function CaseFilm({ project }: { project: Project }) {
           playsInline
           preload="metadata"
           onPlay={() => setPlaying(true)}
+          onPlaying={() => setStarted(true)}
           onPause={() => setPlaying(false)}
           onClick={togglePlay}
         />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img ref={still} className="cs-film-still" src={assetUrl(film.thumb ?? film.poster)} alt="" data-gone={started ? "" : undefined} aria-hidden />
+      </div>
+      <div className="cs-film-bar">
+        {film.transcript ? (
+          <button
+            type="button"
+            className="label cs-film-btn cs-film-tx"
+            aria-expanded={showText}
+            aria-controls={transcriptId}
+            onClick={() => setShowText((v) => !v)}
+          >
+            <span aria-hidden>{showText ? "\u2013" : "+"}</span> Transcript
+          </button>
+        ) : null}
         <div className="cs-film-controls">
           <button type="button" className="label cs-film-btn" onClick={togglePlay}>
             {playing ? "Pause" : "Play film"}
@@ -95,10 +117,9 @@ export function CaseFilm({ project }: { project: Project }) {
         </div>
       </div>
       {film.transcript ? (
-        <details className="cs-film-transcript">
-          <summary className="label">Transcript</summary>
-          <p id={transcriptId}>{film.transcript}</p>
-        </details>
+        <p id={transcriptId} className="cs-film-text" hidden={!showText}>
+          {film.transcript}
+        </p>
       ) : null}
     </section>
   );

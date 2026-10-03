@@ -2,18 +2,21 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { profile, projects } from "@/content";
 import { CaseStudy } from "@/components/work/case/CaseStudy";
+import { hasCase } from "@/components/work/meta";
+
+const cases = projects.filter(hasCase);
 
 type Params = { slug: string };
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return projects.map((p) => ({ slug: p.slug }));
+  return cases.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const project = projects.find((p) => p.slug === slug);
+  const project = cases.find((p) => p.slug === slug);
   if (!project) return {};
   const title = `${project.name}: ${project.tagline}`;
   const image = project.media.find((m) => m.kind === "image");
@@ -40,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 export default async function CaseStudyPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const project = projects.find((p) => p.slug === slug);
+  const project = cases.find((p) => p.slug === slug);
   if (!project) notFound();
   return <CaseStudy project={project} />;
 }

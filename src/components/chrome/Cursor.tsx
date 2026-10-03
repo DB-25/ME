@@ -5,7 +5,10 @@ import { gsap, isCoarsePointer, prefersReducedMotion } from "@/lib/motion";
 
 // The ring is laid out once at RING px; every state is a transform scale (no layout work per frame).
 const RING = 38;
-const SCALE_LABEL = 92 / RING;
+const SCALE_LABEL = 52 / RING;
+/** The label badge sits this far down-right of the pointer so it never covers the hovered text. */
+const BADGE_OFFSET = 24;
+const BADGE_EDGE = 8;
 const SCALE_MAGNET = 58 / RING;
 const PRESS_SCALE = 0.86;
 const MAGNET_PULL = 0.32;
@@ -14,7 +17,8 @@ const TEXTY = "input, textarea, select, [contenteditable='true']";
 
 /**
  * Dot (instant) + lagging ring. Conventions for other components:
- *  - `data-cursor="open"` (or any label): ring grows and shows that mono label.
+ *  - `data-cursor="open"` (or any label): ring grows slightly and a small badge with that mono label
+ *    trails 24px down-right of the pointer (flipping at viewport edges).
  *  - any `a` / `button`: ring goes into a magnet state, pulled toward the element.
  * Only mounts on fine pointers without reduced motion. While active, the native cursor is
  * hidden on the page and on interactive elements (see the scoped CSS below), never on text fields.
@@ -22,19 +26,24 @@ const TEXTY = "input, textarea, select, [contenteditable='true']";
 export function Cursor() {
   const dot = useRef<HTMLDivElement>(null);
   const ring = useRef<HTMLDivElement>(null);
+  const badge = useRef<HTMLDivElement>(null);
   const label = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const dotEl = dot.current;
     const ringEl = ring.current;
+    const badgeEl = badge.current;
     const labelEl = label.current;
-    if (!dotEl || !ringEl || !labelEl) return;
+    if (!dotEl || !ringEl || !badgeEl || !labelEl) return;
     if (isCoarsePointer() || prefersReducedMotion() || !window.matchMedia("(hover: hover)").matches) return;
 
     const root = document.documentElement;
     root.classList.add("has-cursor");
 
     gsap.set([dotEl, ringEl], { xPercent: -50, yPercent: -50, x: -100, y: -100 });
+    gsap.set(badgeEl, { x: -200, y: -200 });
+    const badgeX = gsap.quickTo(badgeEl, "x", { duration: 0.3, ease: "power3.out" });
+    const badgeY = gsap.quickTo(badgeEl, "y", { duration: 0.3, ease: "power3.out" });
     const dotX = gsap.quickSetter(dotEl, "x", "px");
     const dotY = gsap.quickSetter(dotEl, "y", "px");
     const ringX = gsap.quickTo(ringEl, "x", { duration: 0.55, ease: "power3.out" });
@@ -48,11 +57,17 @@ export function Cursor() {
     let pressed = false;
 
     const ringScale = () => (state === "label" ? SCALE_LABEL : state === "magnet" ? SCALE_MAGNET : 1) * (pressed ? PRESS_SCALE : 1);
-    // The label text lives inside the ring, so it takes the inverse scale to stay a constant size.
     const applyScale = (duration: number, ease: string) => {
-      const k = ringScale();
-      gsap.to(ringEl, { scale: k, duration, ease, overwrite: "auto" });
-      gsap.to(labelEl, { scale: 1 / k, duration, ease, overwrite: "auto" });
+      gsap.to(ringEl, { scale: ringScale(), duration, ease, overwrite: "auto" });
+    };
+    // Down-right of the pointer; flips to the other side when it would leave the viewport.
+    const placeBadge = () => {
+      const w = badgeEl.offsetWidth;
+      const h = badgeEl.offsetHeight;
+      const x = px + BADGE_OFFSET + w + BADGE_EDGE > window.innerWidth ? px - BADGE_OFFSET - w : px + BADGE_OFFSET;
+      const y = py + BADGE_OFFSET + h + BADGE_EDGE > window.innerHeight ? py - BADGE_OFFSET - h : py + BADGE_OFFSET;
+      badgeX(x);
+      badgeY(y);
     };
 
     const setVisible = (v: boolean) => {
@@ -64,16 +79,19 @@ export function Cursor() {
     const applyRing = (next: typeof state, text = "") => {
       state = next;
       gsap.to(ringEl, {
-        backgroundColor: next === "label" ? "rgba(201,190,255,0.96)" : next === "magnet" ? "rgba(139,123,255,0.14)" : "rgba(139,123,255,0)",
+        backgroundColor: next === "label" ? "rgba(139,123,255,0.16)" : next === "magnet" ? "rgba(139,123,255,0.14)" : "rgba(139,123,255,0)",
         borderColor: next === "magnet" ? "rgba(201,190,255,0.9)" : next === "label" ? "rgba(201,190,255,1)" : "rgba(238,234,246,0.38)",
         duration: 0.6,
         ease: "expo.out",
         overwrite: "auto",
       });
       applyScale(0.6, "expo.out");
-      labelEl.textContent = text;
-      gsap.to(labelEl, { opacity: next === "label" ? 1 : 0, duration: 0.25, overwrite: "auto" });
-      gsap.to(dotEl, { scale: next === "idle" ? 1 : 0, duration: 0.3, ease: "expo.out", overwrite: "auto" });
+      if (next === "label") {
+        labelEl.textContent = text;
+        placeBadge();
+      }
+      gsap.to(badgeEl, { opacity: next === "label" ? 1 : 0, duration: 0.25, overwrite: "auto" });
+      gsap.to(dotEl, { scale: next === "idle" || next === "label" ? 1 : 0, duration: 0.3, ease: "expo.out", overwrite: "auto" });
     };
 
     const retarget = () => {
@@ -100,6 +118,7 @@ export function Cursor() {
       dotX(px);
       dotY(py);
       retarget();
+      if (state === "label") placeBadge();
     };
 
     const onOver = (e: PointerEvent) => {
@@ -165,7 +184,7 @@ export function Cursor() {
       document.documentElement.removeEventListener("pointerleave", onLeaveDoc);
       document.documentElement.removeEventListener("pointerenter", onEnterDoc);
       window.removeEventListener("scroll", retarget);
-      gsap.killTweensOf([dotEl, ringEl, labelEl]);
+      gsap.killTweensOf([dotEl, ringEl, badgeEl]);
     };
   }, []);
 
@@ -176,7 +195,12 @@ export function Cursor() {
         className="absolute left-0 top-0 flex items-center justify-center rounded-full border opacity-0 will-change-transform"
         style={{ width: RING, height: RING, borderColor: "rgba(238,234,246,0.38)" }}
       >
-        <span ref={label} className="label !text-[10px] !text-void opacity-0 whitespace-nowrap will-change-transform" />
+      </div>
+      <div
+        ref={badge}
+        className="absolute left-0 top-0 whitespace-nowrap rounded-full border border-accent-hot bg-[rgb(201,190,255)] px-2.5 py-1 opacity-0 will-change-transform"
+      >
+        <span ref={label} className="label block !text-[11px] !font-medium !leading-none !text-void" />
       </div>
       <div ref={dot} className="absolute left-0 top-0 h-[6px] w-[6px] rounded-full bg-ink opacity-0" />
       <style>{`
