@@ -17,20 +17,20 @@ export const STAGES: Stage[] = [
   {
     id: "documents",
     label: "Documents",
-    component: "Chunked on ingest",
-    line: "Source documents are split into chunks before anything else touches them.",
+    component: "S3",
+    line: "Source documents land in S3 and sync into the index on their own.",
   },
   {
-    id: "embeddings",
-    label: "Embeddings",
-    component: node("OpenSearch", "OpenSearch Serverless"),
-    line: "Each chunk becomes a vector and is indexed, so meaning is searchable.",
+    id: "index",
+    label: "Index",
+    component: node("Amazon Kendra", "Amazon Kendra"),
+    line: "Every document is indexed by meaning, not just keywords.",
   },
   {
     id: "retrieval",
     label: "Retrieval",
-    component: node("Lambda", "Lambda"),
-    line: "A Lambda finds the passages closest to the question.",
+    component: node("Chat Lambda", "Lambda"),
+    line: "A chat Lambda pulls the passages closest to the question.",
   },
   {
     id: "model",
@@ -42,6 +42,6 @@ export const STAGES: Stage[] = [
     id: "answer",
     label: "Answer",
     component: node("React", "React app"),
-    line: `The answer reaches the person in the app. ${node("Cognito", "Cognito")} gates every call.`,
+    line: `The answer streams to the app over a WebSocket. ${node("Cognito", "Cognito")} gates every call.`,
   },
 ];

@@ -12,10 +12,12 @@ type Props = {
   delay?: number;
   /** Play immediately instead of on scroll (e.g. hero after preloader). */
   immediate?: boolean;
+  /** Keep non-breaking spaces when splitting lines (SplitText otherwise folds them into plain spaces). */
+  keepSpaces?: boolean;
 };
 
 /** The house reveal. Use it for every headline and most body copy. */
-export function Reveal({ as: Tag = "div", children, className, mode = "lines", delay = 0, immediate = false }: Props) {
+export function Reveal({ as: Tag = "div", children, className, mode = "lines", delay = 0, immediate = false, keepSpaces = false }: Props) {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -31,7 +33,13 @@ export function Reveal({ as: Tag = "div", children, className, mode = "lines", d
       }
       const scrollTrigger = immediate ? undefined : { trigger: el, start: "top 85%", once: true };
       if (mode === "lines") {
-        const split = SplitText.create(el, { type: "lines", mask: "lines", linesClass: "reveal-line", aria: "none" });
+        const split = SplitText.create(el, {
+          type: "lines",
+          mask: "lines",
+          linesClass: "reveal-line",
+          aria: "none",
+          reduceWhiteSpace: !keepSpaces,
+        });
         gsap.fromTo(
           split.lines,
           { yPercent: 110 },
@@ -47,7 +55,7 @@ export function Reveal({ as: Tag = "div", children, className, mode = "lines", d
     }, el);
 
     return () => ctx.revert();
-  }, [mode, delay, immediate]);
+  }, [mode, delay, immediate, keepSpaces]);
 
   const Component = Tag as "div";
   return (

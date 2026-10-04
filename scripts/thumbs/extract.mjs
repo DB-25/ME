@@ -13,16 +13,16 @@ fs.mkdirSync(out, { recursive: true });
 const only = process.argv[2];
 
 for (const t of THUMBS.filter((x) => !only || x.slug === only)) {
-  const [x, y, w, h] = t.crop;
-  // A film being re-rendered may briefly only have its previous cut: the UI window is the same in both.
   const dir = path.join(root, ".brag", t.slug);
-  const src = ["brag.mp4", "brag-v1.mp4"].map((f) => path.join(dir, f)).find((f) => fs.existsSync(f));
-  if (!src) throw new Error(`no film for ${t.slug}`);
-  execFileSync(
-    "ffmpeg",
-    ["-loglevel", "error", "-y", "-ss", String(t.frame), "-i", src,
-     "-frames:v", "1", "-vf", `crop=${w}:${h}:${x}:${y}`, path.join(out, `${t.slug}.png`)],
-    { stdio: "inherit" },
-  );
-  console.log("hero", t.slug, `${w}x${h}`);
+  // A film being re-rendered may briefly only have its previous cut: the UI window is the same in both.
+  const film = ["brag.mp4", "brag-v1.mp4"].map((f) => path.join(dir, f)).find((f) => fs.existsSync(f));
+  const still = t.source && path.join(here, t.source);
+  const input = still ? ["-i", still] : ["-ss", String(t.frame), "-i", film];
+  if (!still && !film) throw new Error(`no film for ${t.slug}`);
+  for (const [crop, name] of [[t.crop, t.slug], [t.crop43, `${t.slug}-43`]]) {
+    if (!crop) continue;
+    const [x, y, w, h] = crop;
+    execFileSync("ffmpeg", ["-loglevel", "error", "-y", ...input, "-frames:v", "1", "-vf", `crop=${w}:${h}:${x}:${y}`, path.join(out, `${name}.png`)], { stdio: "inherit" });
+    console.log("hero", name, `${w}x${h}`, still ? "(still)" : "");
+  }
 }

@@ -4,6 +4,26 @@ import { CATEGORY_LABEL, pad, tie, titleLen } from "../meta";
 import { CaseLabel } from "./CaseLabel";
 import { DrawRule } from "./DrawRule";
 
+const NBSP = "\u00a0";
+/**
+ * Long names get one chosen break point: words are glued inside two near-equal halves, so "Civic AI Course Delivery"
+ * reads "Civic AI / Course Delivery" in every browser (Safari's balance and the line split otherwise disagree).
+ * When the whole name fits, it still sits on one line.
+ */
+function breakTitle(name: string): string {
+  const words = name.split(" ");
+  if (words.length < 3) return name;
+  const halves = (i: number) => [words.slice(0, i).join(" ").length, words.slice(i).join(" ").length];
+  let best = 1;
+  for (let i = 2; i < words.length; i++) {
+    const [a, b] = halves(i);
+    const [bestA, bestB] = halves(best);
+    // Most even split wins; a tie keeps the longer half last.
+    if (Math.max(a, b) < Math.max(bestA, bestB) || (Math.max(a, b) === Math.max(bestA, bestB) && a < bestA)) best = i;
+  }
+  return `${words.slice(0, best).join(NBSP)} ${words.slice(best).join(NBSP)}`;
+}
+
 /** Title sequence: giant name, tagline, what I owned, hairline in the project accent, mono meta row. */
 export function CaseHero({ project, index, total }: { project: Project; index: number; total: number }) {
   const meta = [
@@ -26,8 +46,8 @@ export function CaseHero({ project, index, total }: { project: Project; index: n
       <div className="cs-hero-body">
         <div className="cs-hero-main">
           <h1 className="cs-title" style={{ ["--len" as string]: titleLen(project.name) }}>
-            <Reveal as="span" immediate delay={0.1} className="block">
-              {project.name}
+            <Reveal as="span" immediate keepSpaces delay={0.1} className="block">
+              {breakTitle(project.name)}
             </Reveal>
           </h1>
           <Reveal as="p" mode="fade" immediate delay={0.4} className="lede cs-tagline">

@@ -1,59 +1,62 @@
-// One entry per film project. `frame` is the second in .brag/<slug>/brag.mp4 and `crop` the UI window in
-// that 1920x1080 frame (x, y, w, h). `p169` / `p43` place the cropped hero on each canvas; the title
-// column is fixed by the template so the six cards read as one series.
+// One entry per film project; the template, extract and render scripts take any slug listed here.
+//   slug     matches .brag/<slug>/brag.mp4 and public/films/<slug>-thumb*.jpg
+//   kicker   mono label above the title (keep it under ~24 characters)
+//   title    lines; `it: true` sets ONE word in Instrument Serif italic
+//   frame    second of brag.mp4 to grab (1920x1080)
+//   source   optional: a still in scripts/thumbs/sources/ to crop instead of the film (when the film no
+//            longer shows the UI cleanly). `frame` is ignored then.
+//   crop     [x, y, w, h] of the app CONTENT in that frame. Exclude the app's own window chrome (dots,
+//            url bar): the template draws one consistent frame around every crop. Any aspect works.
+//   crop43   optional: a different crop for the 4:3 file (heroes/<slug>-43.png) when the 16:9 crop is too tall.
+// Layout, type scale, glow and reflection are fixed in template.html so the series reads as one.
 export const THUMBS = [
   {
     slug: "a-iep",
     kicker: "Government AI · 2025",
     title: [{ t: "A-IEP" }],
     frame: 3.8,
-    crop: [271, 101, 1378, 738],
-    p169: { x: 570, w: 940, rotY: -10 },
-    p43: { x: 80, y: 302, w: 1040, rotY: -8 },
+    crop: [278, 146, 1366, 690],
   },
   {
     slug: "genie",
     kicker: "Government AI · 2024",
     title: [{ t: "GENIE" }],
     frame: 7,
-    crop: [68, 215, 1784, 843],
-    p169: { x: 570, w: 940, rotY: -10 },
-    p43: { x: 80, y: 335, w: 1040, rotY: -8 },
+    crop: [92, 424, 1148, 624],
   },
   {
     slug: "abe-one-l",
     kicker: "Government AI · 2025–26",
     title: [{ t: "ABE and" }, { t: "One-L", it: true }],
     frame: 11.5,
-    crop: [669, 71, 1230, 938],
-    p169: { x: 640, w: 860, rotY: -10 },
-    p43: { x: 230, y: 290, w: 740, rotY: -8 },
+    crop: [676, 118, 1216, 880],
   },
   {
     slug: "vct-scout",
     kicker: "Hackathon · 2024",
     title: [{ t: "VCT" }, { t: "Scout", it: true }],
-    frame: 12.5,
-    crop: [1047, 55, 566, 970],
-    p169: { x: 1000, w: 440, rotY: -12 },
-    p43: { x: 700, y: 150, w: 408, rotY: -10, side: true },
+    source: "sources/vct-scout.jpeg", // real screenshot of the deployed app (TEAM FORMATION cards with portraits)
+    crop: [300, 120, 1270, 700],
   },
   {
     slug: "arc-control-mcp",
     kicker: "Tooling · 2026",
     title: [{ t: "arc-control-" }, { t: "mcp", it: true }],
     frame: 10,
-    crop: [692, 103, 1209, 874],
-    p169: { x: 850, w: 680, rotY: -10 },
-    p43: { x: 200, y: 280, w: 800, rotY: -8 },
+    crop: [696, 160, 1200, 816],
   },
   {
     slug: "public-voice",
     kicker: "Government AI · 2026",
     title: [{ t: "Public" }, { t: "Voice", it: true }],
     frame: 5,
-    crop: [306, 105, 1308, 748],
-    p169: { x: 570, w: 940, rotY: -10 },
-    p43: { x: 100, y: 275, w: 1000, rotY: -8 },
+    crop: [310, 166, 1300, 684],
+  },
+  {
+    slug: "course-delivery",
+    kicker: "Civic AI course · 2026",
+    title: [{ t: "Course" }, { t: "Delivery", it: true }],
+    frame: 13.7,
+    crop: [1016, 170, 628, 770],
   },
 ];

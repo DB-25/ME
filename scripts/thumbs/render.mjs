@@ -1,19 +1,29 @@
-// Render the designed thumbnails: public/films/<slug>-thumb.jpg (1600x900) and <slug>-thumb-43.jpg (1200x900).
-// Usage: node scripts/thumbs/render.mjs [slug] [--sheet=path]
+// Render the thumbnails for every slug in config.mjs (or one slug):
+//   public/films/<slug>-thumb.jpg     1600x900 (16:9)
+//   public/films/<slug>-thumb-43.jpg  1200x900 (4:3)
+// Then build contact sheets at the sizes the site actually shows them (300px phones, 520px hover previews)
+// in scripts/thumbs/sheets/. Run `node scripts/thumbs/extract.mjs [slug]` first when a crop changed.
+// Usage: node scripts/thumbs/render.mjs [slug] [--no-sheets]
 import { chromium } from "playwright";
+import sharp from "sharp";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { THUMBS } from "./config.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../..");
 const outDir = path.join(root, "public/films");
+const sheetDir = path.join(here, "sheets");
 const args = process.argv.slice(2);
 const only = args.find((a) => !a.startsWith("--"));
-const sheet = args.find((a) => a.startsWith("--sheet="))?.slice(8);
+const wantSheets = !args.includes("--no-sheets");
+const VARIANTS = [
+  { v: "169", w: 1600, suffix: "-thumb" },
+  { v: "43", w: 1200, suffix: "-thumb-43" },
+];
+const SHEET_WIDTHS = [300, 520];
 
 // config.js is a plain script so the template works from file:// (no module or fetch needed).
 fs.writeFileSync(path.join(here, "config.js"), `/* eslint-disable */\nvar THUMBS = ${JSON.stringify(THUMBS)};\n`);
@@ -29,31 +39,42 @@ function findChromium() {
   }
 }
 
+const list = THUMBS.filter((x) => !only || x.slug === only);
+if (!list.length) throw new Error(`unknown slug: ${only}`);
 const browser = await chromium.launch({ executablePath: findChromium() });
 const page = await browser.newPage({ deviceScaleFactor: 1 });
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "thumbs-"));
 const url = (slug, v) => `file://${path.join(here, "template.html")}?slug=${slug}&v=${v}`;
 
-for (const t of THUMBS.filter((x) => !only || x.slug === only)) {
-  for (const [v, w, suffix] of [["169", 1600, "-thumb"], ["43", 1200, "-thumb-43"]]) {
+for (const t of list) {
+  for (const { v, w, suffix } of VARIANTS) {
     await page.setViewportSize({ width: w, height: 900 });
     await page.goto(url(t.slug, v));
     await page.waitForFunction(() => window.__ready === true);
     await page.waitForTimeout(150);
-    const png = path.join(tmp, `${t.slug}${suffix}.png`);
-    await page.screenshot({ path: png });
+    const png = await page.screenshot();
     const jpg = path.join(outDir, `${t.slug}${suffix}.jpg`);
-    // sips: q85 JPEG without extra dependencies.
-    execFileSync("sips", ["-s", "format", "jpeg", "-s", "formatOptions", "85", png, "--out", jpg], { stdio: "ignore" });
+    await sharp(png).jpeg({ quality: 90, mozjpeg: true, chromaSubsampling: "4:4:4" }).toFile(jpg);
     console.log("wrote", path.relative(root, jpg), `${(fs.statSync(jpg).size / 1024).toFixed(0)}KB`);
   }
 }
 await browser.close();
 
-if (sheet && !only) {
-  const files = THUMBS.map((t) => path.join(outDir, `${t.slug}-thumb.jpg`));
-  execFileSync("ffmpeg", ["-loglevel", "error", "-y", ...files.flatMap((f) => ["-i", f]),
-    "-filter_complex", `${files.map((_, i) => `[${i}:v]scale=800:-1[s${i}]`).join(";")};${files.map((_, i) => `[s${i}]`).join("")}xstack=inputs=6:layout=0_0|800_0|0_450|800_450|0_900|800_900[o]`,
-    "-map", "[o]", "-frames:v", "1", sheet], { stdio: "inherit" });
-  console.log("sheet", sheet);
+if (wantSheets) {
+  fs.mkdirSync(sheetDir, { recursive: true });
+  const GAP = 24, PAD = 24, COLS = 3;
+  for (const { suffix, v } of VARIANTS) {
+    for (const sw of SHEET_WIDTHS) {
+      const cell = [];
+      for (const t of THUMBS) {
+        const f = path.join(outDir, `${t.slug}${suffix}.jpg`);
+        if (fs.existsSync(f)) cell.push(await sharp(f).resize({ width: sw, kernel: "lanczos3" }).png().toBuffer());
+      }
+      const ch = Math.round(sw * (v === "169" ? 9 / 16 : 3 / 4));
+      const rows = Math.ceil(cell.length / COLS);
+      const sheet = sharp({ create: { width: PAD * 2 + COLS * sw + (COLS - 1) * GAP, height: PAD * 2 + rows * ch + (rows - 1) * GAP, channels: 3, background: "#1c1a24" } });
+      const out = path.join(sheetDir, `sheet-${v}-${sw}.png`);
+      await sheet.composite(cell.map((input, i) => ({ input, left: PAD + (i % COLS) * (sw + GAP), top: PAD + Math.floor(i / COLS) * (ch + GAP) }))).png().toFile(out);
+      console.log("sheet", path.relative(root, out));
+    }
+  }
 }
