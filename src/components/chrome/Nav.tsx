@@ -15,22 +15,22 @@ import { SectionLink } from "./SectionLink";
 
 const SHOW_NEAR_TOP = 80;
 const SCROLL_DELTA = 6;
-const DESKTOP_QUERY = "(min-width: 768px)";
+/** The full link row needs ~1000px next to the chapter readout; below that the MENU overlay takes over. */
+const DESKTOP_QUERY = "(min-width: 1024px)";
 
 const CSS = `
 .chrome-nav-inner { transition: padding .45s var(--ease-out-expo); }
-/* Desktop never hides the bar: past the top it condenses into a slim translucent strip. */
-@media (min-width: 768px) {
-  .chrome-nav { transition: background-color .35s, border-color .35s, backdrop-filter .35s; border-bottom: 1px solid transparent; }
-  .chrome-nav[data-compact="true"] {
-    mix-blend-mode: normal;
-    background: rgb(6 5 9 / 0.74);
-    border-bottom-color: var(--color-hairline);
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
-    backdrop-filter: blur(14px) saturate(1.2);
-  }
-  .chrome-nav[data-compact="true"] .chrome-nav-inner { padding-block: 12px; }
+/* Past the top the bar condenses into a slim strip with its own backing, so page text never runs under the logo or MENU.
+   Desktop never hides it; phones hide it on scroll down and bring it back on scroll up. */
+.chrome-nav { transition: background-color .35s, border-color .35s, backdrop-filter .35s; border-bottom: 1px solid transparent; }
+.chrome-nav[data-compact="true"] {
+  mix-blend-mode: normal;
+  background: rgb(6 5 9 / 0.86);
+  border-bottom-color: var(--color-hairline);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
 }
+.chrome-nav[data-compact="true"] .chrome-nav-inner { padding-block: 12px; }
 `;
 
 export function goTo(id: string) {
@@ -58,7 +58,7 @@ export function Nav() {
       hidden = h;
       gsap.to(bar.current, { yPercent: h ? -110 : 0, duration: 0.7, ease: "expo.out", overwrite: "auto" });
     };
-    const syncCompact = () => bar.current?.setAttribute("data-compact", String(desktop.matches && window.scrollY >= SHOW_NEAR_TOP));
+    const syncCompact = () => bar.current?.setAttribute("data-compact", String(window.scrollY >= SHOW_NEAR_TOP));
     const onScroll = () => {
       const y = window.scrollY;
       const dy = y - last;
@@ -88,7 +88,7 @@ export function Nav() {
   const logoClass = "inline-flex font-sans text-[15px] font-semibold tracking-[-0.04em] text-ink";
   // The visible text is "DB", so the accessible name starts with it (WCAG 2.5.3). The dot is decoration.
   const logo = (
-    <Magnetic strength={0.4} pad={10}>
+    <Magnetic strength={0.4} pad={14}>
       DB<span aria-hidden className="text-accent-hot">.</span>
       <span className="sr-only">, {profile.name}, {isHome ? "back to top" : "home"}</span>
     </Magnetic>
@@ -98,7 +98,7 @@ export function Nav() {
     <>
       <style>{CSS}</style>
       <header ref={bar} data-compact="false" className="chrome-nav fixed inset-x-0 top-0 z-[80] mix-blend-difference">
-        <div className="chrome-nav-inner mx-auto grid max-w-[var(--maxw)] grid-cols-[1fr_auto] items-center px-[var(--gutter)] py-5 md:grid-cols-[1fr_auto_1fr]">
+        <div className="chrome-nav-inner mx-auto grid max-w-[var(--maxw)] grid-cols-[1fr_auto] items-center px-[var(--gutter)] py-5 lg:grid-cols-[1fr_auto_1fr]">
           <div className="flex items-center gap-5 justify-self-start">
             {isHome ? (
               <a
@@ -117,17 +117,17 @@ export function Nav() {
               </Link>
             )}
             {!isHome && (
-              <Link href="/#work" className="label -my-3 inline-flex items-center gap-1.5 py-3 !text-ink md:hidden">
+              <Link href="/#work" className="label -my-3 inline-flex items-center gap-1.5 py-3 !text-ink lg:hidden">
                 <span aria-hidden>←</span>
                 Work
               </Link>
             )}
           </div>
 
-          <ChapterIndicator className="max-md:hidden" />
+          <ChapterIndicator className="max-lg:hidden" />
 
           <div className="flex items-center justify-end gap-7">
-            <nav aria-label="Primary" className="flex items-center gap-7 max-md:hidden">
+            <nav aria-label="Primary" className="flex items-center gap-7 max-lg:hidden">
               {NAV_ITEMS.map((l) => (
                 <SectionLink key={l.id} id={l.id} className="link label !text-ink">
                   {l.label}
@@ -138,14 +138,14 @@ export function Nav() {
               </a>
             </nav>
 
-            <ChapterIndicator className="md:hidden" />
+            <ChapterIndicator className="lg:hidden" />
             <button
               ref={menuButton}
               type="button"
               aria-expanded={open}
               aria-controls="chrome-menu"
               onClick={() => setOpen((o) => !o)}
-              className="label !text-ink -my-3 min-w-[5ch] py-3 text-right md:hidden"
+              className="label !text-ink -my-4 min-w-[5ch] py-4 text-right lg:hidden"
             >
               <Roll value={open ? "CLOSE" : "MENU"} />
             </button>

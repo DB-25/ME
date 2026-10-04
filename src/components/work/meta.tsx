@@ -27,6 +27,9 @@ export function previewImage(p: Project): (Media & { thumb?: boolean; src43?: st
       height: 900,
     };
   }
+  if (p.cover) {
+    return { src: p.cover.thumb, src43: p.cover.thumb43, thumb: true, alt: p.name, kind: "image", width: 1600, height: 900 };
+  }
   return p.media.find((m) => m.kind === "image");
 }
 

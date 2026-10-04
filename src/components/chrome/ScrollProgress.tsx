@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { CHAPTERS, chapterById } from "@/lib/chapters";
 import { useSignal } from "@/lib/signal-store";
 import { gsap, scrollToTarget } from "@/lib/motion";
@@ -38,7 +39,13 @@ function measure(): number[] {
  * page gutter (12px wide, 6px from the edge) so it never touches copy at any viewport width.
  */
 export function ScrollProgress() {
-  return usePathname() === "/" ? <Rail /> : null;
+  const isClient = useSyncExternalStore(
+    () => () => undefined,
+    () => true,
+    () => false,
+  );
+  // Portalled to the end of <body> so its 9 tab stops come after the page content, not before the hero.
+  return usePathname() === "/" && isClient ? createPortal(<Rail />, document.body) : null;
 }
 
 /** Scroll fill + one tick per chapter (current in accent), a vertical readout of the current chapter, labels on hover/focus. */

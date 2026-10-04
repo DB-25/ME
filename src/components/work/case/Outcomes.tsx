@@ -43,7 +43,7 @@ export function Outcomes({ project, n }: { project: Project; n: string }) {
   const h = headlineFor(project, "outcomes", "What it did");
   if (!project.outcomes.length) return null;
   return (
-    <section className="cs-section" data-cs="outcomes" data-cs-label="Outcomes" aria-labelledby="cs-outcomes">
+    <section id="sec-outcomes" className="cs-section" data-cs="outcomes" data-cs-label="Outcomes" aria-labelledby="cs-outcomes">
       <div className="shell">
         <CaseLabel n={n} text="Outcomes" />
         <h2 id="cs-outcomes" className={`headline cs-h2 mt-6${h.long ? " cs-h2-long" : ""}`}>

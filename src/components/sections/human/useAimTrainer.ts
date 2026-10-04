@@ -62,6 +62,7 @@ export function useAimTrainer() {
   const [best, setBest] = useState<number | null>(null);
   const [burst, setBurst] = useState<Burst | null>(null);
   const [status, setStatus] = useState("");
+  const [early, setEarly] = useState(false);
 
   const phaseRef = useRef<Phase>("idle");
   const hitsRef = useRef<number[]>([]);
@@ -91,6 +92,7 @@ export function useAimTrainer() {
       lastPos.current = p;
       setPos(p);
       shownAt.current = performance.now();
+      setEarly(false);
       setPhase("live");
       setStatus("Target. Press Space or hit it.");
     }, rand(MIN_DELAY_MS, MAX_DELAY_MS));
@@ -102,6 +104,7 @@ export function useAimTrainer() {
     setHits([]);
     setMisses(0);
     setBurst(null);
+    setEarly(false);
     setStatus("Drill started. Wait for the target.");
     arm();
   }, [arm]);
@@ -140,6 +143,7 @@ export function useAimTrainer() {
 
   const tooEarly = useCallback(() => {
     setStatus("Too early. Wait for the target.");
+    setEarly(true);
     arm();
   }, [arm]);
 
@@ -178,5 +182,5 @@ export function useAimTrainer() {
   const average = hits.length ? Math.round(hits.reduce((a, b) => a + b, 0) / hits.length) : null;
   const last = hits.length ? hits[hits.length - 1] : null;
 
-  return { phase, hits, pos, misses, best, burst, status, average, last, start, registerHit, onArenaPointer, onSpace };
+  return { phase, hits, pos, misses, best, burst, status, early, average, last, start, registerHit, onArenaPointer, onSpace };
 }

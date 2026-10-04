@@ -5,7 +5,7 @@ import { ArchitectureDiagram } from "./ArchitectureDiagram";
 import { BuildSection } from "./BuildSection";
 import { CaseFilm } from "./CaseFilm";
 import { CaseHero } from "./CaseHero";
-import { CaseNav } from "./CaseNav";
+import { CaseNav, type CaseStop } from "./CaseNav";
 import { Gallery } from "./Gallery";
 import { LinksList } from "./LinksList";
 import { NextProject } from "./NextProject";
@@ -25,10 +25,11 @@ export function CaseStudy({ project }: { project: Project }) {
   const { group, index, next, nextIndex } = neighbours(project);
 
   // Section numbers follow what actually renders, so a project without media still reads 01, 02, 03.
+  const hasArchitecture = Boolean(project.architecture?.nodes.length || project.architecture?.lanes?.length);
   const present = [
     true,
     true,
-    Boolean(project.architecture?.nodes.length),
+    hasArchitecture,
     project.outcomes.length > 0,
     project.stack.length > 0,
     project.media.length > 0,
@@ -36,6 +37,20 @@ export function CaseStudy({ project }: { project: Project }) {
   ];
   let c = 0;
   const num = present.map((p) => (p ? pad(++c) : ""));
+
+  // The dock's section menu. Keys and labels match each section's data-cs / data-cs-label.
+  const stops: CaseStop[] = [
+    { key: "top", label: "Overview", n: "" },
+    ...(project.film ? [{ key: "film", label: "Film", n: "" }] : []),
+    { key: "problem", label: "The problem", n: num[0] },
+    { key: "build", label: "What I built", n: num[1] },
+    ...(hasArchitecture ? [{ key: "architecture", label: "Architecture", n: num[2] }] : []),
+    ...(present[3] ? [{ key: "outcomes", label: "Outcomes", n: num[3] }] : []),
+    ...(present[4] ? [{ key: "stack", label: "Stack", n: num[4] }] : []),
+    ...(present[5] ? [{ key: "gallery", label: "In use", n: num[5] }] : []),
+    ...(present[6] ? [{ key: "links", label: "Links", n: num[6] }] : []),
+    { key: "next", label: "Up next", n: "" },
+  ];
 
   return (
     <article className="cs">
@@ -49,7 +64,7 @@ export function CaseStudy({ project }: { project: Project }) {
       <Gallery project={project} n={num[5]} />
       <LinksList project={project} n={num[6]} />
       <NextProject next={next} index={nextIndex} total={group.length} />
-      <CaseNav name={project.name} nextSlug={next.slug} nextName={next.name} />
+      <CaseNav name={project.name} nextSlug={next.slug} nextName={next.name} stops={stops} />
     </article>
   );
 }

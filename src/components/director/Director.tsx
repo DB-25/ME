@@ -5,6 +5,7 @@ import { Emph } from "@/components/ui/Emph";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { isDirectorConfigured } from "@/lib/director/client";
+import { isCoarsePointer } from "@/lib/motion";
 import { DirectorHud } from "./DirectorHud";
 import { goToSection } from "./executor";
 import { lineAudio } from "./lineAudio";
@@ -37,7 +38,8 @@ export function Director() {
 
   // Focus returns to the input after a take, if the visitor can see it.
   useEffect(() => {
-    if (wasRunning.current && !running && inView) inputRef.current?.focus({ preventScroll: true });
+    // Not on a phone: focusing the input there would raise the keyboard over the tour cards.
+    if (wasRunning.current && !running && inView && !isCoarsePointer()) inputRef.current?.focus({ preventScroll: true });
     wasRunning.current = running;
   }, [running, inView]);
 
@@ -59,7 +61,9 @@ export function Director() {
   const anotherTake = () => {
     dismiss();
     void goToSection("director").then(() =>
-      window.setTimeout(() => inputRef.current?.focus({ preventScroll: true }), FOCUS_DELAY_MS),
+      window.setTimeout(() => {
+        if (!isCoarsePointer()) inputRef.current?.focus({ preventScroll: true });
+      }, FOCUS_DELAY_MS),
     );
   };
 
@@ -125,11 +129,11 @@ export function Director() {
                   type="button"
                   disabled={running}
                   onClick={() => submit(tour)}
-                  className="group flex h-full min-h-[7rem] w-full flex-col justify-between gap-8 border border-hairline-strong px-5 py-5 text-left transition-[border-color,background-color] duration-300 hover:border-accent hover:bg-accent/[0.06] focus-visible:border-accent disabled:opacity-40"
+                  className="group flex h-full min-h-[7rem] w-full flex-col justify-between gap-8 border border-hairline-strong px-4 py-5 text-left sm:px-5 transition-[border-color,background-color] duration-300 hover:border-accent hover:bg-accent/[0.06] focus-visible:border-accent focus-visible:bg-accent/[0.06] active:bg-accent/[0.12] disabled:opacity-40"
                 >
                   <span className="label text-dim">{String(i + 1).padStart(2, "0")}</span>
                   <span className="flex items-end justify-between gap-3 text-[clamp(1.125rem,1.7vw,1.5rem)] font-medium leading-tight tracking-[-0.025em] text-ink">
-                    {tour}
+                    <span className="text-balance">{tour}</span>
                     <span aria-hidden className="text-accent transition-transform duration-300 group-hover:translate-x-1">
                       &rarr;
                     </span>
@@ -164,7 +168,7 @@ export function Director() {
             />
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-            <p className="label">
+            <p className="label pointer-coarse:hidden">
               <span className="text-accent">Enter</span> to begin <span className="mx-2 text-dim">/</span>{" "}
               <span className="text-accent">Esc</span> to stop
             </p>

@@ -3,7 +3,7 @@
 .sys-flow { --row: 106px; --rail: 120px; position: relative; display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); column-gap: 14px; }
 .sys-svg { grid-column: 1; grid-row: 1; display: block; width: var(--rail); height: calc(var(--row) * 5); overflow: visible; }
 .sys-rows { grid-column: 2; grid-row: 1; list-style: none; margin: 0; padding: 0; }
-.sys-row { height: var(--row); display: flex; flex-direction: column; justify-content: center; opacity: 0.62; transition: opacity 0.6s var(--ease-out-expo); }
+.sys-row { height: var(--row); display: flex; flex-direction: column; justify-content: center; opacity: 0.74; transition: opacity 0.6s var(--ease-out-expo); }
 .sys-row[data-lit] { opacity: 1; }
 
 .sys-track { fill: none; stroke: var(--color-hairline-strong); stroke-width: 1; }

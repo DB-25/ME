@@ -21,10 +21,10 @@ export function StackIndex() {
       <p className="label !text-[12px] !text-ink/70">What I reach for</p>
       <dl className="mt-4 border-b border-hairline">
         {LINES.map((line) => (
-          <FadeIn key={line.name} className="grid gap-x-[var(--gutter)] gap-y-2 border-t border-hairline py-3 md:grid-cols-[9.5rem_1fr] md:py-4">
+          <FadeIn key={line.name} className="grid gap-x-[var(--gutter)] gap-y-2 border-t border-hairline py-3 md:grid-cols-[8rem_1fr] md:py-4">
             <dt className="label !text-[12px] !text-ink/70 md:pt-[0.55em]">{line.name}</dt>
             <dd>
-              <ul className="flex flex-wrap items-baseline gap-x-[1.5em] gap-y-1 text-[clamp(1rem,1.4vw,1.25rem)] leading-[1.35] tracking-[-0.02em] text-ink [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">
+              <ul className="flex flex-wrap items-baseline gap-x-[1.5em] gap-y-1 md:grid md:grid-cols-2 md:gap-x-6 text-[clamp(1rem,1.3vw,1.1875rem)] leading-[1.35] tracking-[-0.02em] text-ink [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">
                 {line.items
                   .filter((item) => KNOWN.has(item))
                   .map((item) => (

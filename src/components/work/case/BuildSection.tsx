@@ -42,7 +42,7 @@ export function BuildSection({ project, n }: { project: Project; n: string }) {
   }, []);
 
   return (
-    <section className="cs-section" data-cs="build" data-cs-label="What I built" aria-labelledby="cs-build">
+    <section id="sec-build" className="cs-section" data-cs="build" data-cs-label="What I built" aria-labelledby="cs-build">
       <div className="shell grid-12 cs-split">
         <div className="col-span-12 md:col-span-4">
           <div className="cs-sticky">

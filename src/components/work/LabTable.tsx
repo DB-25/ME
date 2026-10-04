@@ -51,6 +51,24 @@ export function LabTable({ projects, offset, spotlight }: { projects: Project[];
     };
   }, [filter]);
 
+  // Rows revealed by "Show N more" ease in; collapsing is instant.
+  const wasExpanded = useRef(false);
+  useEffect(() => {
+    const was = wasExpanded.current;
+    wasExpanded.current = expanded;
+    if (!expanded || was) return;
+    const extra = list.current ? Array.from(list.current.querySelectorAll("li")).slice(COLLAPSED_ROWS) : [];
+    if (!extra.length) return;
+    const t = gsap.fromTo(
+      extra,
+      { opacity: 0, y: prefersReducedMotion() ? 0 : 14 },
+      { opacity: 1, y: 0, duration: 0.7, ease: EASE_OUT, stagger: 0.05, overwrite: "auto" },
+    );
+    return () => {
+      t.kill();
+    };
+  }, [expanded]);
+
   const counts = (c: Filter) => (c === "all" ? projects.length : projects.filter((p) => groupOf(p) === c).length);
 
   return (
@@ -118,7 +136,7 @@ export function LabTable({ projects, offset, spotlight }: { projects: Project[];
           disabled={pickHidden}
           onClick={() => setOpen((v) => !v)}
         >
-          {expanded ? "Show fewer" : `Show all ${matching.length}`}
+          {expanded ? "Show fewer" : `Show ${matching.length - COLLAPSED_ROWS} more`}
           <span aria-hidden>{expanded ? " \u2191" : " \u2193"}</span>
         </button>
       ) : null}

@@ -60,6 +60,8 @@ export type Project = {
   headlines?: { problem?: string; built?: string; flows?: string; outcomes?: string };
   /** Launch film shown at the top of the case study and as the work-list preview. */
   film?: Film;
+  /** Designed preview stills for a project without a film (16:9 with title, 4:3 without), from scripts/thumbs. */
+  cover?: { thumb: string; thumb43: string };
   stack: string[];
   links: Link[];
   media: Media[];

@@ -23,7 +23,7 @@ export function HeroEyebrow() {
 
 export function HeroLocation() {
   return (
-    <p className="label mt-1">
+    <p className="hero-loc label mt-1">
       {city(profile.location)}, from {city(profile.origin)}
     </p>
   );

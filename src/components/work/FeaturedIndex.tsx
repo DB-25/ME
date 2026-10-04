@@ -61,6 +61,7 @@ function Row({
   active,
   spot,
   films,
+  warm,
   onHover,
   onFocusChange,
 }: {
@@ -69,6 +70,7 @@ function Row({
   active: boolean;
   spot: boolean;
   films: boolean;
+  warm: boolean;
   onHover: (slug: string | null, e: React.PointerEvent) => void;
   onFocusChange: (slug: string | null) => void;
 }) {
@@ -86,6 +88,7 @@ function Row({
       <Link
         href={caseHref(project.slug)}
         className="wk-link"
+        data-cursor="open"
         onPointerEnter={(e) => onHover(project.slug, e)}
         onFocus={() => onFocusChange(project.slug)}
         onBlur={() => onFocusChange(null)}
@@ -106,15 +109,18 @@ function Row({
 
         <div className="wk-media">
           {img ? (
-            <figure ref={frame} className="wk-inline" data-cursor="open" data-thumb={img.thumb ? "" : undefined}>
+            <figure ref={frame} className="wk-inline" data-thumb={img.thumb ? "" : undefined}>
               <img
                 src={assetUrl(img.src43 ?? img.src)}
                 alt={img.alt}
                 width={img.src43 ? 1200 : img.width}
                 height={img.src43 ? 900 : img.height}
-                loading="lazy"
+                loading={warm ? "eager" : "lazy"}
                 decoding="async"
               />
+              <span className="wk-open" aria-hidden>
+                &#8599;
+              </span>
             </figure>
           ) : (
             <div className="wk-inline wk-inline-type" aria-hidden>
@@ -140,6 +146,11 @@ function Row({
             <span className="wk-own-v">{project.owned}</span>
           </p>
         ) : null}
+
+        <p className="wk-go label" aria-hidden>
+          <span>Open case study</span>
+          <span>&rarr;</span>
+        </p>
 
         <div className="wk-pick" aria-hidden={!spot}>
           <dl className="wk-pick-facts">
@@ -167,6 +178,24 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
   const [hover, setHover] = useState<string | null>(null);
   const [focus, setFocus] = useState<string | null>(null);
   const desktop = useDesktopHover();
+
+  // Cards sit off-screen in a scroller where native lazy loading never reaches them: once the list is near the
+  // viewport, load every still so a swipe never lands on an empty frame.
+  const [warm, setWarm] = useState(false);
+  useEffect(() => {
+    const el = list.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        setWarm(true);
+        io.disconnect();
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   // Entrance: names rise inside their masks, details fade up, once per row.
   useEffect(() => {
@@ -229,10 +258,19 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
 
   // Carousel state (phones and tablets): which card leads, and whether either end is reached.
   const [pos, setPos] = useState({ i: 0, start: true, end: false });
+  const thumb = useRef<HTMLElement>(null);
   const readPos = useCallback(() => {
     const el = list.current;
     const card = el?.querySelector<HTMLElement>(".wk-row");
     if (!el || !card) return;
+    // Progress thumb: as wide as the visible share of the track, slid by the scroll fraction (no re-render).
+    if (thumb.current) {
+      const share = Math.min(1, el.clientWidth / el.scrollWidth);
+      const max = el.scrollWidth - el.clientWidth;
+      const t = max > 0 ? el.scrollLeft / max : 0;
+      thumb.current.style.width = `${share * 100}%`;
+      thumb.current.style.transform = `translateX(${(t * (1 - share) * 100) / share}%)`;
+    }
     const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
     const next = {
       i: Math.round(el.scrollLeft / (card.offsetWidth + gap)),
@@ -273,6 +311,7 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
             active={current === p.slug || spotlight === p.slug}
             spot={spotlight === p.slug}
             films={desktop}
+            warm={warm}
             onHover={(slug, e) => e.pointerType === "mouse" && setHover(slug)}
             onFocusChange={setFocus}
           />
@@ -287,8 +326,10 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
         </button>
         <p className="wk-ctl-count label num" aria-hidden>
           {pad(pos.end ? projects.length : Math.min(pos.i + 1, projects.length))} / {pad(projects.length)}
-          <span className="wk-ctl-hint"> Swipe</span>
         </p>
+        <span className="wk-prog" aria-hidden>
+          <i ref={thumb} />
+        </span>
       </div>
     </>
   );

@@ -34,6 +34,8 @@ html, body { background: var(--void); }
 .shot { display: block; width: 100%; }
 .refl { position: absolute; overflow: hidden; pointer-events: none;
   -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.2), transparent 88%); mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.2), transparent 88%); }
+/* Phone screens carry their own rounded edge: no window bar, no box around the group. */
+.frame.bare { background: transparent; box-shadow: none; border-radius: 0; overflow: visible; filter: drop-shadow(0 0 60px rgb(139 123 255 / 0.28)) drop-shadow(0 40px 60px rgb(0 0 0 / 0.6)); }
 .refl .frame { box-shadow: none; filter: blur(1.5px); transform-origin: 50% 0; }
 </style>
 </head>
@@ -59,7 +61,8 @@ html, body { background: var(--void); }
   const MX = Math.round(W * 0.08), MY = Math.round(H * 0.08);
   // 4:3 has no title: the reflection fills the floor margin.
   const MY_TOP = is43 ? Math.round(H * 0.1) : MY, MY_BOTTOM = is43 ? Math.round(H * 0.06) : MY;
-  const BAR = 34, REFL = is43 ? 48 : 64, GAP = 8;
+  const bare = Boolean(t.phones);
+  const BAR = bare ? 0 : 34, REFL = is43 ? 48 : 64, GAP = 8;
 
   // Natural size of the real UI crop.
   const img = new Image();
@@ -111,9 +114,9 @@ html, body { background: var(--void); }
 
   const mk = () => {
     const f = document.createElement("div");
-    f.className = "frame";
+    f.className = bare ? "frame bare" : "frame";
     f.style.cssText = `left:${fx}px;top:${fy}px;width:${fw}px;height:${fh}px`;
-    f.innerHTML = `<div class="bar"><i></i><i></i><i></i></div><img class="shot" src="heroes/${shot}.png" alt="">`;
+    f.innerHTML = `${bare ? "" : '<div class="bar"><i></i><i></i><i></i></div>'}<img class="shot" src="heroes/${shot}.png" alt="">`;
     return f;
   };
   const vis = document.getElementById("visual");
@@ -125,6 +128,7 @@ html, body { background: var(--void); }
   const rf = mk();
   rf.style.left = "0px"; rf.style.top = "0px";
   rf.style.transform = `translateY(${fh}px) scaleY(-1)`;
+  if (bare) rf.style.filter = "blur(1.5px)";
   refl.appendChild(rf);
   vis.appendChild(refl);
 

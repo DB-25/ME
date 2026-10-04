@@ -9,8 +9,13 @@ import { REEL, VERTICAL_QUERY } from "./reel";
 import { TRANSCRIPT, TRANSCRIPT_INTRO } from "./transcript";
 
 const CLOSE_MS = 280;
-/** Height the header and transcript summary take, so the video never pushes them off screen. */
+/** Height the header, control bar and transcript summary take, so the video never pushes them off screen. */
 const CHROME_PX = 280;
+/** Landscape phones have no height to spare: tighter header, no title, so the video keeps most of the screen. */
+const CHROME_PX_SHORT = 150;
+const SHORT_QUERY = "(max-height: 520px)";
+/** Arrow-key seek step, seconds. */
+const SEEK_STEP = 5;
 
 /** 0:07 style clock. */
 const clock = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
@@ -27,11 +32,19 @@ const CSS = `
   gap: 16px; padding: max(20px, env(safe-area-inset-top)) var(--gutter) max(28px, env(safe-area-inset-bottom)); }
 .reel-bar { width: 100%; max-width: var(--maxw); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex: none; }
 .reel-title { margin: 0; font-weight: 400; }
-.reel-close { color: var(--color-ink); border: 1px solid var(--color-hairline-strong); border-radius: 2px; padding: 10px 14px; min-height: 40px;
+.reel-close { color: var(--color-ink); border: 1px solid var(--color-hairline-strong); border-radius: 2px; padding: 10px 14px; min-height: 44px;
   background: rgb(6 5 9 / 0.6); transition: border-color .25s, color .25s; }
 .reel-close:hover { border-color: var(--color-accent); color: var(--color-accent-hot); }
 .reel-col { flex: none; width: min(100%, calc((100dvh - ${CHROME_PX}px) * 16 / 9)); }
 .reel-col[data-vertical] { width: min(100%, calc((100dvh - ${CHROME_PX}px) * 9 / 16)); }
+@media ${SHORT_QUERY} {
+  .reel-stage { gap: 8px; padding-block: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-bottom)); }
+  .reel-col { width: min(100%, calc((100dvh - ${CHROME_PX_SHORT}px) * 16 / 9)); }
+  .reel-title { display: none; }
+  .reel-bar { justify-content: flex-end; }
+  .reel-ctl { margin-top: 6px; }
+}
+@media (hover: none) { .reel-esc { display: none; } }
 .reel-frame { width: 100%; aspect-ratio: 16 / 9; background: var(--color-void);
   box-shadow: 0 30px 120px -30px rgb(139 123 255 / 0.35), 0 0 0 1px var(--color-hairline); border-radius: 3px; overflow: hidden;
   opacity: 0; transform: scale(0.97) translateY(8px); transition: opacity 600ms var(--ease-out-expo), transform 800ms var(--ease-out-expo); }
@@ -115,6 +128,7 @@ export function ReelModal({ open, onClose }: ReelModalProps) {
   const mounted = useIsClient();
   const [state, setState] = useState<"closed" | "open" | "closing">("closed");
   const player = useRef<HTMLDivElement>(null);
+  const playBtn = useRef<HTMLButtonElement>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
   const [time, setTime] = useState(0);
@@ -177,6 +191,8 @@ export function ReelModal({ open, onClose }: ReelModalProps) {
     if (!open || !mounted || !el || el.open) return;
     returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     el.showModal();
+    // Land on Play/Pause (not Close) so Space works at once; Esc and the Close button are one key away.
+    playBtn.current?.focus({ preventScroll: true });
     unlock.current = lockScroll();
     const raf = requestAnimationFrame(() => {
       setState("open");
@@ -207,6 +223,26 @@ export function ReelModal({ open, onClose }: ReelModalProps) {
   );
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLDialogElement>) => {
+    // Player shortcuts. Buttons keep Space/Enter and the range keeps its arrows; everything else is ours.
+    const target = e.target as HTMLElement;
+    const onButton = target.closest("button, summary") !== null;
+    const onRange = target.closest("input") !== null;
+    if (!e.metaKey && !e.ctrlKey && !e.altKey) {
+      const k = e.key.toLowerCase();
+      if ((k === " " || k === "k") && !onButton && !onRange) {
+        e.preventDefault();
+        togglePlay();
+        return;
+      }
+      if (k === "m") return toggleMute();
+      if (k === "f") return fullscreen();
+      if ((e.key === "ArrowRight" || e.key === "ArrowLeft") && !onRange) {
+        e.preventDefault();
+        const dir = e.key === "ArrowRight" ? 1 : -1;
+        seek(Math.min(Math.max(0, time + dir * SEEK_STEP), duration || time));
+        return;
+      }
+    }
     if (e.key !== "Tab") return;
     const items = Array.from(e.currentTarget.querySelectorAll<HTMLElement>("button, summary, input[type='range']")).filter(
       (n) => n.offsetParent !== null,
@@ -245,8 +281,8 @@ export function ReelModal({ open, onClose }: ReelModalProps) {
           <h2 id={titleId} className="label reel-title">
             Showreel <span aria-hidden>/</span> {REEL.durationLabel}
           </h2>
-          <button type="button" className="label reel-close" onClick={requestClose} autoFocus>
-            Close <span aria-hidden>Esc</span>
+          <button type="button" className="label reel-close" onClick={requestClose}>
+            Close <span aria-hidden className="reel-esc">Esc</span>
           </button>
         </div>
         <div className="reel-col" data-vertical={vertical || undefined}>
@@ -275,7 +311,7 @@ export function ReelModal({ open, onClose }: ReelModalProps) {
             )}
           </div>
           <div className="reel-ctl" role="group" aria-label="Reel controls">
-            <button type="button" className="label reel-btn" onClick={togglePlay} aria-label={playing ? "Pause reel" : "Play reel"}>
+            <button type="button" className="label reel-btn" onClick={togglePlay} aria-label={playing ? "Pause reel" : "Play reel"} ref={playBtn}>
               {playing ? "Pause" : "Play"}
             </button>
             <button type="button" className="label reel-btn" onClick={toggleMute} aria-pressed={muted} aria-label={muted ? "Unmute reel" : "Mute reel"}>

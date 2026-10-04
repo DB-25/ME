@@ -1,4 +1,6 @@
 /* Chapters cross-fade over ~200px at their edges so there is never a hard cut.
+   The exit fade only runs over the last 160px before the section leaves the top of the viewport, so the
+   closing rows of a chapter stay fully readable for as long as they are on screen.
    `.sx-in` goes on the <section>, `.sx-out` on its first child wrapper (two elements so the two
    opacity animations do not fight). Scroll-driven animations where supported; elsewhere sections stay solid. */
 @supports (animation-timeline: view()) {
@@ -10,7 +12,7 @@
   .sx-out {
     animation: sx-out linear both;
     animation-timeline: view();
-    animation-range: exit 0px exit 200px;
+    animation-range: exit calc(100% - 160px) exit 100%;
   }
 }
 @keyframes sx-in { from { opacity: 0; } to { opacity: 1; } }

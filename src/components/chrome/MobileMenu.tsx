@@ -6,6 +6,7 @@ import { gsap, prefersReducedMotion } from "@/lib/motion";
 import { lockScroll } from "./scroll-lock";
 import { assetUrl } from "@/lib/asset";
 import { ReelButton } from "@/components/reel";
+import { useSignal } from "@/lib/signal-store";
 import { NAV_ITEMS } from "./nav-items";
 import { SectionLink } from "./SectionLink";
 
@@ -30,6 +31,7 @@ function focusables(root: HTMLElement, toggle: HTMLElement | null): HTMLElement[
 export function MobileMenu({ open, onClose, toggle }: Props) {
   const root = useRef<HTMLDivElement>(null);
   const first = useRef(true);
+  const current = useSignal((s) => s.chapter);
 
   useEffect(() => {
     const el = root.current;
@@ -76,7 +78,7 @@ export function MobileMenu({ open, onClose, toggle }: Props) {
       const next = e.shiftKey ? (i <= 0 ? list.length - 1 : i - 1) : (i + 1) % list.length;
       list[next].focus();
     };
-    const mq = window.matchMedia("(min-width: 768px)");
+    const mq = window.matchMedia("(min-width: 1024px)");
     const onMq = () => mq.matches && onClose();
     document.addEventListener("keydown", onKey);
     mq.addEventListener("change", onMq);
@@ -109,7 +111,7 @@ export function MobileMenu({ open, onClose, toggle }: Props) {
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
-      className="invisible fixed inset-0 z-[70] flex flex-col bg-void px-[var(--gutter)] pb-[max(var(--gutter),env(safe-area-inset-bottom))] pt-[88px] md:hidden"
+      className="invisible fixed inset-0 z-[70] flex flex-col bg-void px-[var(--gutter)] pb-[max(var(--gutter),env(safe-area-inset-bottom))] pt-[88px] lg:hidden"
     >
       <style>{CSS}</style>
       <ul className="flex flex-1 flex-col justify-center">
@@ -121,9 +123,15 @@ export function MobileMenu({ open, onClose, toggle }: Props) {
               onNavigate={onClose}
               // Let the scroll lock release before Lenis is asked to move.
               delayMs={120}
-              className="block py-4 text-ink"
+              className="flex items-baseline justify-between py-4 text-ink"
+              aria-current={c.id === current ? "location" : undefined}
             >
               <span className="display text-[clamp(2.4rem,11vw,3.25rem)]">{c.label}</span>
+              {c.id === current && (
+                <span aria-hidden className="label !text-accent-hot">
+                  Here
+                </span>
+              )}
             </SectionLink>
           </li>
         ))}

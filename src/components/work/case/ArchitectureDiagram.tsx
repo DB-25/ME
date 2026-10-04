@@ -30,7 +30,7 @@ export function ArchitectureDiagram({ project, n }: { project: Project; n: strin
   const multi = lanes.length > 1;
 
   return (
-    <section className="cs-section cs-section-arch" data-cs="architecture" data-cs-label="Architecture" aria-labelledby="cs-arch">
+    <section id="sec-architecture" className="cs-section cs-section-arch" data-cs="architecture" data-cs-label="Architecture" aria-labelledby="cs-arch">
       <div className="shell">
         <div className="grid-12 cs-split">
           <div className="col-span-12 md:col-span-4">

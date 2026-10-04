@@ -16,10 +16,13 @@ const saveData = () => Boolean((navigator as Navigator & { connection?: { saveDa
  */
 export function useRowFilm(frame: RefObject<HTMLElement | null>, src: string | undefined, active: boolean, enabled: boolean) {
   const video = useRef<HTMLVideoElement | null>(null);
+  /** True only while the row is still active, so a late `playing` event never shows a film on a row that has gone quiet. */
+  const wanted = useRef(false);
 
   useEffect(() => {
     const host = frame.current;
     if (!host || !src || !enabled || !active || saveData()) return;
+    wanted.current = true;
     const timer = window.setTimeout(() => {
       let film = video.current;
       if (!film) {
@@ -33,7 +36,13 @@ export function useRowFilm(frame: RefObject<HTMLElement | null>, src: string | u
         film.addEventListener("loadedmetadata", () => {
           film!.currentTime = FILM_START;
         });
-        film.addEventListener("playing", () => film!.setAttribute("data-live", ""));
+        film.addEventListener("playing", () => {
+          if (!wanted.current) {
+            film!.pause();
+            return;
+          }
+          film!.setAttribute("data-live", "");
+        });
         // Loop back to the first UI moment, not the title card.
         film.addEventListener("ended", () => {
           film!.currentTime = FILM_START;
@@ -48,6 +57,7 @@ export function useRowFilm(frame: RefObject<HTMLElement | null>, src: string | u
       void film.play().catch(() => {});
     }, FILM_INTENT_MS);
     return () => {
+      wanted.current = false;
       window.clearTimeout(timer);
       const film = video.current;
       if (film) {

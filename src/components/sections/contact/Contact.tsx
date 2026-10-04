@@ -75,18 +75,18 @@ export function Contact() {
               type="button"
               onClick={copy}
               aria-label={`Copy ${profile.email} to clipboard`}
-              className="label inline-flex w-fit !text-[12px] items-center border border-hairline-strong px-5 py-3 !text-ink transition-colors duration-300 hover:border-accent hover:!text-accent-hot"
+              className="label inline-flex min-h-11 w-fit min-w-[9.5rem] items-center justify-center border border-hairline-strong px-5 py-3 !text-[12px] !text-ink transition-colors duration-300 hover:border-accent hover:!text-accent-hot"
             >
               {copied ? "Copied" : "Copy address"}
             </button>
-            <ul className="flex flex-wrap gap-x-7 gap-y-3">
+            <ul className="flex flex-wrap gap-x-7 gap-y-1 md:gap-y-3">
               {LINKS.map((l) => (
                 <li key={l.label}>
                   <a
                     href={l.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="label link !text-[12px] !text-ink hover:!text-accent-hot"
+                    className="label link inline-flex !text-[12px] !text-ink hover:!text-accent-hot pointer-coarse:min-h-11 pointer-coarse:items-center"
                   >
                     {l.label}
                     <span aria-hidden className="ml-1 text-muted">
@@ -108,7 +108,7 @@ export function Contact() {
       <p
         role="status"
         aria-live="polite"
-        className={`pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 border border-hairline-strong bg-void/85 px-5 py-3 font-mono text-[12px] tracking-[0.04em] text-accent-hot backdrop-blur transition-all duration-500 ease-[var(--ease-out-expo)] ${
+        className={`pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 border border-hairline-strong bg-void px-5 py-3 font-mono text-[12px] tracking-[0.04em] text-accent-hot transition-all duration-500 ease-[var(--ease-out-expo)] ${
           egg ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
         }`}
       >

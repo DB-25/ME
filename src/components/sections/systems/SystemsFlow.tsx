@@ -172,7 +172,7 @@ export function SystemsFlow() {
           <li key={s.id} className="sys-row" data-lit="">
             <h3 className="text-[clamp(1.25rem,2vw,1.625rem)] font-medium leading-none tracking-[-0.035em] text-ink">{s.label}</h3>
             <p className="label mt-1.5 !text-[12px] !text-ink/70">{s.component}</p>
-            <p className="mt-1 max-w-[28rem] text-[0.875rem] leading-[1.35] max-md:sr-only md:text-[0.9375rem] text-ink/85 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">{s.line}</p>
+            <p className="mt-1 max-w-[28rem] text-[0.8125rem] leading-[1.32] md:text-[0.9375rem] md:leading-[1.35] text-ink/85 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">{s.line}</p>
           </li>
         ))}
       </ol>

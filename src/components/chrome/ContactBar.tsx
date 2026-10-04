@@ -11,6 +11,8 @@ const SHOW_AFTER_VIEWPORTS = 0.5;
 const COVERING_CLASSES = ["menu-open", "director-active"];
 /** The Director HUD overlay also marks itself, so it works even without the body class. */
 const COVERING_SELECTOR = "[data-director-hud]";
+/** The Contact chapter carries these same links, bigger: the bar steps aside once it is on screen. */
+const CONTACT_SELECTOR = '[data-chapter="contact"]';
 
 function isCovered(): boolean {
   const { body } = document;
@@ -28,7 +30,7 @@ main { overflow-x: clip; }
 /**
  * Mobile-only sticky contact bar: Résumé, Email, LinkedIn. Visible at every scroll
  * depth after the hero (and from the start on routes without one), hidden while the
- * mobile menu or the Director HUD is open. Absent on /work/* (the case page has its own dock).
+ * mobile menu or the Director HUD is open, and once the Contact chapter (same links) is on screen. Absent on /work/* (the case page has its own dock).
  *
  * Contract: anything that takes over the screen can hide this bar by adding a class
  * from COVERING_CLASSES to `document.body` (the mobile menu adds `menu-open`; the
@@ -42,6 +44,7 @@ export function ContactBar() {
   const hasOwnDock = pathname.startsWith("/work");
   const [scrolled, setScrolled] = useState(false);
   const [covered, setCovered] = useState(false);
+  const [atContact, setAtContact] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > window.innerHeight * SHOW_AFTER_VIEWPORTS);
@@ -58,18 +61,26 @@ export function ContactBar() {
     return () => mo.disconnect();
   }, []);
 
+  useEffect(() => {
+    const contact = document.querySelector(CONTACT_SELECTOR);
+    if (!contact) return;
+    const io = new IntersectionObserver(([entry]) => setAtContact(entry.isIntersecting), { rootMargin: "0px 0px -35% 0px" });
+    io.observe(contact);
+    return () => io.disconnect();
+  }, [pathname]);
+
   if (hasOwnDock) return null;
 
-  const show = (scrolled || !isHome) && !covered;
+  const show = (scrolled || !isHome) && !covered && !atContact;
   const linkedIn = profile.links.find((l) => l.label === "LinkedIn");
-  const item = "flex h-[52px] items-center justify-center gap-1.5 text-[13px] font-medium text-ink";
+  const item = "flex h-[52px] items-center justify-center gap-1.5 text-[13px] font-medium text-ink transition-colors active:text-accent-hot";
 
   return (
     <nav
       aria-label="Contact"
       data-show={show}
       inert={!show}
-      className="contact-bar fixed inset-x-0 bottom-0 z-[60] border-t border-hairline-strong bg-void/90 backdrop-blur-md md:hidden"
+      className="contact-bar fixed inset-x-0 bottom-0 z-[60] border-t border-hairline-strong bg-void md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <style>{CSS}</style>

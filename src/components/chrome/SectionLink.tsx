@@ -14,6 +14,7 @@ type Props = {
   /** Wait this long before scrolling, so a scroll lock can release first. */
   delayMs?: number;
   "data-line"?: boolean;
+  "aria-current"?: "location";
 };
 
 /**

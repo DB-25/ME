@@ -7,7 +7,7 @@ import { assetUrl } from "@/lib/asset";
 export function LinksList({ project, n }: { project: Project; n: string }) {
   if (!project.links.length) return null;
   return (
-    <section className="cs-section" data-cs="links" data-cs-label="Links" aria-labelledby="cs-links">
+    <section id="sec-links" className="cs-section" data-cs="links" data-cs-label="Links" aria-labelledby="cs-links">
       <div className="shell grid-12 cs-split">
         <div className="col-span-12 md:col-span-4">
           <CaseLabel n={n} text="Links" />

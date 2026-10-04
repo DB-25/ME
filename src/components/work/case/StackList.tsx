@@ -5,7 +5,7 @@ import { CaseLabel } from "./CaseLabel";
 export function StackList({ project, n }: { project: Project; n: string }) {
   if (!project.stack.length) return null;
   return (
-    <section className="cs-section" data-cs="stack" data-cs-label="Stack" aria-labelledby="cs-stack">
+    <section id="sec-stack" className="cs-section" data-cs="stack" data-cs-label="Stack" aria-labelledby="cs-stack">
       <div className="shell grid-12 cs-split">
         <div className="col-span-12 md:col-span-4">
           <CaseLabel n={n} text="Stack" />

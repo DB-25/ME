@@ -9,7 +9,7 @@ export function NextProject({ next, index, total }: { next: Project; index: numb
   const img = previewImage(next);
   const src43 = img?.src43;
   return (
-    <section className="cs-next" data-cs="next" data-cs-label="Up next" aria-labelledby="cs-next-h">
+    <section id="sec-next" className="cs-next" data-cs="next" data-cs-label="Up next" aria-labelledby="cs-next-h">
       <div className="shell">
         <Link href={caseHref(next.slug)} className="cs-next-link" data-cursor="open">
           <div className="cs-next-top">
@@ -24,7 +24,7 @@ export function NextProject({ next, index, total }: { next: Project; index: numb
 
           <div className="cs-next-grid" data-still={img ? "" : undefined}>
             {img ? (
-              <figure className="cs-next-thumb" aria-hidden>
+              <figure className="cs-next-thumb" data-plain={img.thumb ? undefined : ""} aria-hidden>
                 <picture>
                   {src43 ? <source media="(max-width: 559px)" srcSet={assetUrl(src43)} /> : null}
                   <img src={assetUrl(img.src)} alt="" width={1600} height={900} loading="lazy" decoding="async" />

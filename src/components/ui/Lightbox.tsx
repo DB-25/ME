@@ -30,8 +30,9 @@ const CSS = `
 .lb[data-state="closing"] .lb-img, .lb[data-state="closing"] .lb-cap { opacity: 0; transition-duration: ${CLOSE_MS}ms; transition-delay: 0ms; }
 .lb-title { font-size: clamp(1.25rem, 2.2vw, 1.75rem); letter-spacing: -0.03em; line-height: 1.1; font-weight: 500; }
 .lb-close { justify-self: end; color: var(--color-ink); border: 1px solid var(--color-hairline-strong); border-radius: 2px;
-  padding: 10px 14px; min-height: 40px; background: rgb(6 5 9 / 0.6); transition: border-color .25s, color .25s; }
+  padding: 10px 14px; min-height: 44px; background: rgb(6 5 9 / 0.6); transition: border-color .25s, color .25s; }
 .lb-close:hover { border-color: var(--color-accent); color: var(--color-accent-hot); }
+@media (hover: none) { .lb-esc { display: none; } }
 @media (prefers-reduced-motion: reduce) { .lb *, .lb::backdrop { transition: none !important; } }
 `;
 
@@ -129,7 +130,7 @@ export function Lightbox({
             {note && <p className="mt-2 max-w-[44rem] text-[0.9375rem] leading-[1.5] text-muted">{note}</p>}
           </div>
           <button type="button" className="label lb-close" onClick={close} autoFocus>
-            Close <span aria-hidden>Esc</span>
+            Close <span aria-hidden className="lb-esc">Esc</span>
           </button>
         </div>
       </div>
@@ -163,7 +164,7 @@ export function EvidenceThumb({
         data-cursor="view"
         aria-label={`View photo: ${title}`}
         aria-haspopup="dialog"
-        className={`ev-thumb group/ev relative block overflow-hidden rounded-[3px] border border-hairline-strong ${className}`}
+        className={`ev-thumb group/ev relative block overflow-hidden rounded-[3px] border border-ink/30 transition-colors duration-300 hover:border-accent-hot focus-visible:border-accent-hot ${className}`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- static export */}
         <img
@@ -175,8 +176,8 @@ export function EvidenceThumb({
           decoding="async"
           className="block h-full w-full object-cover transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover/ev:scale-[1.04]"
         />
-        <span className="label absolute bottom-2 left-2 rounded-[2px] bg-void/70 px-2 py-1 !text-ink backdrop-blur-sm">
-          View <span aria-hidden>+</span>
+        <span className="label absolute bottom-0 left-0 inline-flex items-center gap-2 bg-void px-3 py-2 !text-[12px] !text-ink transition-colors duration-300 group-hover/ev:!text-accent-hot group-focus-visible/ev:!text-accent-hot">
+          View photo <span aria-hidden>+</span>
         </span>
       </button>
       <Lightbox image={image} title={title} meta={meta} note={note} controller={lb} />

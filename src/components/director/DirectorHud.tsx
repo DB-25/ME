@@ -77,7 +77,7 @@ export function DirectorHud({ state, onCut, onAnotherTake }: Props) {
                   ref={againRef}
                   type="button"
                   onClick={onAnotherTake}
-                  className="label border border-accent px-3 py-2 text-ink transition-colors duration-300 hover:text-accent-hot"
+                  className="label inline-flex items-center border border-accent px-3 py-2 text-ink transition-colors duration-300 hover:text-accent-hot pointer-coarse:min-h-11 pointer-coarse:px-4"
                 >
                   <span className="text-accent">&uarr;</span> Again
                 </button>
@@ -87,9 +87,9 @@ export function DirectorHud({ state, onCut, onAnotherTake }: Props) {
               <button
                 type="button"
                 onClick={onCut}
-                className="label border border-hairline-strong px-3 py-2 text-ink transition-colors duration-300 hover:border-accent hover:text-accent-hot"
+                className="label inline-flex items-center border border-hairline-strong px-3 py-2 text-ink transition-colors duration-300 hover:border-accent hover:text-accent-hot pointer-coarse:min-h-11 pointer-coarse:px-4"
               >
-                {finished ? "Close" : "Stop"} <span className="ml-1 text-dim">Esc</span>
+                {finished ? "Close" : "Stop"} <span className="ml-1 text-dim pointer-coarse:hidden">Esc</span>
               </button>
             </div>
           </div>

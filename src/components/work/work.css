@@ -1,6 +1,7 @@
 /* Work index (home chapter 03). Default layout (phones, tablets, touch): a horizontal scroll-snap carousel of project cards.
-   From 900px up: compact editorial rows, each with a small in-row still that scales into the film on hover. */
-.wk { --wk-ease: cubic-bezier(0.16, 1, 0.3, 1); --pa: var(--color-accent); --wk-ink: rgb(238 234 246 / 0.78); --wk-card: min(82vw, 340px); }
+   From 1100px up: compact editorial rows, each with a small in-row still that scales into the film on hover. */
+.wk { --wk-ease: cubic-bezier(0.16, 1, 0.3, 1); --pa: var(--color-accent); --wk-ink: rgb(238 234 246 / 0.78); --wk-card: min(82vw, 340px); --wk-rail: 7rem; --wk-thumb: clamp(176px, 16.5vw, 240px); }
+@media (min-width: 640px) { .wk { --wk-card: min(44vw, 400px); } }
 /* Mono micro-type over the particle field: 12px at ~70% ink, with a soft void halo so it never dissolves into the dots. */
 .wk .label { font-size: 12px; color: rgb(238 234 246 / 0.7); text-shadow: 0 0 10px rgb(6 5 9 / 1), 0 0 22px rgb(6 5 9 / 0.85); }
 .wk-title { font-size: clamp(2.5rem, 5.6vw, 5rem); }
@@ -25,8 +26,8 @@
 .wk-row[data-spot] { border-color: var(--pa); }
 
 .wk-link {
-  position: relative; flex: 1; min-width: 0; display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-content: start;
-  padding: 10px 10px 16px; color: inherit; text-decoration: none; transition: opacity 0.6s var(--wk-ease);
+  position: relative; flex: 1; min-width: 0; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto auto auto auto auto 1fr; column-gap: 12px;
+  padding: 12px 12px 14px; color: inherit; text-decoration: none; transition: opacity 0.6s var(--wk-ease);
 }
 .wk-list[data-hover] .wk-row:not([data-active]) .wk-link { opacity: 0.3; }
 .wk-list[data-spot] .wk-row:not([data-spot]) .wk-link { opacity: 0.2; }
@@ -40,6 +41,8 @@
 .wk-inline video[data-live] { opacity: 1; transition-delay: 0.3s; }
 /* Designed thumbs are already on-brand: no tint, no desaturation. Raw screenshots keep the ultraviolet cast. */
 .wk-inline:not([data-thumb]) { padding: 5px; }
+/* A raw screenshot (no designed thumb) is shown whole in the 4:3 card, never cropped through a phone. */
+.wk-inline:not([data-thumb]) img { object-fit: contain; }
 .wk-inline:not([data-thumb]) img { filter: saturate(0.5) brightness(0.68) contrast(1.05); transition: filter 0.6s var(--wk-ease); }
 .wk-inline:not([data-thumb])::after { content: ""; position: absolute; inset: 5px; pointer-events: none; background: linear-gradient(160deg, rgb(160 142 255 / 0.7), rgb(84 62 190 / 0.7)); mix-blend-mode: multiply; transition: opacity 0.6s var(--wk-ease); }
 .wk-link:hover .wk-inline:not([data-thumb]) img, .wk-link:focus-visible .wk-inline:not([data-thumb]) img { filter: saturate(0.9) brightness(0.92) contrast(1.02); }
@@ -76,19 +79,26 @@
 
 .wk-tag { grid-column: 1 / -1; grid-row: 4; margin: 8px 0 0; color: var(--wk-ink); font-size: 1.0625rem; line-height: 1.35; text-wrap: pretty; transition: color 0.4s; }
 .wk-row[data-active] .wk-tag { color: var(--color-ink); }
-.wk-out { grid-column: 1 / -1; grid-row: 5; margin: 12px 0 0; display: flex; align-items: baseline; gap: 12px; }
+.wk-out { grid-column: 1 / -1; grid-row: 5; margin: 12px 0 0; display: flex; align-items: baseline; gap: 12px; min-height: 2.25rem; }
 .wk-out-v { font-size: 1.75rem; font-weight: 500; line-height: 1; color: var(--color-ink); white-space: nowrap; }
 .wk-out-l { max-width: 22ch; }
 
-/* "I owned" stays on the card, clamped to three lines. Spotlight never changes layout height. */
+/* "I owned" is shown in full: a cut-off sentence reads as a bug. Cards in a row share one height, so the longest sets it. */
 .wk-own { grid-column: 1 / -1; grid-row: 6; margin: 12px 0 0; display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 4px; align-content: start; }
 .wk-own-v {
   color: var(--wk-ink); font-size: 0.9375rem; line-height: 1.45; text-wrap: pretty; transition: color 0.4s;
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
 }
 .wk-row[data-active] .wk-own-v { color: var(--color-ink); }
 .wk-tag, .wk-own-v { text-shadow: 0 0 14px rgb(6 5 9 / 1), 0 0 30px rgb(6 5 9 / 0.9); }
 .wk-pick { display: none; }
+.wk-open { display: none; }
+/* Card footer: says outright that the whole card opens a case study. */
+.wk-go {
+  grid-column: 1 / -1; grid-row: 7; align-self: end; margin: 16px 0 0; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--color-hairline); color: var(--color-ink); transition: color 0.3s;
+}
+.wk .wk-go { color: var(--color-ink); }
+.wk-row[data-active] .wk-go, .wk .wk-row[data-active] .wk-go { color: var(--color-accent-hot); }
 
 /* Carousel controls: previous, next, position. Hidden once the rows take over. */
 .wk-ctl { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
@@ -98,12 +108,14 @@
 }
 .wk-arrow:hover:not(:disabled) { border-color: var(--pa); color: var(--color-accent-hot); }
 .wk-arrow:disabled { opacity: 0.35; cursor: default; }
-.wk-ctl-count { margin: 0 0 0 8px; }
-.wk-ctl-hint { opacity: 0.7; }
+.wk-ctl-count { margin: 0 4px 0 8px; white-space: nowrap; }
+/* Progress: a hairline track with a thumb as wide as the visible share of the strip. Moved from script, never re-rendered. */
+.wk-prog { position: relative; flex: 1; max-width: 160px; height: 2px; overflow: hidden; background: var(--color-hairline-strong); }
+.wk-prog i { position: absolute; inset: 0 auto 0 0; width: 20%; background: var(--pa); }
 
-/* WIDE (900px and up): compact editorial rows. Name and tagline left, the lead stat and "I owned" in the middle, a small still on the
-   right that scales leftwards into the film while the row is active or picked. */
-@media (min-width: 900px) {
+/* WIDE (1100px and up): compact editorial rows. A fixed rail (index, year, category) so mono labels never break mid-word, then name and
+   tagline, "I owned", the lead stat, and a 16:9 still that scales leftwards into the film while the row is active or picked. */
+@media (min-width: 1100px) {
   .wk-ctl { display: none; }
   .wk-list { display: block; margin: 0; padding: 0; overflow: visible; scroll-snap-type: none; border-bottom: 1px solid var(--color-hairline); }
   .wk-row { display: block; border: 0; border-top: 1px solid var(--color-hairline); background: none; }
@@ -119,8 +131,8 @@
   .wk-row[data-spot]::after { opacity: 1; }
 
   .wk-link {
-    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-content: normal; align-items: start;
-    padding: clamp(10px, 0.9vw, 13px) 0;
+    display: grid; grid-template-columns: var(--wk-rail) minmax(0, 0.85fr) minmax(0, 1.65fr) 9.5rem var(--wk-thumb); grid-template-rows: auto auto;
+    column-gap: var(--gutter); align-content: normal; align-items: baseline; padding: clamp(14px, 1.2vw, 18px) 0;
   }
   /* A soft void behind the copy so the drifting particles never sit under it. Feathered on every side. */
   .wk-link::before {
@@ -131,68 +143,75 @@
   }
   .wk-list[data-spot] .wk-row:not([data-spot]) .wk-link { opacity: 0.12; }
 
-  .wk-idx { grid-column: 1; grid-row: 1; margin: 0; padding-top: 0.45rem; }
-  .wk-meta { grid-column: 1; grid-row: 2; margin: 6px 0 0; flex-direction: column; flex-wrap: nowrap; justify-content: flex-start; align-items: flex-start; gap: 2px; }
-  .wk-meta > * { overflow-wrap: anywhere; }
-  .wk-meta > .wk-badge { overflow-wrap: normal; }
+  /* Row 1 shares one baseline: index, name and the stat's number. Row 2: year and category, tagline, "I owned". */
+  .wk-idx { grid-column: 1; grid-row: 1; margin: 0; }
+  .wk-meta { grid-column: 1; grid-row: 2; margin: 0; flex-direction: column; flex-wrap: nowrap; justify-content: flex-start; align-items: flex-start; gap: 2px; }
   .wk-name {
-    grid-column: 2 / 8; grid-row: 1; margin: 0; position: relative; z-index: 3;
+    grid-column: 2 / 4; grid-row: 1; margin: 0; position: relative; z-index: 3;
     font-size: clamp(2rem, min(4.8vw, calc((min(100vw, var(--maxw)) - 2 * var(--gutter)) / var(--n))), 5rem);
   }
-  .wk-out { grid-column: 8 / 10; grid-row: 1; margin: 0; align-self: end; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .wk-out { grid-column: 4; grid-row: 1 / 3; align-self: start; margin: 0.45rem 0 0; min-height: 0; flex-direction: column; align-items: flex-start; gap: 6px; }
   .wk-out-v { font-size: clamp(1.5rem, 2.2vw, 2.125rem); }
-  .wk-out-l { max-width: 18ch; }
-  .wk-tag { grid-column: 2 / 5; grid-row: 2; margin: 6px 0 0; font-size: clamp(1rem, 1.25vw, 1.1875rem); }
-  .wk-own { grid-column: 5 / 10; grid-row: 2; margin: 6px 0 0; grid-template-columns: 4.75rem minmax(0, 1fr); column-gap: 12px; align-items: baseline; }
+  .wk-out-l { max-width: none; line-height: 1.35; }
+  .wk-tag { grid-column: 2; grid-row: 2; margin: 8px 0 0; font-size: clamp(1rem, 1.25vw, 1.1875rem); text-wrap: balance; }
+  .wk-own { grid-column: 3; grid-row: 2; margin: 8px 0 0; grid-template-columns: 4.25rem minmax(0, 1fr); column-gap: 12px; align-items: baseline; }
   .wk-own-v { font-size: clamp(0.875rem, 1vw, 0.9375rem); }
+  .wk-go { display: none; }
 
-  /* The still: sized to the two text rows, never taller than them. Hover scales it from its right edge. */
-  .wk-media { grid-column: 10 / 13; grid-row: 1 / 3; align-self: stretch; aspect-ratio: auto; min-height: 100px; z-index: 2; }
+  /* The still: 16:9, centred on the row. The film is 16:9 too, so scaling it up never crops it. Hover scales it from its right edge. */
+  .wk-media { grid-column: 5; grid-row: 1 / 3; align-self: center; aspect-ratio: 16 / 9; z-index: 2; }
   .wk-inline {
-    inset: 0 0 auto auto; width: clamp(150px, 13vw, 188px); height: auto; aspect-ratio: 4 / 3; border-color: var(--color-hairline);
-    transform-origin: right center; transition: transform 0.75s var(--wk-ease), border-color 0.4s;
+    inset: 0; border-color: var(--color-hairline); transform-origin: right center; transition: transform 0.75s var(--wk-ease), border-color 0.4s;
   }
+  .wk-inline:not([data-thumb]) img { object-fit: cover; }
   .wk-inline-type { font-size: clamp(1rem, 1.5vw, 1.4rem); padding: 8px; }
   /* Dim at rest, full strength when active. */
-  .wk-inline[data-thumb] img { filter: brightness(0.6) saturate(0.75); transition: filter 0.7s var(--wk-ease); }
+  .wk-inline[data-thumb] img { filter: brightness(0.62) saturate(0.78); transition: filter 0.7s var(--wk-ease); }
   .wk-row[data-active] .wk-inline[data-thumb] img { filter: none; }
-  .wk-row[data-active] .wk-inline { border-color: var(--pa); transform: scale(1.9); }
-  /* The scaled film reaches the lead stat's column: let the stat step aside while the row is active (inline opacity from the entrance tween loses to !important). */
+  .wk-row[data-active] .wk-inline { border-color: var(--pa); transform: scale(1.6); }
+  /* "Opens": a small hairline arrow in the corner of the still, so every row reads as a link before it is hovered. */
+  .wk-open {
+    position: absolute; top: 6px; right: 6px; z-index: 2; width: 22px; height: 22px; display: grid; place-items: center; font-size: 12px; line-height: 1;
+    color: rgb(238 234 246 / 0.85); background: rgb(6 5 9 / 0.72); border: 1px solid var(--color-hairline-strong); transition: color 0.3s, border-color 0.3s, background 0.3s;
+  }
+  .wk-row[data-active] .wk-open { color: var(--color-accent-hot); border-color: var(--pa); background: var(--color-void); }
+  /* The scaled film reaches into the lead stat's column: let the stat step aside while the row is active (inline opacity from the entrance tween loses to !important). */
   .wk-row[data-active] .wk-out { opacity: 0 !important; }
 
-  /* The director's pick: facts replace the tagline and "I owned" cells, the case-study line replaces the stat. The row never grows. */
-  .wk-pick { display: contents; }
-  .wk-pick-facts {
-    grid-column: 2 / 10; grid-row: 2; position: absolute; inset: 6px 0 0 0; z-index: 2; padding: 6px 14px; pointer-events: none; opacity: 0;
-    display: flex; align-items: center; gap: clamp(20px, 3vw, 48px); overflow: hidden;
+  /* The director's pick: one strip replaces the tagline and "I owned" cells (facts, then role and the case-study line), kept clear of the film. The row never grows. */
+  .wk-pick {
+    grid-column: 2 / 5; grid-row: 2; position: absolute; inset: 8px 0 0 0; z-index: 1; padding: 6px calc(var(--wk-thumb) * 0.6 - var(--gutter) + 12px) 6px 14px; pointer-events: none; opacity: 0;
+    display: flex; align-items: center; gap: clamp(20px, 2.4vw, 40px); overflow: hidden;
     background: linear-gradient(90deg, rgb(6 5 9 / 0.94), rgb(6 5 9 / 0.78)); border-top: 1px solid var(--pa); transition: opacity 0.6s var(--wk-ease);
   }
+  .wk-row[data-spot] .wk-pick { opacity: 1; }
+  .wk-pick-facts { flex: 1 1 0; min-width: 0; margin: 0; display: flex; align-items: center; gap: clamp(20px, 2.4vw, 40px); }
   .wk-pick-facts > div { flex: 1 1 0; display: flex; align-items: center; gap: 10px; min-width: 0; }
   .wk-pick-facts dd { margin: 0; font-size: clamp(1.25rem, 2vw, 1.75rem); font-weight: 500; line-height: 1; white-space: nowrap; }
   .wk .wk-pick-facts dt { color: var(--color-ink); line-height: 1.3; }
-  .wk-pick-cta { grid-column: 8 / 10; grid-row: 1; align-self: end; margin: 0; opacity: 0; pointer-events: none; transition: opacity 0.6s var(--wk-ease); display: flex; flex-direction: column; gap: 2px; }
+  .wk-pick-cta { flex: none; max-width: 11rem; margin: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
   .wk .wk-pick-cta { color: var(--pa); }
-  .wk-row[data-spot] :is(.wk-pick-facts, .wk-pick-cta) { opacity: 1; }
   /* The facts replace the tagline cells (inline opacity from the entrance tween loses to !important). */
   .wk-row[data-spot] :is(.wk-tag, .wk-out, .wk-own) { opacity: 0 !important; }
 }
+@media (min-width: 1100px) and (max-width: 1279px) { .wk-pick-cta { display: none; } }
 
 /* THE LAB. Filters are a single swipeable row on phones. */
 .wk-lab-filters {
-  display: flex; flex-wrap: nowrap; gap: 0 26px; margin: 0 calc(var(--gutter) * -1) 6px; padding-inline: var(--gutter);
+  display: flex; flex-wrap: nowrap; gap: 0 14px; margin: 0 calc(var(--gutter) * -1) 6px; padding-inline: calc(var(--gutter) - 6px);
   overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;
 }
 .wk-lab-filters::-webkit-scrollbar { display: none; }
-.wk-filter { position: relative; flex: none; scroll-snap-align: start; white-space: nowrap; min-height: 44px; background: none; border: 0; padding: 8px 0; cursor: pointer; color: var(--color-dim); transition: color 0.25s; }
+.wk-filter { position: relative; flex: none; scroll-snap-align: start; white-space: nowrap; min-height: 44px; background: none; border: 0; padding: 8px 6px; cursor: pointer; color: var(--color-dim); transition: color 0.25s; }
 .wk .wk-filter { color: rgb(238 234 246 / 0.6); }
 .wk .wk-filter:hover, .wk .wk-filter[aria-pressed="true"] { color: var(--color-ink); }
 .wk-filter::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: 8px; height: 1px; background: var(--color-accent);
+  content: ""; position: absolute; left: 6px; right: 6px; bottom: 8px; height: 1px; background: var(--color-accent);
   transform: scaleX(0); transform-origin: left; transition: transform 0.5s var(--wk-ease);
 }
 .wk-filter[aria-pressed="true"]::after { transform: scaleX(1); }
 .wk-filter sup { margin-left: 4px; font-size: 10px; letter-spacing: 0; }
-@media (min-width: 900px) { .wk-lab-filters { margin-inline: 0; padding-inline: 0; margin-bottom: 8px; } }
+@media (min-width: 900px) { .wk-lab-filters { margin-inline: -6px; padding-inline: 0; margin-bottom: 8px; } }
 
 .wk-lab-list { position: relative; isolation: isolate; list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--color-hairline-strong); }
 /* A feathered void behind the whole table, so grey descriptions never fight the drifting particles. */
@@ -212,7 +231,11 @@
   display: inline-block; justify-self: start; font-size: clamp(1.25rem, 2vw, 1.75rem); font-weight: 500; letter-spacing: -0.03em; line-height: 1.1;
   color: var(--color-ink); text-decoration: none; overflow-wrap: anywhere; transition: transform 0.6s var(--wk-ease), color 0.3s;
 }
+/* Stretched link: the name's hit area is the whole row (the 22px name alone is far below a 44px tap target). The row's own link sits above it. */
+a.wk-lab-name::after { content: ""; position: absolute; inset: 0; }
+.wk-lab-link { position: relative; z-index: 1; }
 .wk-lab-row:hover a.wk-lab-name { transform: translateX(10px); color: var(--color-accent-hot); }
+.wk-lab-row:has(a.wk-lab-name) { cursor: pointer; }
 .wk-lab-what { color: var(--wk-ink); font-size: 1rem; line-height: 1.45; text-wrap: pretty; text-shadow: 0 0 14px rgb(6 5 9 / 1), 0 0 30px rgb(6 5 9 / 0.9); }
 .wk .wk-lab-cat { display: block; margin-top: 6px; color: rgb(238 234 246 / 0.6); }
 .wk-lab-year { white-space: nowrap; }
@@ -231,6 +254,15 @@
   .wk-lab-row > .wk-lab-year { grid-column: 9 / 10; grid-row: 1; }
   .wk-lab-row > .wk-lab-link { grid-column: 10 / 13; grid-row: 1; justify-self: end; text-align: right; }
   .wk-lab-badge { top: -1px; right: auto; left: 0; }
+}
+/* Same rail as the featured rows, so both lists share one left edge for their names. */
+@media (min-width: 1100px) {
+  .wk-lab-row { grid-template-columns: var(--wk-rail) minmax(0, 1.2fr) minmax(0, 1.1fr) 8rem minmax(0, 1fr); }
+  .wk-lab-row > .wk-lab-idx { grid-column: 1; }
+  .wk-lab-row > .wk-lab-name { grid-column: 2; }
+  .wk-lab-row > .wk-lab-what { grid-column: 3; }
+  .wk-lab-row > .wk-lab-year { grid-column: 4; }
+  .wk-lab-row > .wk-lab-link { grid-column: 5; }
 }
 /* No opacity transition here: it fights the entrance tween (gsap.from) and can strand the stat at 0. */
 .wk-row[data-spot] .wk-out { opacity: 0; }

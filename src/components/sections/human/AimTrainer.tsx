@@ -185,11 +185,11 @@ export function AimTrainer() {
         <style>{`
           @keyframes aim-ping { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(1.9); opacity: 0; } }
           .aim-ping { animation: aim-ping 1.4s cubic-bezier(0.16, 1, 0.3, 1) infinite; }
-          @keyframes aim-wait { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+          @keyframes aim-wait { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
           .aim-wait { animation: aim-wait 1.6s ease-in-out infinite; }
         `}</style>
         <Corners live={t.phase === "live"} />
-        <CenterCross />
+        {playing && <CenterCross />}
 
         {t.phase === "idle" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-6 text-center">
@@ -208,7 +208,9 @@ export function AimTrainer() {
         )}
 
         {t.phase === "waiting" && (
-          <p className="aim-wait label absolute inset-x-0 top-[62%] text-center !text-valorant">Wait for it</p>
+          <p className="aim-wait label absolute inset-x-0 top-[62%] text-center !text-valorant">
+            {t.early ? "Too early. Wait for it" : "Wait for it"}
+          </p>
         )}
 
         {t.phase === "live" && t.pos && <Target key={`${t.hits.length}-${t.pos.x}`} pos={t.pos} onHit={(e) => t.registerHit(e.timeStamp, t.pos)} />}

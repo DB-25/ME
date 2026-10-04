@@ -7,7 +7,7 @@ const CSS = `
 @keyframes building-blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
 .building-dot { animation: building-blink 1.8s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .building-track { animation: none !important; width: auto !important; }
+  .building-track { animation: none !important; width: auto !important; display: block !important; }
   .building-track ul { flex-wrap: wrap; row-gap: 14px; }
   .building-copy-2 { display: none; }
   .building-viewport { mask-image: none !important; -webkit-mask-image: none !important; }

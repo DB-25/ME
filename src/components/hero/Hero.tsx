@@ -31,7 +31,17 @@ function Lede({ text }: { text: string }) {
  * Nothing small sits in the right-middle.
  */
 const CSS = `
+/* One screen, but never shorter than the content needs: short phones and landscape phones scroll the hero instead of clipping it. */
+#hero, #hero .hero-pin { height: max(100svh, 40rem); }
+@media (max-width: 767px) { #hero, #hero .hero-pin { height: max(100svh, 41rem); } }
 #hero .hero-first { font-size: 23vw; }
+/* Short phones (SE class): trade the location line and some air for fitting the whole hero in one screen. */
+@media (max-width: 767px) and (max-height: 740px) {
+  #hero, #hero .hero-pin { height: max(100svh, 41rem); }
+  #hero .hero-loc { display: none; }
+  #hero .hero-first { font-size: 21vw; }
+  #hero .hero-last { font-size: 14vw; }
+}
 #hero .hero-last { font-size: 15.5vw; }
 #hero [data-out] { text-shadow: 0 0 14px rgb(6 5 9 / 0.9), 0 0 4px rgb(6 5 9 / 0.8); }
 @media (min-width: 768px) {
@@ -65,13 +75,24 @@ const CSS = `
 #hero .hero-cta-arrow { color: var(--color-accent-hot); transition: transform 0.35s var(--ease-out-expo); }
 #hero .hero-cta:hover .hero-cta-arrow { transform: translate(2px, -2px); }
 @media (min-width: 768px) { #hero .hero-cta { min-height: 32px; font-size: 14px; } #hero .hero-btn { min-height: 40px; } }
+/* Scroll cue: a vertical label and a hairline with a bead that runs down it, in the left gutter (mirror of the chapter rail). */
+#hero .hero-cue { position: absolute; left: 6px; top: 36%; z-index: 1; display: none; width: 12px; flex-direction: column; align-items: center; gap: 10px; }
+@media (min-width: 768px) { #hero .hero-cue { display: flex; } }
+#hero .hero-cue-label { writing-mode: vertical-rl; font-size: 10px; line-height: 1; letter-spacing: 0.16em; color: var(--color-muted); }
+#hero .hero-cue-line { position: relative; width: 1px; height: 48px; overflow: hidden; background: var(--color-hairline-strong); }
+#hero .hero-cue-line::after { content: ""; position: absolute; inset: 0; height: 40%; background: var(--color-accent-hot); animation: hero-cue 2.4s var(--ease-out-expo) 1.6s infinite; transform: translateY(-100%); }
+@keyframes hero-cue { 0% { transform: translateY(-100%); } 70%, 100% { transform: translateY(260%); } }
 /* The story, proof and links can sit over bright particles (noise phase, band edge): soft scrim. */
 #hero .hero-stack { position: relative; isolation: isolate; }
 #hero .hero-stack::before {
   content: ""; position: absolute; z-index: -1; inset: -40px -16px -16px;
   background: linear-gradient(to top, rgb(6 5 9 / 0.9) 62%, transparent);
 }
+@media (min-width: 768px) and (max-width: 1023px) {
+  #hero .hero-stack::before { -webkit-mask-image: linear-gradient(to right, #000 62%, transparent); mask-image: linear-gradient(to right, #000 62%, transparent); }
+}
 @media (min-width: 1024px) {
+  #hero .hero-stack { width: max(32vw, 27rem); }
   #hero .hero-stack::before {
     inset: -90px -120px -40px -60px;
     background: radial-gradient(ellipse at 20% 75%, rgb(6 5 9 / 0.88) 0%, rgb(6 5 9 / 0.7) 45%, transparent 75%);
@@ -89,11 +110,11 @@ export function Hero() {
       id="hero"
       data-chapter="hero"
       aria-labelledby="hero-title"
-      className="relative h-svh"
+      className="relative"
     >
       <style>{CSS}</style>
 
-      <div className="sticky top-0 h-svh overflow-clip">
+      <div className="hero-pin sticky top-0 overflow-clip">
         <h1 id="hero-title" className="sr-only">
           {profile.name}, {profile.title}
         </h1>
@@ -107,9 +128,14 @@ export function Hero() {
             </span>
           ))}
 
+          <div aria-hidden data-out className="hero-cue">
+            <span className="label hero-cue-label">Scroll</span>
+            <span className="hero-cue-line" />
+          </div>
+
           {/* Top: title block and first name */}
-          <div className="flex flex-col items-start gap-2 md:flex-row md:justify-between md:gap-8">
-            <div aria-hidden data-line="first" className="hero-first display order-2 text-ink will-change-transform md:order-1">
+          <div className="max-md:contents md:flex md:flex-row md:items-start md:justify-between md:gap-8">
+            <div aria-hidden data-line="first" className="hero-first display order-2 mt-auto self-start text-ink will-change-transform md:order-1 md:mt-0">
               <Chars text={FIRST} />
             </div>
             <div data-out className="order-1 md:order-2 md:pt-3 md:text-right">
@@ -126,7 +152,7 @@ export function Hero() {
           </div>
 
           {/* Bottom: story, proof and links, with the last name */}
-          <div className="flex flex-col gap-4 max-md:-mt-3 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+          <div className="order-3 flex flex-col gap-4 max-md:-mt-3 md:order-none lg:flex-row lg:items-end lg:justify-between lg:gap-10">
             <div data-out className="hero-stack order-2 flex w-full max-w-[30rem] flex-col gap-4 lg:order-1 lg:w-[32vw] lg:gap-5">
               <div className="flex flex-col gap-2">
                 <HeroEyebrow />

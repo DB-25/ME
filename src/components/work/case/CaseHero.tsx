@@ -24,6 +24,29 @@ function breakTitle(name: string): string {
   return `${words.slice(0, best).join(NBSP)} ${words.slice(best).join(NBSP)}`;
 }
 
+/**
+ * Display letters carry a left side bearing that grows with the size, so a giant name reads indented against the
+ * hairlines and labels at the column edge. Pull the first glyph back by its bearing class (measured on this face):
+ * capital stems (P, B, E) sit furthest in, then rounds (G, C) and lowercase, then diagonals (A, V, T).
+ */
+const DIAGONALS = "AVWTYXZvwyxz7";
+const ROUND_CAPS = "CGOQS0689";
+function leadShift(name: string): string {
+  const c = name[0] ?? "";
+  if (DIAGONALS.includes(c)) return "-0.024em";
+  if (ROUND_CAPS.includes(c)) return "-0.043em";
+  if (c >= "a" && c <= "z") return "-0.045em";
+  return "-0.09em";
+}
+
+/**
+ * A short hyphenated identifier ("arc-control-mcp") is one token: wrapped, it strands "mcp" under a dangling hyphen.
+ * It stays on one line and is sized to the column instead (see .cs-title[data-solo]).
+ */
+const SOLO_MIN_CHARS = 13;
+const SOLO_MAX_CHARS = 16;
+const isSolo = (name: string) => !name.includes(" ") && name.includes("-") && name.length >= SOLO_MIN_CHARS && name.length <= SOLO_MAX_CHARS;
+
 /** Title sequence: giant name, tagline, what I owned, hairline in the project accent, mono meta row. */
 export function CaseHero({ project, index, total }: { project: Project; index: number; total: number }) {
   const meta = [
@@ -45,7 +68,11 @@ export function CaseHero({ project, index, total }: { project: Project; index: n
 
       <div className="cs-hero-body">
         <div className="cs-hero-main">
-          <h1 className="cs-title" style={{ ["--len" as string]: titleLen(project.name) }}>
+          <h1
+            className="cs-title"
+            data-solo={isSolo(project.name) ? "" : undefined}
+            style={{ ["--len" as string]: titleLen(project.name), ["--chars" as string]: project.name.length, ["--lead" as string]: leadShift(project.name) }}
+          >
             <Reveal as="span" immediate keepSpaces delay={0.1} className="block">
               {breakTitle(project.name)}
             </Reveal>

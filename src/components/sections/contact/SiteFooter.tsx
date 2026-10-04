@@ -37,7 +37,7 @@ export function SiteFooter() {
       <div className="flex flex-col gap-3 md:flex-row md:items-baseline md:justify-between">
         <p className="label !text-[12px] !text-ink/70">&copy; 2026 Dhruv Kamalesh Kumar</p>
         <BostonClock />
-        <button type="button" onClick={() => scrollToTarget("#hero")} className="label link w-fit text-left !text-[12px] !text-ink/70 hover:!text-ink">
+        <button type="button" onClick={() => scrollToTarget("#hero")} className="label link inline-flex w-fit text-left !text-[12px] !text-ink/70 hover:!text-ink pointer-coarse:min-h-11 pointer-coarse:items-center">
           Back to top
         </button>
       </div>

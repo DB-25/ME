@@ -1,6 +1,6 @@
 import { FadeIn } from "./FadeIn";
 import { BEATS, CITIES } from "./beats";
-import { OriginHeader } from "./OriginHeader";
+import { BeatTitle, OriginHeader } from "./OriginHeader";
 
 /** Unpinned layout: phones, reduced motion, no JavaScript. Every beat is readable at once. */
 export function StaticJourney() {
@@ -26,7 +26,7 @@ export function StaticJourney() {
                   <p className={`label md:mt-4 ${city.label}`}>{b.place}</p>
                 </div>
                 <div className="col-span-12 md:col-span-5">
-                  <h3 className="text-[clamp(1.25rem,3.6vw,1.75rem)] font-medium leading-[1.1] tracking-[-0.03em] text-ink">{b.title}</h3>
+                  <h3 className="text-[clamp(1.25rem,3.6vw,1.75rem)] font-medium leading-[1.1] tracking-[-0.03em] text-ink"><BeatTitle text={b.title} /></h3>
                   {b.org && <p className="label mt-2">{b.org}</p>}
                   <p className="mt-3 max-w-[34rem] text-[1rem] leading-[1.5] text-ink/80 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">{b.body}</p>
                 </div>

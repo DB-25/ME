@@ -9,8 +9,10 @@ const CSS = `
 .press-marquee:focus-within .press-track { animation-play-state: paused; }
 @keyframes press-drift { to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) {
-  .press-marquee { -webkit-mask-image: none; mask-image: none; }
-  .press-track { animation: none !important; width: auto; flex-wrap: wrap; }
+  .press-marquee { -webkit-mask-image: none; mask-image: none; padding-inline: var(--gutter); }
+  .press-track { animation: none !important; width: 100%; }
+  .press-track > ul { flex-wrap: wrap; flex-shrink: 1; row-gap: 8px; }
+  .press-track > ul li { white-space: normal; }
   .press-dup { display: none; }
 }
 `;
@@ -41,7 +43,7 @@ function Strip({ list, hidden }: { list: Outlet[]; hidden?: boolean }) {
             tabIndex={-1}
             data-cursor="read"
             title={o.title}
-            className="group inline-flex items-baseline gap-3 text-[clamp(2rem,4.8vw,4.75rem)] font-medium leading-none tracking-[-0.045em] text-ink/75 transition-colors duration-300 hover:text-ink focus-visible:text-ink"
+            className="group inline-flex items-baseline gap-3 text-[clamp(2rem,4.8vw,4.75rem)] font-medium leading-none tracking-[-0.045em] text-ink/85 transition-colors duration-300 hover:text-ink focus-visible:text-ink"
           >
             {o.name}
             <span className="label num !text-[12px] !text-ink/65">{o.year}</span>
@@ -59,7 +61,7 @@ export function PressMarquee({ items }: { items: Recognition[] }) {
     <div className="relative mt-[clamp(32px,4vw,56px)]">
       <style>{CSS}</style>
       {/* A soft band, feathered top and bottom, so outlet names never sit on bright particles. */}
-      <Scrim shape="band" strength={0.9} inset="2% 0 -4% 0" />
+      <Scrim shape="band" strength={0.94} inset="14% 0 -6% 0" feather={20} />
       <p className="label shell mb-3 !text-[12px] !text-ink/75">As covered by</p>
       {/* Decorative: the same outlets are listed, focusable, in PressIndex below. */}
       <div aria-hidden className="press-marquee overflow-hidden py-[clamp(12px,2vw,24px)]">

@@ -12,7 +12,8 @@ const out = path.join(here, "heroes");
 fs.mkdirSync(out, { recursive: true });
 const only = process.argv[2];
 
-for (const t of THUMBS.filter((x) => !only || x.slug === only)) {
+// Phone-app heroes are built by phones.mjs.
+for (const t of THUMBS.filter((x) => (!only || x.slug === only) && !x.phones)) {
   const dir = path.join(root, ".brag", t.slug);
   // A film being re-rendered may briefly only have its previous cut: the UI window is the same in both.
   const film = ["brag.mp4", "brag-v1.mp4"].map((f) => path.join(dir, f)).find((f) => fs.existsSync(f));

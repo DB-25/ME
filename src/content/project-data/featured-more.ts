@@ -156,6 +156,7 @@ export const featuredMoreProjects: Project[] = [
     ],
     stack: ["Flutter", "Dart", "Firebase", "REST APIs", "Razorpay"],
     links: [],
+    cover: { thumb: "/films/acharya-erp-thumb.jpg", thumb43: "/films/acharya-erp-thumb-43.jpg" },
     media: [
       {
         src: "/stills/acharya-erp/01.jpg",

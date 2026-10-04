@@ -99,7 +99,7 @@ export function CaseFilm({ project }: { project: Project }) {
   };
 
   return (
-    <section className="cs-film shell" aria-label={film.title}>
+    <section id="sec-film" className="cs-film shell" data-cs="film" data-cs-label="Film" aria-label={film.title}>
       <div className="cs-film-frame" data-vertical={hasVertical ? "" : undefined}>
         <video
           ref={video}

@@ -13,6 +13,8 @@ import { CaseLabel } from "./CaseLabel";
 const WIDE_RATIO = 1.7;
 const PAIR_MAX_RATIO = 2.3;
 const PAIR_MAX_SPREAD = 1.5;
+/** A still is never shown larger than 1.08x its native width (see .cs-shot). Below this native width it cannot fill the column, so its caption sits beside it instead of leaving a hole. */
+const FULL_BLEED_MIN_WIDTH = 1110;
 
 type Shot = { media: Media; index: number; ratio: number };
 type Row =
@@ -33,7 +35,8 @@ export function planRows(media: Media[]): Row[] {
   const shots: Shot[] = media.map((m, index) => ({ media: m, index, ratio: ratioOf(m) }));
   const rows: Row[] = [];
   let insets = 0;
-  const single = (s: Shot): Row => (s.ratio >= WIDE_RATIO ? { kind: "wide", shots: [s] } : { kind: "inset", shots: [s], flip: insets++ % 2 === 1 });
+  const fillsColumn = (s: Shot) => (s.media.width ?? 1600) >= FULL_BLEED_MIN_WIDTH;
+  const single = (s: Shot): Row => (s.ratio >= WIDE_RATIO && fillsColumn(s) ? { kind: "wide", shots: [s] } : { kind: "inset", shots: [s], flip: insets++ % 2 === 1 });
 
   let i = 0;
   while (i < shots.length) {
@@ -120,7 +123,7 @@ export function Gallery({ project, n }: { project: Project; n: string }) {
   const rows = planRows(media);
 
   return (
-    <section className="cs-section" data-cs="gallery" data-cs-label="In use" aria-labelledby="cs-gallery">
+    <section id="sec-gallery" className="cs-section" data-cs="gallery" data-cs-label="In use" aria-labelledby="cs-gallery">
       <div className="shell">
         <CaseLabel n={n} text="In use" />
         <h2 id="cs-gallery" className="headline cs-h2 mt-6">

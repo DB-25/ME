@@ -8,6 +8,8 @@
 //   crop     [x, y, w, h] of the app CONTENT in that frame. Exclude the app's own window chrome (dots,
 //            url bar): the template draws one consistent frame around every crop. Any aspect works.
 //   crop43   optional: a different crop for the 4:3 file (heroes/<slug>-43.png) when the 16:9 crop is too tall.
+//   phones   optional, for mobile apps: { source, screens: [[x, y, w, h], ...] }. Built by phones.mjs instead of
+//            extract.mjs; the template shows the screens unframed (no window bar).
 // Layout, type scale, glow and reflection are fixed in template.html so the series reads as one.
 export const THUMBS = [
   {
@@ -58,5 +60,18 @@ export const THUMBS = [
     title: [{ t: "Course" }, { t: "Delivery", it: true }],
     frame: 13.7,
     crop: [1016, 170, 628, 770],
+  },
+  {
+    slug: "acharya-erp",
+    kicker: "Mobile · 2021",
+    title: [{ t: "Acharya" }, { t: "ERP", it: true }],
+    phones: {
+      source: "../../public/stills/acharya-erp/01.jpg",
+      screens: [
+        [75, 40, 325, 701],
+        [558, 40, 325, 701],
+        [1040, 40, 325, 701],
+      ],
+    },
   },
 ];

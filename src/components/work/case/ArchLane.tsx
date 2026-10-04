@@ -115,6 +115,9 @@ export function ArchLane({ nodes, label }: { nodes: string[]; label: string }) {
     if (prefersReducedMotion()) {
       gsap.set(maskPath, { strokeDashoffset: 0 });
       gsap.set(nodeEls, { opacity: 1 });
+      // The glow is a soft halo, not a filled disc: it needs the same resting opacity the scrubbed timeline ends on.
+      gsap.set(glows, { opacity: 0.14 });
+      gsap.set(pulses, { opacity: 0 });
       gsap.set(packets, { opacity: 0 });
       return;
     }

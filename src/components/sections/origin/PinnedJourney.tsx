@@ -3,12 +3,12 @@
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger, EASE_OUT } from "@/lib/motion";
 import { BEATS, CITIES, digitCells, digitTravel } from "./beats";
-import { OriginHeader } from "./OriginHeader";
+import { BeatTitle, OriginHeader } from "./OriginHeader";
 import { Scrim } from "../Scrim";
 import { YearRoll } from "./YearRoll";
 
 /** Scroll distance owned by each beat, in viewport heights. */
-const VH_PER_BEAT = 14;
+const VH_PER_BEAT = 20;
 /** Share of the pinned scroll that walks the beats; the tail fades the whole stage out before Systems arrives. */
 const BEAT_SHARE = 0.9;
 const N = BEATS.length;
@@ -129,7 +129,7 @@ export function PinnedJourney() {
             <YearRoll />
 
             <div aria-hidden className="grid-12 items-start">
-              <div className="relative col-span-12 grid min-h-[min(25svh,200px)] md:col-span-6">
+              <div className="relative col-span-12 grid min-h-[min(25svh,200px)] md:col-span-10 lg:col-span-6">
                 <Scrim shape="left" strength={0.8} inset="-12% -8% -12% -24px" />
                 {BEATS.map((b) => {
                   const city = CITIES[b.city];
@@ -140,7 +140,7 @@ export function PinnedJourney() {
                           {b.place}
                         </p>
                         <p data-part className="mt-3 text-[clamp(1.35rem,2.1vw,2rem)] font-medium leading-[1.08] tracking-[-0.03em] text-ink">
-                          {b.title}
+                          <BeatTitle text={b.title} />
                         </p>
                         {b.org && (
                           <p data-part className="label mt-3">

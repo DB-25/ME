@@ -23,7 +23,7 @@ export function VoiceToggle({ className = "" }: { className?: string }) {
       aria-checked={on}
       aria-label="Narration voice"
       onClick={toggle}
-      className={`label border border-hairline-strong px-3 py-2 transition-colors duration-300 hover:border-accent focus-visible:border-accent ${
+      className={`label inline-flex items-center gap-2 border border-hairline-strong px-3 py-2 pointer-coarse:min-h-11 pointer-coarse:px-4 transition-colors duration-300 hover:border-accent focus-visible:border-accent ${
         on ? "text-ink" : "text-muted"
       } ${className}`}
     >

@@ -29,9 +29,12 @@ function Source({ metric }: { metric: Metric }) {
       rel="noopener noreferrer"
       data-cursor="read"
       aria-label={`${ref.label}, for ${metric.label}`}
-      className="label link inline-block !text-[12px] !text-ink/70 hover:!text-ink"
+      className="group/src label -my-3.5 inline-block py-3.5 !text-[12px] !text-ink/75 transition-colors duration-300 hover:!text-accent-hot focus-visible:!text-accent-hot md:my-0 md:py-1"
     >
-      {ref.label}
+      <span className="underline decoration-ink/25 underline-offset-[5px] transition-colors duration-300 group-hover/src:decoration-accent-hot">{ref.label}</span>
+      <span aria-hidden className="ml-1.5 inline-block transition-transform duration-500 ease-[var(--ease-out-expo)] group-hover/src:translate-x-0.5 group-hover/src:-translate-y-0.5">
+        &#8599;
+      </span>
     </a>
   );
 }
@@ -41,7 +44,7 @@ function Context({ metric, className = "" }: { metric: Metric; className?: strin
     <div className={`relative ${className}`}>
       <Scrim strength={0.9} inset="-18% -12%" />
       <p className={`max-w-[26rem] text-[0.9375rem] leading-[1.55] text-ink/80 ${SHADOW}`}>{metric.context}</p>
-      <p className="mt-3">
+      <p className="mt-2 md:mt-3">
         <Source metric={metric} />
       </p>
     </div>
@@ -81,7 +84,8 @@ export function Impact() {
           <FadeIn className="col-span-12 border-t border-hairline-strong pt-4 md:col-span-8">
             <p className="label !text-[12px] !text-ink">{LEAD.label}</p>
             <div className="mt-[clamp(10px,1.6vw,22px)]">
-              <Figure metric={LEAD} size="text-[clamp(4rem,17vw,15rem)]" />
+              {/* The "1" carries a wide left bearing at this size: pull it back so the digits sit on the rule's left edge. */}
+              <Figure metric={LEAD} size="-ml-[0.065em] text-[clamp(4rem,23vw,6.5rem)] md:text-[clamp(4rem,17vw,15rem)]" />
             </div>
           </FadeIn>
           <FadeIn delay={0.1} className="col-span-12 md:col-span-4 md:pb-4">
@@ -126,7 +130,7 @@ export function Impact() {
                 <div>
                   <p className="label !text-[12px] !text-ink">{m.label}</p>
                   <p className={`mt-2 max-w-[28rem] text-[0.9375rem] leading-[1.5] text-ink/80 ${SHADOW}`}>{m.context}</p>
-                  <p className="mt-2">
+                  <p className="mt-1 md:mt-2">
                     <Source metric={m} />
                   </p>
                 </div>

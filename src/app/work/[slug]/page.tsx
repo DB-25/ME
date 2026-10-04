@@ -20,9 +20,10 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   if (!project) return {};
   const title = `${project.name}: ${project.tagline}`;
   const image = project.media.find((m) => m.kind === "image");
-  // Designed film key art (16:9) first, then a screenshot; otherwise the site-wide card (public/og.png).
-  const images = project.film?.thumb
-    ? [{ url: project.film.thumb, width: 1600, height: 900, alt: project.film.title }]
+  // Designed key art (16:9, from the film or a cover) first, then a screenshot; otherwise the site-wide card (public/og.png).
+  const keyArt = project.film?.thumb ?? project.cover?.thumb;
+  const images = keyArt
+    ? [{ url: keyArt, width: 1600, height: 900, alt: project.film?.title ?? project.name }]
     : image
       ? [{ url: image.src, alt: image.alt }]
       : [{ url: "/og.png", width: 1200, height: 630, alt: `${profile.name}, ${profile.title}` }];
