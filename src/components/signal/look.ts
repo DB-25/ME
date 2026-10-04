@@ -36,7 +36,7 @@ export const CHAPTER_LOOK: Record<ChapterId, ChapterLook> = {
  */
 export const CHAPTER_LOOK_MOBILE: Record<ChapterId, ChapterLook> = {
   hero: { brightness: 0.85, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
-  origin: { brightness: 0.4, x: 0, y: 0.36, z: 0, scale: 0.55, rightDim: 0 },
+  origin: { brightness: 0.52, x: 0, y: 0.36, z: 0, scale: 0.62, rightDim: 0 },
   systems: { brightness: 0.3, x: 0, y: -0.28, z: 0, scale: 0.6, rightDim: 0 },
   work: { brightness: 0.3, x: 0, y: 0, z: -3, scale: 1, rightDim: 0 },
   impact: { brightness: 0.4, x: 0, y: -0.2, z: 0, scale: 0.75, rightDim: 0 },

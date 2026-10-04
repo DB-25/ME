@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { profile, projects } from "@/content";
 import { CaseStudy } from "@/components/work/case/CaseStudy";
 import { hasCase } from "@/components/work/meta";
+import { JsonLd } from "../../JsonLd";
+import { caseStudyJsonLd } from "../../structured-data";
 
 const cases = projects.filter(hasCase);
 
@@ -46,5 +48,10 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
   const { slug } = await params;
   const project = cases.find((p) => p.slug === slug);
   if (!project) notFound();
-  return <CaseStudy project={project} />;
+  return (
+    <>
+      <JsonLd data={caseStudyJsonLd(project)} />
+      <CaseStudy project={project} />
+    </>
+  );
 }

@@ -69,12 +69,26 @@ export function speakable(text: string): string {
 
 /** Text first, then tags. The key is how scripts refer to the line. */
 const AUTHORED = {
-  /* the scripted tour: founder */
-  founderOpen: ["A founder. The question that matters is whether I can ship it and keep it running.", "tour", "founder"],
+  /* the scripted tour: founder. A-IEP, Course Delivery, Public Voice, then the ask. */
+  founderOpen: ["A founder. Can I ship, and keep it running? Here are three proofs.", "tour", "founder"],
   founderAiep: [
-    "A-IEP, shipped end to end. More than one thousand families use it to read a special-education plan in plain language.",
+    "A-IEP: more than one thousand families read a special-education plan in plain language.",
     "tour", "founder", "project:a-iep",
   ],
+  founderAiepOwned: [
+    "I took it from prototype to production, and made just over half of its commits.",
+    "tour", "founder", "owned", "project:a-iep",
+  ],
+  founderCourse: [
+    "Course Delivery, an eight-day course paced by text: sole engineer, built in three days, pre-launch.",
+    "tour", "founder", "project:course-delivery",
+  ],
+  founderVoice: [
+    "Public Voice is live at InnovateUS: a voice survey with one smart follow-up. I am the technical lead.",
+    "tour", "founder", "project:public-voice",
+  ],
+  founderClose: ["Tell me what you are building. The email is the large link.", "tour", "founder", "closer"],
+  /* the long founder story, for the live model and keyword composition */
   founderAcharya: [
     "Before that, a Flutter app with more than twenty thousand daily users. I owned it from design to deployment.",
     "tour", "founder", "project:acharya-erp",
@@ -84,11 +98,23 @@ const AUTHORED = {
     "And a tool of my own: arc-control-mcp, an MCP server with twenty-six tools, published on npm.",
     "tour", "founder", "project:arc-control-mcp",
   ],
-  founderClose: ["If that is the engineer you need, the email is the large link.", "tour", "founder", "closer"],
 
-  /* hiring */
-  hiringOpen: ["Hiring. The short version is what I owned and what it measured.", "tour", "recruiter"],
+  /* hiring: ownership and scale */
+  hiringOpen: ["Hiring. The short version is what I owned, and how far it reached.", "tour", "recruiter"],
+  hiringAiep: [
+    "I lead A-IEP's engineering: more than one thousand families, and over half of the commits are mine.",
+    "tour", "recruiter", "owned", "project:a-iep",
+  ],
   accessCaveat: ["That counts access, not daily use.", "tour", "metric", "honest"],
+  hiringAbe: [
+    "ABE and One-L: I built ABE's quality monitoring and alarms, and the pair won two NASPO awards.",
+    "tour", "recruiter", "owned", "project:abe-one-l",
+  ],
+  hiringScale: [
+    "Across AI for Impact, twenty-six tools have shipped. I help lead the technical side.",
+    "tour", "recruiter", "metric",
+  ],
+  hiringClose: ["If that is the scope you need, the email is the large link.", "tour", "recruiter", "closer"],
   hiringAudit: ["I audit my own work too.", "tour", "recruiter", "honest"],
   hiringAuditDetail: [
     "A-IEP's only automated check was a schema check, so I started a benchmark.",
@@ -96,12 +122,25 @@ const AUTHORED = {
   ],
   hiringProof: ["Awards and press are listed with their sources.", "tour", "recruiter", "proof"],
 
-  /* engineer */
+  /* engineer: architecture, privacy, evals, a tool of my own */
   engineerOpen: ["The hardest problem is private data.", "tour", "engineer"],
   engineerRagOpen: ["Retrieval and infrastructure. Two problems, one stack.", "tour", "engineer"],
-  engineerPipeline: ["A-IEP: upload, OCR, redact, analyze, translate, on Step Functions.", "tour", "engineer", "project:a-iep"],
+  engineerPipeline: ["A-IEP: upload, OCR, redact, summarize, translate, on Step Functions.", "tour", "engineer", "project:a-iep"],
+  engineerPrivacy: [
+    "Only OCR sees the original page. A language model reads redacted text, and any failure purges the unredacted artifacts.",
+    "tour", "engineer", "project:a-iep",
+  ],
+  engineerEvals: [
+    "Then measurement: A-IEP's only automated check was a schema check. I started a benchmark; the design is public, no results yet.",
+    "tour", "engineer", "honest", "project:a-iep",
+  ],
+  engineerArc: [
+    "arc-control-mcp: twenty-six tools, sixteen test files, and it never touches the tab I am reading.",
+    "tour", "engineer", "project:arc-control-mcp",
+  ],
+  engineerClose: ["If this is the engineering you need, the email is the large link.", "tour", "engineer", "closer"],
   engineerPii: [
-    "I redact personal information before the model reads a word, and I delete the original upload.",
+    "I redact names and other identifiers before a language model reads a word, and I delete the original upload.",
     "tour", "engineer", "project:a-iep",
   ],
   engineerPurge: ["Any failure purges the unredacted artifacts.", "tour", "engineer", "project:a-iep"],
@@ -110,7 +149,7 @@ const AUTHORED = {
     "tour", "engineer", "project:knowledge-agent-for-impact",
   ],
   engineerRagStack: [
-    "OpenSearch Serverless, Lambda, DynamoDB and Cognito.",
+    "Amazon Kendra, Lambda, DynamoDB and Cognito.",
     "tour", "engineer", "project:knowledge-agent-for-impact",
   ],
   engineerRagHonest: [
@@ -118,7 +157,7 @@ const AUTHORED = {
     "tour", "engineer", "honest", "project:knowledge-agent-for-impact",
   ],
   engineerMeasure: ["Then measurement. I found that A-IEP's only automated check was a schema check.", "tour", "engineer", "honest"],
-  engineerBenchmark: ["So I started a synthetic benchmark, with a public RFC.", "tour", "engineer", "project:a-iep"],
+  engineerBenchmark: ["So I started a synthetic benchmark. The evaluation design is public; no results are published yet.", "tour", "engineer", "project:a-iep"],
 
   /* designer */
   designerOpen: ["A designer. Worth knowing I hold the stylus too.", "tour", "designer"],
@@ -218,7 +257,7 @@ const AUTHORED = {
 
   /* a closer look at the work, from the case studies */
   aiepRedact: [
-    "A-IEP redacts personal details first, deletes the original upload, then writes a summary in nine sections.",
+    "A-IEP redacts names and other identifiers first, deletes the original upload, then writes a summary in nine sections.",
     "detail", "project:a-iep",
   ],
   aiepParents: ["Parents helped design it. I showed them the prompts, and their feedback reshaped the output.", "detail", "project:a-iep"],
@@ -270,8 +309,8 @@ const OWNED_TEXT: Record<string, string> = {
   "a-iep": "I took the earlier co-op prototype to production and made just over half of its commits.",
   "acharya-erp": "I built the Flutter app and owned it from design to deployment, then trained interns to take over.",
   genie: "I was top committer on a team build, and wrote Smart Model, the router that picks a model per request.",
-  "abe-one-l": "I own ABE's evaluation and observability, and I set the direction on One-L.",
-  "vct-scout": "One of four on a hackathon team, I owned the generative AI layer: the tool-calling design and the architecture.",
+  "abe-one-l": "I built ABE's quality monitoring and alarms, and I set the direction on One-L.",
+  "vct-scout": "One of four on a hackathon team, I designed the agent's tool calling and wrote the system prompt that orchestrates it.",
   "public-voice": "I set the technical direction and built the prototype it grew from. Two teammates wrote most of the production code.",
   "course-delivery": "I was the sole engineer: the Lambda API, the SMS pacing, the quiz gate and the certificate.",
 };
@@ -291,7 +330,7 @@ const METRIC_TEXT: Record<string, string> = {
   "Engineers mentored": "I have mentored more than fifty student engineers, from prototype to production.",
   "Place, AWS x Riot Games hackathon": "Second place at the AWS and Riot Games hackathon, among more than three thousand two hundred participants.",
   "NASPO awards in 2025": "Two NASPO awards in twenty twenty-five, for the ABE and One-L procurement AI.",
-  "Lower model spend": "Forty percent lower model spend, because Smart Model picks a model for each request.",
+  "Lower model spend": "A self-reported forty percent lower model spend, because Smart Model picks a model for each request.",
 };
 
 export function metricLine(m: Metric): VoiceLine {

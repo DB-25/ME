@@ -29,7 +29,6 @@ const go = (chapter: Extract<DirectorAction, { name: "goto_chapter" }>["args"]["
   act: { name: "goto_chapter", args: { chapter } },
 });
 const show = (slug: string): Step[] => (has(slug) ? [{ act: { name: "show_project", args: { slug } } }] : []);
-const open = (slug: string): Step[] => (has(slug) && !project(slug)?.compact ? [{ act: { name: "open_case_study", args: { slug } } }] : []);
 const draw = (art: ArtId, label: string): Step => ({ act: { name: "draw", args: { svg: ART[art], label } } });
 const hue = (hex: string | null): Step => ({ act: { name: "set_hue", args: { hex } } });
 const form = (formation: Extract<DirectorAction, { name: "form" }>["args"]["formation"]): Step => ({
@@ -72,64 +71,71 @@ function composed(match: Match): Step[] {
 
 /* ---------- the cuts ---------- */
 
+/*
+ * The three persona cuts are each a 30 to 45 second tour that opens on the strongest evidence for that
+ * visitor and lands on Contact. A drawing always comes right before the line it illustrates: that line
+ * is spoken over the sketch, and the next move of the page dissolves it (see draw in ./executor).
+ */
+
+/** Founder: ownership (A-IEP), speed (Course Delivery), a live product (Public Voice), then the ask. */
 function founder(): Step[] {
   return [
     say(LINE.founderOpen),
     ...show("a-iep"),
     say(LINE.founderAiep),
-    ...sayAll(OWNED_LINE["a-iep"]),
     draw("bridge", "prototype to production"),
-    ...show("acharya-erp"),
-    say(LINE.founderAcharya),
-    say(LINE.acharyaRating),
-    ...show("arc-control-mcp"),
-    say(LINE.founderArc),
+    say(LINE.founderAiepOwned),
+    ...show("course-delivery"),
+    say(LINE.founderCourse),
+    ...show("public-voice"),
+    say(LINE.founderVoice),
     go("contact"),
     say(LINE.founderClose),
     end,
   ];
 }
 
+/** Hiring manager: what I owned, and how far it reached. */
 function hiring(match: Match): Step[] {
-  const results = proven().slice(0, 3);
-  const spend = metrics.find((m) => /spend/i.test(m.label));
+  const access = metrics.find((m) => /access/i.test(m.label));
   return [
     say(LINE.hiringOpen),
-    ...results.flatMap((m, i) => [
-      ...show(m.projectSlug!),
-      say(metricLine(m)),
-      ...(/access/i.test(m.label) ? [say(LINE.accessCaveat)] : []),
-      ...(i < 2 ? sayAll(OWNED_LINE[m.projectSlug!]) : []),
-    ]),
-    ...sayAll(LINE.hiringAudit, LINE.hiringAuditDetail),
-    ...(spend ? [say(metricLine(spend))] : []),
+    ...show("a-iep"),
+    say(LINE.hiringAiep),
+    ...show("genie"),
+    ...(access ? [say(metricLine(access)), say(LINE.accessCaveat)] : []),
+    ...show("abe-one-l"),
+    say(LINE.hiringAbe),
     draw("chart", "results, with receipts"),
+    say(LINE.hiringScale),
     ...techBeat(match),
-    go("proof"),
-    say(LINE.hiringProof),
     go("contact"),
+    say(LINE.hiringClose),
     end,
   ];
 }
 
+/** Engineer: the architecture, the privacy pipeline, how I measure it, and a tool of my own. */
 function engineer(match: Match): Step[] {
   const rag = match.rag || match.tech.hits.some((h) => h.slug === "knowledge-agent-for-impact" && h.stack.length);
   return [
     say(rag ? LINE.engineerRagOpen : LINE.engineerOpen),
     go("systems"),
-    say(LINE.engineerPipeline),
     draw("documents", "documents in, plain language out"),
+    say(LINE.engineerPipeline),
     ...show("a-iep"),
-    ...sayAll(LINE.engineerPii, LINE.engineerPurge),
+    say(LINE.engineerPrivacy),
     ...(rag && has("knowledge-agent-for-impact")
       ? [
           ...show("knowledge-agent-for-impact"),
           ...sayAll(LINE.engineerRag, LINE.engineerRagStack, LINE.engineerRagHonest),
         ]
       : []),
-    draw("stack", "infrastructure that stays up"),
-    ...sayAll(LINE.engineerMeasure, LINE.engineerBenchmark),
-    ...open("a-iep"),
+    say(LINE.engineerEvals),
+    ...show("arc-control-mcp"),
+    say(LINE.engineerArc),
+    go("contact"),
+    say(LINE.engineerClose),
     end,
   ];
 }

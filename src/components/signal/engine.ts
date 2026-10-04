@@ -5,6 +5,7 @@ import { requestFormations } from "./formations";
 import type { FieldQuality } from "./fieldTypes";
 import type { Fx } from "./fx";
 import { fieldMotion } from "./readingMode";
+import { FieldUnavailableError, isSoftwareRenderer, probeGpu, shouldGuardGpu } from "./capability";
 import { CHAPTER_BLOOM, DEFAULT_BLOOM, OVERRIDE_BLOOM } from "./look";
 
 const ORBIT_SPEED = 0.11;
@@ -26,6 +27,12 @@ const COARSE_RESIZE_DEBOUNCE_MS = 200;
 const FALLBACK_FRAME_DT = 1 / 60;
 /** Longest boot waits for the formation worker before generating on the main thread instead. */
 const FORMATION_WAIT_MS = 400;
+/** The first frames after boot are timed: a median above this means the GPU cannot hold the field, so bail to the poster. */
+const PROBE_FRAMES = 16;
+const PROBE_SKIP_FRAMES = 3;
+const PROBE_MAX_MEDIAN_S = 0.1;
+/** Gaps this long are idle time between on-demand frames, not render cost. */
+const PROBE_MAX_DELTA_S = 0.6;
 
 export type EngineHooks = {
   onReady: () => void;
@@ -90,6 +97,9 @@ export function startEngine(container: HTMLElement, quality: FieldQuality, hooks
   let renderer: WebGLRenderer | null = null;
   /** Frames only start once the program is compiled, so the first frame never stalls on linking. */
   let compiled = false;
+  const guardGpu = shouldGuardGpu();
+  /** Frame times of the first frames; null once the verdict is in (or when the guard is off). */
+  let probe: number[] | null = guardGpu ? [] : null;
 
   const camera = new PerspectiveCamera(38, 1, 0.1, 80);
   camera.position.set(0, 0, 7);
@@ -109,6 +119,17 @@ export function startEngine(container: HTMLElement, quality: FieldQuality, hooks
     const now = performance.now();
     const delta = last ? (now - last) / 1000 : FALLBACK_FRAME_DT;
     last = now;
+    if (probe && frames >= PROBE_SKIP_FRAMES && delta < PROBE_MAX_DELTA_S) {
+      probe.push(delta);
+      if (probe.length >= PROBE_FRAMES) {
+        const median = [...probe].sort((x, y) => x - y)[PROBE_FRAMES >> 1];
+        probe = null;
+        if (median > PROBE_MAX_MEDIAN_S) {
+          hooks.onError(new FieldUnavailableError(`median frame ${Math.round(median * 1000)} ms`));
+          return;
+        }
+      }
+    }
     const width = container.clientWidth || 1;
     const height = container.clientHeight || 1;
     const more = field.step({ delta, now, width, height });
@@ -136,8 +157,12 @@ export function startEngine(container: HTMLElement, quality: FieldQuality, hooks
 
   async function boot() {
     try {
+      // First, ask the worker what GPU this is: on software GL even creating a context blocks for seconds.
+      if (guardGpu && (await probeGpu()) === "software") throw new FieldUnavailableError("software renderer");
+      if (disposed) return;
       const fxModule = lean ? null : import("./fx");
-      renderer = new WebGLRenderer({ antialias: false, powerPreference: "high-performance", alpha: false, stencil: false, depth: false });
+      renderer = new WebGLRenderer({ antialias: false, powerPreference: "high-performance", alpha: false, stencil: false, depth: false, failIfMajorPerformanceCaveat: guardGpu });
+      if (guardGpu && isSoftwareRenderer(renderer.getContext())) throw new FieldUnavailableError("software renderer");
       // Parallel compile is polled below; skipping the blocking program-log read keeps linking off the main thread.
       renderer.debug.checkShaderErrors = process.env.NODE_ENV !== "production";
       const canvas = renderer.domElement;

@@ -12,7 +12,7 @@ export const profile: Profile = {
   manifesto: [
     "Software is finished when someone who is not an engineer can rely on it.",
     "I show people the prompts, the pipeline and the numbers, then let them argue with me.",
-    "Privacy is a design input. I redact personal details before the analysis model reads a word.",
+    "Privacy is a design input. I redact names and other identifiers before the analysis model reads a word.",
     "I measure the model before I trust it, and I say so when I cannot yet.",
     "I learned this shipping a Flutter app to thousands of students: if it breaks, a real person has a bad day.",
   ],

@@ -13,11 +13,66 @@ const LABEL_DY = 50;
 const LINE_H = 27;
 const LABEL_PAD = 24;
 const TURN_LABEL_X = 30;
-const SAMPLES = 700;
+/** Steps per Bezier segment when measuring the path in plain JS (no SVG DOM calls). */
+const SEGMENT_STEPS = 40;
 const PACKETS = 4;
 
 type Pt = { x: number; y: number };
-type Geometry = { w: number; h: number; pts: Pt[]; d: string; side: number[] };
+type Bezier = [Pt, Pt, Pt, Pt];
+type Geometry = { w: number; h: number; pts: Pt[]; d: string; side: number[]; segs: Bezier[] };
+
+/** The path sampled once, in arc length: node positions and packet positions are lookups, never getPointAtLength. */
+type Track = { total: number; len: Float32Array; xy: Float32Array; at: number[] };
+
+function bezierAt([a, c1, c2, b]: Bezier, t: number): Pt {
+  const u = 1 - t;
+  const w0 = u * u * u;
+  const w1 = 3 * u * u * t;
+  const w2 = 3 * u * t * t;
+  const w3 = t * t * t;
+  return { x: w0 * a.x + w1 * c1.x + w2 * c2.x + w3 * b.x, y: w0 * a.y + w1 * c1.y + w2 * c2.y + w3 * b.y };
+}
+
+function buildTrack(segs: Bezier[]): Track {
+  const n = segs.length * SEGMENT_STEPS + 1;
+  const len = new Float32Array(n);
+  const xy = new Float32Array(n * 2);
+  const at = [0];
+  let prev = segs[0][0];
+  xy[0] = prev.x;
+  xy[1] = prev.y;
+  let k = 1;
+  for (const seg of segs) {
+    for (let s = 1; s <= SEGMENT_STEPS; s++, k++) {
+      const q = bezierAt(seg, s / SEGMENT_STEPS);
+      len[k] = len[k - 1] + Math.hypot(q.x - prev.x, q.y - prev.y);
+      xy[k * 2] = q.x;
+      xy[k * 2 + 1] = q.y;
+      prev = q;
+    }
+    at.push(len[k - 1]);
+  }
+  const total = len[n - 1] || 1;
+  return { total, len, xy, at: at.map((l) => l / total) };
+}
+
+/** Point at fraction f (0..1) of the track's length, linear between samples. */
+function trackPoint(track: Track, f: number, out: Pt): Pt {
+  const { len, xy, total } = track;
+  const target = Math.min(Math.max(f, 0), 1) * total;
+  let lo = 0;
+  let hi = len.length - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (len[mid] <= target) lo = mid;
+    else hi = mid;
+  }
+  const span = len[hi] - len[lo] || 1;
+  const m = (target - len[lo]) / span;
+  out.x = xy[lo * 2] + (xy[hi * 2] - xy[lo * 2]) * m;
+  out.y = xy[lo * 2 + 1] + (xy[hi * 2 + 1] - xy[lo * 2 + 1]) * m;
+  return out;
+}
 
 function colsFor(width: number) {
   if (width < 640) return 2;
@@ -63,6 +118,7 @@ function buildGeometry(labelLines: number[], cols: number): Geometry {
     return 0;
   });
   let d = `M ${pts[0].x} ${pts[0].y}`;
+  const segs: Bezier[] = [];
   for (let i = 1; i < n; i++) {
     const a = pts[i - 1];
     const b = pts[i];
@@ -70,14 +126,20 @@ function buildGeometry(labelLines: number[], cols: number): Geometry {
     if (sameRow) {
       const dir = Math.sign(b.x - a.x) || 1;
       const k = (i % 2 === 0 ? 1 : -1) * WAVE;
-      d += ` C ${a.x + dir * 110} ${a.y + k}, ${b.x - dir * 110} ${b.y - k}, ${b.x} ${b.y}`;
+      const c1 = { x: a.x + dir * 110, y: a.y + k };
+      const c2 = { x: b.x - dir * 110, y: b.y - k };
+      d += ` C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${b.x} ${b.y}`;
+      segs.push([a, c1, c2, b]);
     } else {
       const out = dirOf(Math.floor((i - 1) / cols)) * TURN * 1.33;
-      d += ` C ${a.x + out} ${a.y}, ${b.x + out} ${b.y}, ${b.x} ${b.y}`;
+      const c1 = { x: a.x + out, y: a.y };
+      const c2 = { x: b.x + out, y: b.y };
+      d += ` C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${b.x} ${b.y}`;
+      segs.push([a, c1, c2, b]);
     }
   }
   const lastRowLines = Math.max(...labelLines.slice((rows - 1) * cols));
-  return { w, h: TOP + (rows - 1) * ROW_GAP + LABEL_DY + (lastRowLines - 1) * LINE_H + LABEL_PAD, pts, d, side };
+  return { w, h: TOP + (rows - 1) * ROW_GAP + LABEL_DY + (lastRowLines - 1) * LINE_H + LABEL_PAD, pts, d, side, segs };
 }
 
 /** One pipeline drawn as a metro line: it traces itself as you scroll, nodes light as it arrives, data flows through. */
@@ -104,13 +166,12 @@ export function ArchLane({ nodes, label }: { nodes: string[]; label: string }) {
     const svg = svgRef.current;
     const wrapEl = wrapRef.current;
     if (!svg || !wrapEl) return;
-    const track = svg.querySelector<SVGPathElement>(".cs-track");
     const maskPath = svg.querySelector<SVGPathElement>(".cs-mask-path");
     const nodeEls = [...svg.querySelectorAll<SVGGElement>(".cs-node")];
     const pulses = [...svg.querySelectorAll<SVGCircleElement>(".cs-pulse")];
     const glows = [...svg.querySelectorAll<SVGCircleElement>(".cs-glow")];
     const packets = [...svg.querySelectorAll<SVGCircleElement>(".cs-packet")];
-    if (!track || !maskPath) return;
+    if (!maskPath || geo.segs.length === 0) return;
 
     if (prefersReducedMotion()) {
       gsap.set(maskPath, { strokeDashoffset: 0 });
@@ -122,25 +183,9 @@ export function ArchLane({ nodes, label }: { nodes: string[]; label: string }) {
       return;
     }
 
-    // Where along the path does each node sit (as 0..1 of total length)?
-    const total = track.getTotalLength();
-    const at: number[] = [];
-    let cursor = 0;
-    geo.pts.forEach((p, i) => {
-      if (i === 0) return at.push(0);
-      let best = cursor;
-      let bestD = Infinity;
-      for (let s = cursor; s <= SAMPLES; s++) {
-        const q = track.getPointAtLength((s / SAMPLES) * total);
-        const dd = (q.x - p.x) ** 2 + (q.y - p.y) ** 2;
-        if (dd < bestD) {
-          bestD = dd;
-          best = s;
-        }
-      }
-      cursor = best;
-      at.push(best / SAMPLES);
-    });
+    // Where along the path does each node sit (as 0..1 of total length)? Measured once, in JS.
+    const track = buildTrack(geo.segs);
+    const at = track.at;
 
     let drawn = 0;
     const ctx = gsap.context(() => {
@@ -173,6 +218,7 @@ export function ArchLane({ nodes, label }: { nodes: string[]; label: string }) {
 
     // Packets ride the portion of the line that has been drawn so far.
     const state = { t: 0 };
+    const q: Pt = { x: 0, y: 0 };
     const tick = (_: number, dt: number) => {
       state.t += dt / 1000;
       if (drawn < 0.02) {
@@ -182,15 +228,25 @@ export function ArchLane({ nodes, label }: { nodes: string[]; label: string }) {
       const reach = Math.min(drawn, 1);
       packets.forEach((p, k) => {
         const f = (state.t * 0.12 + k / PACKETS) % 1;
-        const q = track.getPointAtLength(f * reach * total);
+        trackPoint(track, f * reach, q);
         p.setAttribute("cx", String(q.x));
         p.setAttribute("cy", String(q.y));
         p.setAttribute("opacity", String(Math.sin(f * Math.PI) * 0.95));
       });
     };
-    gsap.ticker.add(tick);
+    // Only tick while the lane is on screen.
+    let ticking = false;
+    const setTicking = (on: boolean) => {
+      if (on === ticking) return;
+      ticking = on;
+      if (on) gsap.ticker.add(tick);
+      else gsap.ticker.remove(tick);
+    };
+    const io = new IntersectionObserver((entries) => setTicking(entries.some((e) => e.isIntersecting)));
+    io.observe(wrapEl);
     return () => {
-      gsap.ticker.remove(tick);
+      io.disconnect();
+      setTicking(false);
       ctx.revert();
     };
   }, [geo]);

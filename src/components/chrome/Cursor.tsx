@@ -200,7 +200,7 @@ export function Cursor() {
         ref={badge}
         className="absolute left-0 top-0 whitespace-nowrap rounded-full border border-accent-hot bg-[rgb(201,190,255)] px-2.5 py-1 opacity-0 will-change-transform"
       >
-        <span ref={label} className="label block !text-[11px] !font-medium !leading-none !text-void" />
+        <span ref={label} className="label block !text-[12px] !font-medium !leading-none !text-void" />
       </div>
       <div ref={dot} className="absolute left-0 top-0 h-[6px] w-[6px] rounded-full bg-ink opacity-0" />
       <style>{`

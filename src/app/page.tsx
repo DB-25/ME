@@ -23,8 +23,8 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <Impact />
       <WorkIndex />
+      <Impact />
       <Proof />
       <Systems />
       <Director />

@@ -6,6 +6,8 @@ import { BEATS, CITIES, digitCells, digitTravel } from "./beats";
 import { BeatTitle, OriginHeader } from "./OriginHeader";
 import { Scrim } from "../Scrim";
 import { YearRoll } from "./YearRoll";
+import { tellGlobe } from "./useGlobeStory";
+import { setGlobeStory } from "@/components/signal/globeStory";
 
 /** Scroll distance owned by each beat, in viewport heights. */
 const VH_PER_BEAT = 20;
@@ -70,6 +72,7 @@ export function PinnedJourney() {
         coords.forEach((c) => {
           c.dataset.state = c.dataset.city === BEATS[next].city ? "active" : "idle";
         });
+        tellGlobe(next);
       };
 
       show(0);
@@ -93,6 +96,7 @@ export function PinnedJourney() {
     const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => {
       cancelAnimationFrame(raf);
+      setGlobeStory(null);
       ctx.revert();
       requestAnimationFrame(() => ScrollTrigger.refresh());
     };

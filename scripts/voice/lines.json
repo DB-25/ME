@@ -1,19 +1,56 @@
 [
   {
-    "id": "811c5e32b8",
-    "text": "A founder. The question that matters is whether I can ship it and keep it running.",
+    "id": "bf967ec088",
+    "text": "A founder. Can I ship, and keep it running? Here are three proofs.",
     "tags": [
       "tour",
       "founder"
     ]
   },
   {
-    "id": "180cd0d56d",
-    "text": "A-IEP, shipped end to end. More than one thousand families use it to read a special-education plan in plain language.",
+    "id": "d9ca711cc3",
+    "text": "A-IEP: more than one thousand families read a special-education plan in plain language.",
     "tags": [
       "tour",
       "founder",
       "project:a-iep"
+    ]
+  },
+  {
+    "id": "e13df562a4",
+    "text": "I took it from prototype to production, and made just over half of its commits.",
+    "tags": [
+      "tour",
+      "founder",
+      "owned",
+      "project:a-iep"
+    ]
+  },
+  {
+    "id": "9feeb1d3e8",
+    "text": "Course Delivery, an eight-day course paced by text: sole engineer, built in three days, pre-launch.",
+    "tags": [
+      "tour",
+      "founder",
+      "project:course-delivery"
+    ]
+  },
+  {
+    "id": "30705e1d72",
+    "text": "Public Voice is live at InnovateUS: a voice survey with one smart follow-up. I am the technical lead.",
+    "tags": [
+      "tour",
+      "founder",
+      "project:public-voice"
+    ]
+  },
+  {
+    "id": "54a0ed0cfa",
+    "text": "Tell me what you are building. The email is the large link.",
+    "tags": [
+      "tour",
+      "founder",
+      "closer"
     ]
   },
   {
@@ -44,20 +81,21 @@
     ]
   },
   {
-    "id": "de96ead7bc",
-    "text": "If that is the engineer you need, the email is the large link.",
-    "tags": [
-      "tour",
-      "founder",
-      "closer"
-    ]
-  },
-  {
-    "id": "dc9cf13ca3",
-    "text": "Hiring. The short version is what I owned and what it measured.",
+    "id": "188e5cf98a",
+    "text": "Hiring. The short version is what I owned, and how far it reached.",
     "tags": [
       "tour",
       "recruiter"
+    ]
+  },
+  {
+    "id": "bc274dbf29",
+    "text": "I lead A-IEP's engineering: more than one thousand families, and over half of the commits are mine.",
+    "tags": [
+      "tour",
+      "recruiter",
+      "owned",
+      "project:a-iep"
     ]
   },
   {
@@ -67,6 +105,34 @@
       "tour",
       "metric",
       "honest"
+    ]
+  },
+  {
+    "id": "b10b57e6dd",
+    "text": "ABE and One-L: I built ABE's quality monitoring and alarms, and the pair won two NASPO awards.",
+    "tags": [
+      "tour",
+      "recruiter",
+      "owned",
+      "project:abe-one-l"
+    ]
+  },
+  {
+    "id": "278bfd1130",
+    "text": "Across AI for Impact, twenty-six tools have shipped. I help lead the technical side.",
+    "tags": [
+      "tour",
+      "recruiter",
+      "metric"
+    ]
+  },
+  {
+    "id": "ce2d6ae2f2",
+    "text": "If that is the scope you need, the email is the large link.",
+    "tags": [
+      "tour",
+      "recruiter",
+      "closer"
     ]
   },
   {
@@ -114,8 +180,8 @@
     ]
   },
   {
-    "id": "c97befc5c0",
-    "text": "A-IEP: upload, OCR, redact, analyze, translate, on Step Functions.",
+    "id": "6c361634cd",
+    "text": "A-IEP: upload, OCR, redact, summarize, translate, on Step Functions.",
     "tags": [
       "tour",
       "engineer",
@@ -123,8 +189,45 @@
     ]
   },
   {
-    "id": "69991f0a24",
-    "text": "I redact personal information before the model reads a word, and I delete the original upload.",
+    "id": "7635231eb4",
+    "text": "Only OCR sees the original page. A language model reads redacted text, and any failure purges the unredacted artifacts.",
+    "tags": [
+      "tour",
+      "engineer",
+      "project:a-iep"
+    ]
+  },
+  {
+    "id": "5a18f487cc",
+    "text": "Then measurement: A-IEP's only automated check was a schema check. I started a benchmark; the design is public, no results yet.",
+    "tags": [
+      "tour",
+      "engineer",
+      "honest",
+      "project:a-iep"
+    ]
+  },
+  {
+    "id": "73b771ea38",
+    "text": "arc-control-mcp: twenty-six tools, sixteen test files, and it never touches the tab I am reading.",
+    "tags": [
+      "tour",
+      "engineer",
+      "project:arc-control-mcp"
+    ]
+  },
+  {
+    "id": "d557ff6f81",
+    "text": "If this is the engineering you need, the email is the large link.",
+    "tags": [
+      "tour",
+      "engineer",
+      "closer"
+    ]
+  },
+  {
+    "id": "8745988b2c",
+    "text": "I redact names and other identifiers before a language model reads a word, and I delete the original upload.",
     "tags": [
       "tour",
       "engineer",
@@ -150,8 +253,8 @@
     ]
   },
   {
-    "id": "5cfccab64c",
-    "text": "OpenSearch Serverless, Lambda, DynamoDB and Cognito.",
+    "id": "1f1de50fa5",
+    "text": "Amazon Kendra, Lambda, DynamoDB and Cognito.",
     "tags": [
       "tour",
       "engineer",
@@ -178,8 +281,8 @@
     ]
   },
   {
-    "id": "ec9b0ef3c9",
-    "text": "So I started a synthetic benchmark, with a public RFC.",
+    "id": "662dc89e0f",
+    "text": "So I started a synthetic benchmark. The evaluation design is public; no results are published yet.",
     "tags": [
       "tour",
       "engineer",
@@ -642,8 +745,8 @@
     ]
   },
   {
-    "id": "5f81b323bc",
-    "text": "A-IEP redacts personal details first, deletes the original upload, then writes a summary in nine sections.",
+    "id": "3cc4acd01f",
+    "text": "A-IEP redacts names and other identifiers first, deletes the original upload, then writes a summary in nine sections.",
     "tags": [
       "detail",
       "project:a-iep"
@@ -856,6 +959,22 @@
     ]
   },
   {
+    "id": "4790cf6a1b",
+    "text": "arc-control-mcp. An MCP server that lets agents drive the Arc browser.",
+    "tags": [
+      "project-intro",
+      "project:arc-control-mcp"
+    ]
+  },
+  {
+    "id": "e5432e9f5f",
+    "text": "Civic AI Course Delivery. An eight‑day, SMS‑paced course platform for InnovateUS Civic AI.",
+    "tags": [
+      "project-intro",
+      "project:course-delivery"
+    ]
+  },
+  {
     "id": "cd7dc3e0df",
     "text": "ABE and One-L. Two AI agents for state procurement. They won a national award.",
     "tags": [
@@ -901,22 +1020,6 @@
     "tags": [
       "project-intro",
       "project:coaching-tool"
-    ]
-  },
-  {
-    "id": "53a7b9df29",
-    "text": "Course Delivery SMS. An eight‑day video course that nudges you by text.",
-    "tags": [
-      "project-intro",
-      "project:course-delivery"
-    ]
-  },
-  {
-    "id": "4790cf6a1b",
-    "text": "arc-control-mcp. An MCP server that lets agents drive the Arc browser.",
-    "tags": [
-      "project-intro",
-      "project:arc-control-mcp"
     ]
   },
   {
@@ -968,16 +1071,24 @@
     ]
   },
   {
-    "id": "68f93b220d",
-    "text": "I own ABE's evaluation and observability, and I set the direction on One-L.",
+    "id": "9c25150c08",
+    "text": "I was the sole engineer: the Lambda API, the SMS pacing, the quiz gate and the certificate.",
+    "tags": [
+      "owned",
+      "project:course-delivery"
+    ]
+  },
+  {
+    "id": "26a8f40fab",
+    "text": "I built ABE's quality monitoring and alarms, and I set the direction on One-L.",
     "tags": [
       "owned",
       "project:abe-one-l"
     ]
   },
   {
-    "id": "2683a48821",
-    "text": "One of four on a hackathon team, I owned the generative AI layer: the tool-calling design and the architecture.",
+    "id": "96e220b095",
+    "text": "One of four on a hackathon team, I designed the agent's tool calling and wrote the system prompt that orchestrates it.",
     "tags": [
       "owned",
       "project:vct-scout"
@@ -997,14 +1108,6 @@
     "tags": [
       "owned",
       "project:acharya-erp"
-    ]
-  },
-  {
-    "id": "9c25150c08",
-    "text": "I was the sole engineer: the Lambda API, the SMS pacing, the quiz gate and the certificate.",
-    "tags": [
-      "owned",
-      "project:course-delivery"
     ]
   },
   {
@@ -1062,8 +1165,8 @@
     ]
   },
   {
-    "id": "013c087982",
-    "text": "Forty percent lower model spend, because Smart Model picks a model for each request.",
+    "id": "340ab65a69",
+    "text": "A self-reported forty percent lower model spend, because Smart Model picks a model for each request.",
     "tags": [
       "metric",
       "project:genie"
@@ -1086,8 +1189,8 @@
     ]
   },
   {
-    "id": "87ec1bc46e",
-    "text": "Privacy is a design input. I redact personal details before the analysis model reads a word.",
+    "id": "7a51a354ec",
+    "text": "Privacy is a design input. I redact names and other identifiers before the analysis model reads a word.",
     "tags": [
       "values",
       "manifesto"

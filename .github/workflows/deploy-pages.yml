@@ -40,14 +40,69 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: ${{ vars.BASE_PATH }}
           NEXT_PUBLIC_DIRECTOR_URL: ${{ vars.DIRECTOR_URL }}
           NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL }}
+      # Sitemap URLs must exist in out/, robots must point at the sitemap, 404 and structured data must be present.
+      - run: node scripts/ci/verify-export.mjs out
+        env:
+          BASE_PATH: ${{ vars.BASE_PATH }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-out
+          path: out
+          retention-days: 3
       - if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v5
         with:
           path: out
 
+  # Performance contract, run against the built export served under its real base path. Lighthouse CI (mobile and
+  # desktop, median of 3, thresholds a few points under the measured scores) plus field-style budgets Lighthouse's
+  # simulated throttling cannot see: CLS under a late font swap and the longest task at 4x CPU. Any failure blocks deploy.
+  perf:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      BASE_PATH: ${{ vars.BASE_PATH }}
+      PORT: 4173
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-out
+          path: out
+      - name: Serve the export under its base path
+        run: |
+          node scripts/ci/serve-export.mjs out "$PORT" "$BASE_PATH" &
+          for i in $(seq 1 30); do curl -sf "http://localhost:$PORT$BASE_PATH/" >/dev/null && break; sleep 1; done
+      - name: CLS with late fonts and long-task budget
+        run: node scripts/ci/check-vitals.mjs
+        env:
+          BASE_URL: http://localhost:4173${{ vars.BASE_PATH }}
+      - name: Lighthouse CI (mobile)
+        run: npx --yes @lhci/cli@0.15 autorun --config=scripts/ci/lighthouserc.cjs
+        env:
+          LH_FORM_FACTOR: mobile
+          LH_BASE_URL: http://localhost:4173${{ vars.BASE_PATH }}
+      - name: Lighthouse CI (desktop)
+        run: npx --yes @lhci/cli@0.15 autorun --config=scripts/ci/lighthouserc.cjs
+        env:
+          LH_FORM_FACTOR: desktop
+          LH_BASE_URL: http://localhost:4173${{ vars.BASE_PATH }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci
+          retention-days: 7
+
   deploy:
     if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v3')
-    needs: verify
+    needs: [verify, perf]
     runs-on: ubuntu-latest
     permissions:
       pages: write

@@ -3,6 +3,7 @@ import type { Metric } from "@/content";
 import { assetUrl } from "@/lib/asset";
 import { SectionLink } from "@/components/chrome/SectionLink";
 import { ReelButton } from "@/components/reel";
+import { HeroTour } from "./HeroTour";
 
 /** First app shipped to real users in 2021 (see timeline). A year, not a "years of experience" claim. */
 const SHIPPING_SINCE = 2021;
@@ -18,7 +19,7 @@ const PROOF: Metric[] = [metrics[0], metrics[1], metrics.find((m) => m.projectSl
 );
 
 export function HeroEyebrow() {
-  return <p className="label !text-accent-hot">Shipping production software since {SHIPPING_SINCE}</p>;
+  return <p className="hero-eyebrow label !text-accent-hot">Shipping production software since {SHIPPING_SINCE}</p>;
 }
 
 export function HeroLocation() {
@@ -70,11 +71,12 @@ export function HeroLinks() {
           </span>
         </a>
       </div>
-      <ul className="grid grid-cols-3 gap-x-4 sm:flex sm:flex-wrap sm:gap-x-5">
+      <HeroTour />
+      <ul className="hero-quiet grid grid-cols-3 gap-x-4 sm:flex sm:flex-wrap sm:gap-x-5">
         {items
           .filter((i) => i.href)
           .map((i) => (
-            <li key={i.label}>
+            <li key={i.label} className={i.external ? "hero-q-extra" : undefined}>
               <a
                 href={i.href}
                 {...(i.external ? { target: "_blank", rel: "noopener" } : {})}

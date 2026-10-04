@@ -7,8 +7,8 @@ import { Scrim } from "../Scrim";
  * the content stack, so a tool that is not listed there never appears here.
  */
 const LINES: { name: string; items: string[] }[] = [
-  { name: "Models and agents", items: ["Claude via Amazon Bedrock", "OpenAI", "RAG", "RAGAS evaluation"] },
-  { name: "Cloud", items: ["AWS CDK", "Step Functions", "Lambda", "OpenSearch Serverless"] },
+  { name: "Models and agents", items: ["Claude via Amazon Bedrock", "OpenAI", "Mistral OCR", "RAGAS evaluation"] },
+  { name: "Cloud", items: ["AWS CDK", "Step Functions", "Lambda", "Comprehend"] },
   { name: "Product", items: ["TypeScript", "Python", "React", "Next.js"] },
 ];
 

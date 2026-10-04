@@ -5,6 +5,7 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 import { assetUrl } from "@/lib/asset";
 import { FadeIn } from "../origin/FadeIn";
 import { Scrim } from "../Scrim";
+import { BasisTag } from "./BasisTag";
 import { Counter } from "./Counter";
 import { sourceRef } from "./source";
 
@@ -44,7 +45,8 @@ function Context({ metric, className = "" }: { metric: Metric; className?: strin
     <div className={`relative ${className}`}>
       <Scrim strength={0.9} inset="-18% -12%" />
       <p className={`max-w-[26rem] text-[0.9375rem] leading-[1.55] text-ink/80 ${SHADOW}`}>{metric.context}</p>
-      <p className="mt-2 md:mt-3">
+      <p className="mt-2 flex flex-wrap items-baseline gap-x-4 gap-y-1 md:mt-3">
+        <BasisTag metric={metric} />
         <Source metric={metric} />
       </p>
     </div>
@@ -69,13 +71,13 @@ export function Impact() {
           <div className="col-span-12 md:col-span-8">
             <SectionLabel chapter="impact" />
             <Reveal as="h2" className="headline mt-5">
-              <span id="impact-title">Every number has a receipt.</span>
+              <span id="impact-title">Numbers, and who says so.</span>
             </Reveal>
           </div>
           <FadeIn delay={0.15} className="relative col-span-12 md:col-span-3 md:col-start-10 md:self-end">
             <Scrim strength={0.7} />
             <p className={`lede !text-[1rem] ${SHADOW}`}>
-              Each figure links to where it came from. Where I report it myself, the line says so.
+              Each figure says who stands behind it: a third party, my employer, or me. Where there is a public page, it links.
             </p>
           </FadeIn>
         </header>
@@ -130,7 +132,8 @@ export function Impact() {
                 <div>
                   <p className="label !text-[12px] !text-ink">{m.label}</p>
                   <p className={`mt-2 max-w-[28rem] text-[0.9375rem] leading-[1.5] text-ink/80 ${SHADOW}`}>{m.context}</p>
-                  <p className="mt-1 md:mt-2">
+                  <p className="mt-1 flex flex-wrap items-baseline gap-x-4 gap-y-1 md:mt-2">
+                    <BasisTag metric={m} />
                     <Source metric={m} />
                   </p>
                 </div>

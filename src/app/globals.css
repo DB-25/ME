@@ -5,9 +5,10 @@
   --color-void: #060509;
   --color-void-2: #0c0a12;
   --color-ink: #eeeaf6;
-  --color-muted: #8b8798;
+  --color-muted: #a29eb4; /* body secondary, 7.8:1 on void */
   --color-faint: #4a4656; /* decoration only (rules, ticks, dots); fails contrast as text */
-  --color-dim: #7d788f; /* quietest readable text, 4.8:1 on void */
+  --color-dim: #918da5; /* quietest readable text, 6.5:1 on void */
+  --color-label: #b3afc4; /* mono labels, 9:1 on void: they are how the page is scanned */
   --color-hairline: rgb(238 234 246 / 0.08);
   --color-hairline-strong: rgb(238 234 246 / 0.16);
   --color-accent: #8b7bff;
@@ -37,6 +38,16 @@
 }
 @media (max-width: 767px) {
   :root { --gutter: 16px; }
+}
+/* Large displays: the whole UI scales up with the screen (rem-based type and spacing follow the root size) and the
+   column widens with it, so a 2560 monitor shows a composed page, not a 1440 strip in a void. */
+@media (min-width: 1920px) {
+  html { font-size: 112.5%; }
+  :root { --maxw: 1600px; --gutter: 28px; }
+}
+@media (min-width: 2400px) {
+  html { font-size: 125%; }
+  :root { --maxw: 1840px; --gutter: 32px; }
 }
 
 /* overflow-x MUST live on html, not body: on body it makes body the scroll
@@ -85,11 +96,24 @@ main { overflow-x: clip; }
 /* Type primitives */
 .label {
   font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: 12px;
+  line-height: 1.45;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-muted);
+  color: var(--color-label);
+}
+@media (min-width: 1920px) { .label { font-size: 13px; } }
+@media (min-width: 2400px) { .label { font-size: 14px; } }
+/* The second voice: Instrument Serif italic for the emotional words of a headline. It sets small next to Geist, so it
+   gets an optical bump; the line box stays put. */
+.voice {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.1em;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--color-accent-hot);
 }
 .display {
   font-weight: 500;
@@ -131,3 +155,33 @@ main { overflow-x: clip; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Route transitions (see components/chrome/PageTransitions.tsx). Old page stays put and the new one dissolves in over it
+   in expo.out; the project title morphs between the list and the case heading without stretching its glyphs. */
+html[data-page-vt]::view-transition-group(root) { animation-duration: 1s; }
+html[data-page-vt]::view-transition-old(root) {
+  animation: vt-old 0.34s cubic-bezier(0.45, 0, 0.9, 0.5) both;
+  mix-blend-mode: normal;
+}
+html[data-page-vt]::view-transition-new(root) {
+  animation: vt-new 0.8s var(--ease-out-expo) 0.14s both;
+  mix-blend-mode: normal;
+}
+html[data-page-vt]::view-transition-group(case-title) { animation-duration: 0.9s; animation-timing-function: var(--ease-out-expo); }
+html[data-page-vt]::view-transition-old(case-title),
+html[data-page-vt]::view-transition-new(case-title) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left top;
+  mix-blend-mode: normal;
+}
+html[data-page-vt]::view-transition-old(case-title) { animation: vt-old 0.3s ease-out both; }
+html[data-page-vt]::view-transition-new(case-title) { animation: vt-new 0.3s ease-in 0.12s both; }
+@keyframes vt-old { to { opacity: 0; } }
+@keyframes vt-new { from { opacity: 0; } }
+html[data-page-vt] .chrome-nav { view-transition-name: site-nav; }
+/* The bar belongs to neither page: it does not dissolve or slide, it simply takes the new page's state. */
+html[data-page-vt]::view-transition-group(site-nav) { animation: none; }
+html[data-page-vt]::view-transition-old(site-nav) { display: none; }
+html[data-page-vt]::view-transition-new(site-nav) { animation: none; }

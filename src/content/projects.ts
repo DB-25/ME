@@ -2,9 +2,12 @@ import type { Project } from "./types";
 import { flagshipProjects } from "./project-data/flagship";
 import { featuredMoreProjects } from "./project-data/featured-more";
 import { moreProjects } from "./project-data/more";
+import { PRODUCTION_NOTES } from "./project-data/notes";
 
 // Ordered by impact: featured first, then platform, tools and lab work.
-const ordered: Project[] = [...flagshipProjects, ...featuredMoreProjects, ...moreProjects];
+const ordered: Project[] = [...flagshipProjects, ...featuredMoreProjects, ...moreProjects].map((p) =>
+  PRODUCTION_NOTES[p.slug] ? { ...p, notes: PRODUCTION_NOTES[p.slug] } : p,
+);
 
 /**
  * The top of the featured list is pinned: A-IEP, GENIE, then arc-control-mcp (the best solo, founder-relevant

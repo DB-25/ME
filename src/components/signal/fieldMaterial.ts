@@ -1,5 +1,6 @@
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, Matrix3, ShaderMaterial, Sphere, Vector2, Vector3, Vector4 } from "three";
 import { getFormation, signalAttributes, signalLayout, signalRotation } from "./formations";
+import { particleSeeds } from "./formations/seeds";
 import { FRAGMENT, VERTEX } from "./shaders";
 
 const PARTICLE_WORLD_SIZE = 0.042;
@@ -14,23 +15,11 @@ export type FieldBuffers = {
   attrs: Map<string, BufferAttribute>;
 };
 
-/** Per-particle random seeds: x seed, y size jitter, z heat, w phase. */
-function randomAttribute(count: number): BufferAttribute {
-  const rand = new Float32Array(count * 4);
-  for (let i = 0; i < count; i++) {
-    rand[i * 4] = Math.random();
-    rand[i * 4 + 1] = 0.6 + Math.random() * 0.8;
-    rand[i * 4 + 2] = Math.random();
-    rand[i * 4 + 3] = Math.random();
-  }
-  return new BufferAttribute(rand, 4);
-}
-
 /** Geometry, shader material and the buffer cache. Only the noise formation exists up front. `lean` compiles in the shader's own glow, vignette and tone curve (no postprocessing). */
 export function createFieldBuffers(count: number, lean: boolean): FieldBuffers {
   const geometry = new BufferGeometry();
   const layout = signalLayout(count);
-  geometry.setAttribute("aRand", randomAttribute(count));
+  geometry.setAttribute("aRand", new BufferAttribute(particleSeeds(count), 4));
   geometry.setAttribute("aSig", new BufferAttribute(signalAttributes(count), 4));
   // Placeholder so the geometry is valid before the first formation lands.
   const noiseAttr = new BufferAttribute(getFormation("noise", count), 3);
@@ -79,6 +68,12 @@ export function createFieldBuffers(count: number, lean: boolean): FieldBuffers {
       uHueColor: { value: new Color("#8b7bff") },
       uHueMix: { value: 0 },
       uBloom: { value: 0.4 },
+      uGlobeRot: { value: new Matrix3() },
+      uGlobeA: { value: 0 },
+      uGlobeB: { value: 0 },
+      uOvGlobe: { value: 0 },
+      uArc: { value: 1 },
+      uMark: { value: new Vector2(1, 1) },
     },
   });
   return { geometry, material, attrs: new Map([["f:noise", noiseAttr]]) };

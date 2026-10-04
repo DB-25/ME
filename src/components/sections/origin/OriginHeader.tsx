@@ -12,7 +12,7 @@ export function OriginHeader({ withLede = true }: { withLede?: boolean }) {
       <SectionLabel chapter="origin" />
       <Reveal as="h2" className="headline mt-5 !text-[clamp(2.25rem,4.4vw,4.25rem)]">
         <span id="origin-title">
-          <span className={CITIES.bangalore.text}>Bangalore</span> to{" "}
+          <span className={CITIES.bangalore.text}>Bangalore</span> <em className="voice">to</em>{" "}
           <span className={CITIES.boston.text}>Boston</span>
         </span>
       </Reveal>

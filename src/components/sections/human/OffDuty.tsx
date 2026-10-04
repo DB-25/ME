@@ -19,7 +19,7 @@ export function OffDuty() {
           <SectionLabel chapter="human" className="mb-4" />
           <h2 id="human-title" className="text-[clamp(2rem,3.4vw,3.25rem)] font-medium leading-[0.98] tracking-[-0.04em]">
             <Reveal as="span" className="block">
-              Off the clock, still aiming.
+              Off the clock, <em className="voice">still aiming.</em>
             </Reveal>
           </h2>
           <Reveal as="p" mode="fade" delay={0.15} className="lede mt-4 max-w-[38ch] !text-ink/85 md:text-[1rem] [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">

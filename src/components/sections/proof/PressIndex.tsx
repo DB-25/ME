@@ -67,7 +67,7 @@ export function PressIndex({ items }: { items: Recognition[] }) {
 
   return (
     <div className="relative mt-[clamp(32px,4vw,56px)]">
-      <Scrim shape="band" strength={0.9} inset="-3% -3% -3% -24px" feather={32} />
+      <Scrim shape="band" strength={0.96} inset="-3% -3% -3% -24px" feather={32} />
       <p className="label mb-4 !text-[12px] !text-ink/75">Press and talks</p>
       <ul className="border-b border-hairline">
         {head.map((r) => (

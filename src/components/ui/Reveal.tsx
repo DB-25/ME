@@ -32,6 +32,8 @@ export function Reveal({ as: Tag = "div", children, className, mode = "lines", d
         return;
       }
       const scrollTrigger = immediate ? undefined : { trigger: el, start: "top 85%", once: true };
+      // A heading that is morphing in from the list (route view transition) arrives already set: no second reveal.
+      if (el.closest(".cs-title") && document.documentElement.getAttribute("data-page-vt") === "shared") return;
       if (mode === "lines") {
         const split = SplitText.create(el, {
           type: "lines",

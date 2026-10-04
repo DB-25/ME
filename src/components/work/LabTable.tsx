@@ -111,6 +111,7 @@ export function LabTable({ projects, offset, spotlight }: { projects: Project[];
               </span>
               {ext ? (
                 <a className="wk-lab-link label link" href={assetUrl(ext.href)} target="_blank" rel="noopener noreferrer">
+                  {ext.kind === "live" ? <i aria-hidden /> : null}
                   {ext.kind ? KIND_LABEL[ext.kind] : "Visit"}: {ext.label}
                   <span aria-hidden> &#8599;</span>
                 </a>

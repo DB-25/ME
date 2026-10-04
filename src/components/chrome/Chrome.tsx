@@ -5,6 +5,7 @@ import { Cursor } from "./Cursor";
 import { Grain } from "./Grain";
 import { Intro } from "./Intro";
 import { Nav } from "./Nav";
+import { PageTransitions } from "./PageTransitions";
 import { ScrollProgress } from "./ScrollProgress";
 
 function focusMain(e: React.MouseEvent<HTMLAnchorElement>) {
@@ -28,6 +29,7 @@ export function Chrome() {
         Skip to content
       </a>
       <Intro />
+      <PageTransitions />
       <Nav />
       <ContactBar />
       <ScrollProgress />

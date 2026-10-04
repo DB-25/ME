@@ -127,6 +127,11 @@
 #main { transition: opacity 0.42s ease-out; }
 html.dir-cut #main { opacity: 0; transition-duration: 0.24s; }
 
+/* While a sketch is up the page content steps back, so a drawing never strikes through copy. */
+html.dir-sketch #main { opacity: 0.07; transition-duration: 0.5s; }
+/* While a take runs the page is driven for the visitor: their cursor must not wake hover states under it. It is theirs again once the take is over. */
+body:has([data-director-hud]:not(.dir-done)) #main { pointer-events: none; }
+
 /* Room below the last chapter while a take runs, so even the contact section can be
    scrolled up out of the caption lane. Removed again, after a gentle settle, when the take ends. */
 html { --dir-lane-vh: 34; }

@@ -10,11 +10,12 @@ import { DirectorHud } from "./DirectorHud";
 import { goToSection } from "./executor";
 import { lineAudio } from "./lineAudio";
 import { VoiceToggle } from "./VoiceToggle";
+import { PERSONA_TOURS, TOUR_EVENT, claimTour, takePendingTour, type TourRequest } from "./tourBus";
 import "./director.css";
 import { useDirectorRun } from "./useDirectorRun";
 
-/** Guided tours: the primary way in. Each label is also the request, so the HUD shows what was chosen. */
-const TOURS = ["I'm a founder", "I'm hiring", "I'm an engineer", "Surprise me", "Draw me a pani puri"];
+/** Guided tours: the persona tours (also offered from the hero) first, then two lighter ones. Each label is also the request, so the HUD shows what was chosen. */
+const TOURS = [...PERSONA_TOURS.map((t) => t.request), "Surprise me", "Draw me a pani puri"];
 
 const FOCUS_DELAY_MS = 900;
 
@@ -35,6 +36,23 @@ export function Director() {
     io.observe(el);
     return () => io.disconnect();
   }, []);
+
+  // The hero's tour chips start a take from anywhere on the page. A request made before this chunk
+  // loaded is waiting in the bus; later ones arrive as an event, still inside the visitor's gesture.
+  useEffect(() => {
+    const start = (prompt: string) => {
+      lineAudio.prime();
+      void run(prompt);
+    };
+    const waiting = takePendingTour();
+    if (waiting) start(waiting);
+    const onTour = (e: Event) => {
+      claimTour();
+      start((e as CustomEvent<TourRequest>).detail.prompt);
+    };
+    window.addEventListener(TOUR_EVENT, onTour);
+    return () => window.removeEventListener(TOUR_EVENT, onTour);
+  }, [run]);
 
   // Focus returns to the input after a take, if the visitor can see it.
   useEffect(() => {

@@ -1,9 +1,11 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 import { assetUrl } from "@/lib/asset";
 import { prefersReducedMotion, isCoarsePointer } from "@/lib/motion";
+import { FieldUnavailableError, fieldOverride, probeGpu, shouldGuardGpu } from "./capability";
 import { devFlag, installDevHooks } from "./devtools";
 import type { FieldQuality } from "./fieldTypes";
 import { afterPaint, onIdle } from "./schedule";
@@ -123,42 +125,49 @@ function Fallback() {
 }
 
 const PHONE_POSTER = "/signal-hero-phone.webp";
+const DESKTOP_POSTER = "/signal-hero-desktop.webp";
 /** The poster only stands in for the hero formation: a deep link further down the page keeps the plain glow. */
 const POSTER_MAX_SCROLL = 0.5;
+/** Past this much of a viewport the hero is leaving, so the still fades and the chapters below read on the plain glow. */
+const POSTER_FADE_AT = 0.6;
 
 /**
- * A still of the hero waveform for phones, shown until the live field boots on first touch. It is drawn into a
- * 2D canvas after load (canvas never counts as an LCP candidate) and crossfades out once GL is on screen.
+ * A still of the hero waveform. Phones show it until the live field boots on first touch. Desktops show it only
+ * when the live field cannot run (software GL, a GPU too slow to hold it, no WebGL), so those visitors get the
+ * same picture instead of an empty glow. It is drawn into a 2D canvas after load (canvas never counts as an LCP
+ * candidate), scaled with object-fit: cover, and crossfades out once GL is on screen or the hero scrolls away.
  */
-function PhonePoster({ gone }: { gone: boolean }) {
+function Poster({ wanted, gone, isHome }: { wanted: boolean; gone: boolean; isHome: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [drawn, setDrawn] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
+
+  useEffect(() => {
+    if (!drawn) return;
+    const onScroll = () => setPastHero(window.scrollY > window.innerHeight * POSTER_FADE_AT);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [drawn]);
 
   useEffect(() => {
     const canvas = ref.current;
-    const isPhone = isCoarsePointer() || window.innerWidth < SMALL_VIEWPORT;
-    if (!canvas || !isPhone || !hasWebGL2Api() || window.scrollY > window.innerHeight * POSTER_MAX_SCROLL) return;
+    // The still is the home hero's formation: other routes (case studies, the 404) keep the plain glow.
+    if (!canvas || !isHome || !(wanted || isPhoneViewport()) || window.scrollY > window.innerHeight * POSTER_MAX_SCROLL) return;
     let cancelled = false;
     const draw = () => {
       const img = new Image();
       img.decoding = "async";
       img.onload = () => {
         if (cancelled) return;
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        canvas.width = Math.round(w * dpr);
-        canvas.height = Math.round(h * dpr);
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
-        // Cover fit, like background-size: cover.
-        const scale = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
-        const dw = img.naturalWidth * scale;
-        const dh = img.naturalHeight * scale;
-        ctx.drawImage(img, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
+        ctx.drawImage(img, 0, 0);
         setDrawn(true);
       };
-      img.src = assetUrl(PHONE_POSTER);
+      img.src = assetUrl(isPhoneViewport() ? PHONE_POSTER : DESKTOP_POSTER);
     };
     if (document.readyState === "complete") draw();
     else window.addEventListener("load", draw, { once: true });
@@ -166,31 +175,45 @@ function PhonePoster({ gone }: { gone: boolean }) {
       cancelled = true;
       window.removeEventListener("load", draw);
     };
-  }, []);
+  }, [wanted, isHome]);
 
   return (
     <canvas
       ref={ref}
-      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: drawn && !gone ? 1 : 0, transition: FADE_IN }}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: drawn && isHome && !gone && !pastHero ? 1 : 0, transition: FADE_IN }}
     />
   );
 }
 
+/** No WebGL2, or the poster was asked for: no engine to start. Read lazily so the server render is unaffected. */
+function noFieldUpFront(): boolean {
+  return typeof window !== "undefined" && (!hasWebGL2Api() || fieldOverride() === "poster");
+}
+
+function isPhoneViewport(): boolean {
+  return isCoarsePointer() || window.innerWidth < SMALL_VIEWPORT;
+}
+
 export function SignalMount() {
   useChapterScroll();
+  const isHome = usePathname() === "/";
   const [quality, setQuality] = useState<FieldQuality | null>(null);
   const [glOk, setGlOk] = useState(false);
   const [visible, setVisible] = useState(false);
   const [lost, setLost] = useState(false);
+  /** Phones always get the poster before the field; desktops only once the field has been ruled out. */
+  const [unavailable, setUnavailable] = useState(noFieldUpFront);
 
   useEffect(() => {
     const q = pickQuality();
     if (process.env.NODE_ENV !== "production") {
       installDevHooks(q.count);
     }
-    if (!hasWebGL2Api()) return;
+    if (noFieldUpFront()) return;
     const deferToInput = q.coarse || window.innerWidth < SMALL_VIEWPORT;
     return scheduleBoot(deferToInput, () => {
+      // Runs alongside the three.js chunk download; the engine awaits the same promise.
+      if (shouldGuardGpu()) void probeGpu();
       setQuality(q);
       setGlOk(true);
     });
@@ -199,17 +222,21 @@ export function SignalMount() {
   return (
     <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", background: "#060509" }}>
       <Fallback />
-      <PhonePoster gone={visible && !lost} />
+      <Poster wanted={unavailable} gone={visible && !lost} isHome={isHome} />
       {glOk && quality && (
         <div style={{ position: "absolute", inset: 0, opacity: visible && !lost ? 1 : 0, transition: FADE_IN }}>
-          <GlBoundary onError={() => setGlOk(false)}>
+          <GlBoundary onError={() => { setUnavailable(true); setGlOk(false); }}>
             <SignalCanvas
               quality={quality}
               onReady={() => setVisible(true)}
               onContextLost={() => setLost(true)}
               onContextRestored={() => setLost(false)}
               onError={(error) => {
-                console.error("[signal] WebGL field failed, using fallback", error);
+                // A machine that cannot run the field is expected, not a bug: no console error for it.
+                if (error instanceof FieldUnavailableError) console.info(`[signal] ${error.message}, showing the poster`);
+                else console.error("[signal] WebGL field failed, using fallback", error);
+                setVisible(false);
+                setUnavailable(true);
                 setGlOk(false);
               }}
             />

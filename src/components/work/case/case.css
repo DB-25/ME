@@ -102,10 +102,35 @@
 .cs-out-text { grid-column: 1 / -1; }
 .cs-out-label { margin: 0; font-size: clamp(1.25rem, 1.9vw, 1.75rem); font-weight: 500; letter-spacing: -0.02em; text-wrap: balance; }
 .cs-out-ctx { margin: 12px 0 0; color: var(--color-muted); line-height: 1.55; max-width: 46ch; text-wrap: pretty; }
-.cs-out-src { margin: 18px 0 0; }
+.cs-out-src { margin: 18px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 0; }
+.cs-out-sep { margin-inline: 10px; color: var(--color-dim); }
+@media (max-width: 767px) { .cs-out-sep { display: none; } .cs-out-src { gap: 6px 18px; } }
 @media (min-width: 768px) {
   .cs-out-v { grid-column: 1 / 7; font-size: clamp(2.5rem, min(calc(var(--cap) * 1vw), calc(100vw / var(--len))), 10rem); }
   .cs-out-text { grid-column: 7 / 13; }
+}
+
+/* Production notes: a hairline-ruled definition list. The mono label scans down the left, status and prose sit right. */
+.cs-notes { margin: clamp(0px, 0.4vw, 6px) 0 0; border-top: 1px solid var(--color-hairline-strong); }
+.cs-note { display: grid; row-gap: 8px; padding-block: clamp(18px, 1.9vw, 26px); border-bottom: 1px solid var(--color-hairline); }
+.cs-note-k { margin: 0; color: var(--color-ink); }
+.cs-note-v { margin: 0; min-width: 0; }
+.cs-note-status { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; color: var(--color-dim); }
+.cs-note-status::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--color-faint); }
+.cs-note-status[data-tone="ok"]::before { background: var(--color-accent-hot); }
+.cs-note-status[data-tone="plan"]::before { background: var(--pa); }
+.cs-note-status[data-tone="self"]::before { background: var(--color-saffron); }
+.cs-note-text, .cs-note-lines li { margin: 0; max-width: 64ch; font-size: clamp(1rem, 1.2vw, 1.125rem); line-height: 1.55; color: var(--color-muted); text-wrap: pretty; }
+.cs-note-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.cs-note-lead { color: var(--color-ink); font-weight: 500; }
+.cs-note-links { display: flex; flex-wrap: wrap; gap: 0 22px; margin: 14px 0 0; }
+.cs-note-link { display: inline-flex; align-items: center; min-height: 32px; color: var(--color-ink); text-decoration: none; transition: color 0.25s; }
+.cs-note-link span { margin-left: 0.4em; }
+.cs-note-link:hover, .cs-note-link:focus-visible { color: var(--color-accent-hot); }
+@media (max-width: 767px) { .cs-note-link { min-height: 44px; } }
+@media (min-width: 768px) {
+  .cs-note { grid-template-columns: clamp(7.5rem, 11vw, 9rem) minmax(0, 1fr); column-gap: var(--gutter); }
+  .cs-note-k { padding-top: 0.2rem; }
 }
 
 /* Stack: items flow as one list. Each carries its own marker, so no separator ever dangles at a line end. */

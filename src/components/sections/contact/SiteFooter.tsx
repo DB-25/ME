@@ -42,8 +42,8 @@ export function SiteFooter() {
         </button>
       </div>
       <div className="mt-3 flex flex-col gap-1 md:flex-row md:justify-between">
-        <p className="label !text-[12px] !text-ink/60">{BUILT_WITH}</p>
-        <p className="label hidden !text-[12px] !text-ink/60 md:block">Try typing my handle.</p>
+        <p className="label !text-[12px] !text-ink/70">{BUILT_WITH}</p>
+        <p className="label hidden !text-[12px] !text-ink/70 md:block">Try typing my handle.</p>
       </div>
     </footer>
   );

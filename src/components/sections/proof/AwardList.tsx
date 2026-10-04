@@ -97,7 +97,7 @@ export function AwardList({ items }: { items: Recognition[] }) {
   return (
     <div className="relative">
       <style>{CSS}</style>
-      <Scrim shape="left" strength={0.88} inset="-4% -3% -4% -24px" />
+      <Scrim shape="hold" strength={0.96} inset="-4% -3% -4% -24px" />
       <p className="label mb-4 !text-[12px] !text-ink/75">Awards</p>
       <ul className="proof-list border-b border-hairline-strong">
         {items.map((item) => (

@@ -39,8 +39,11 @@ const CSS = `
 @media (max-width: 767px) and (max-height: 740px) {
   #hero, #hero .hero-pin { height: max(100svh, 41rem); }
   #hero .hero-loc { display: none; }
-  #hero .hero-first { font-size: 21vw; }
-  #hero .hero-last { font-size: 14vw; }
+  #hero .hero-first { font-size: 19vw; }
+  #hero .hero-last { font-size: 13vw; }
+  /* The tour chips need a row: drop the eyebrow, and fold the reel into the links row (LinkedIn and GitHub live in the menu and the contact bar). */
+  #hero .hero-eyebrow, #hero .hero-q-extra { display: none; }
+  #hero .hero-quiet { display: flex; justify-content: space-between; }
 }
 #hero .hero-last { font-size: 15.5vw; }
 #hero [data-out] { text-shadow: 0 0 14px rgb(6 5 9 / 0.9), 0 0 4px rgb(6 5 9 / 0.8); }

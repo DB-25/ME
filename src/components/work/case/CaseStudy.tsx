@@ -10,6 +10,7 @@ import { Gallery } from "./Gallery";
 import { LinksList } from "./LinksList";
 import { NextProject } from "./NextProject";
 import { Outcomes } from "./Outcomes";
+import { ProductionNotes } from "./ProductionNotes";
 import { ProblemSection } from "./ProblemSection";
 import { StackList } from "./StackList";
 
@@ -31,6 +32,7 @@ export function CaseStudy({ project }: { project: Project }) {
     true,
     hasArchitecture,
     project.outcomes.length > 0,
+    Boolean(project.notes?.length),
     project.stack.length > 0,
     project.media.length > 0,
     project.links.length > 0,
@@ -46,9 +48,10 @@ export function CaseStudy({ project }: { project: Project }) {
     { key: "build", label: "What I built", n: num[1] },
     ...(hasArchitecture ? [{ key: "architecture", label: "Architecture", n: num[2] }] : []),
     ...(present[3] ? [{ key: "outcomes", label: "Outcomes", n: num[3] }] : []),
-    ...(present[4] ? [{ key: "stack", label: "Stack", n: num[4] }] : []),
-    ...(present[5] ? [{ key: "gallery", label: "In use", n: num[5] }] : []),
-    ...(present[6] ? [{ key: "links", label: "Links", n: num[6] }] : []),
+    ...(present[4] ? [{ key: "notes", label: "Production notes", n: num[4] }] : []),
+    ...(present[5] ? [{ key: "stack", label: "Stack", n: num[5] }] : []),
+    ...(present[6] ? [{ key: "gallery", label: "In use", n: num[6] }] : []),
+    ...(present[7] ? [{ key: "links", label: "Links", n: num[7] }] : []),
     { key: "next", label: "Up next", n: "" },
   ];
 
@@ -60,9 +63,10 @@ export function CaseStudy({ project }: { project: Project }) {
       <BuildSection project={project} n={num[1]} />
       <ArchitectureDiagram project={project} n={num[2]} />
       <Outcomes project={project} n={num[3]} />
-      <StackList project={project} n={num[4]} />
-      <Gallery project={project} n={num[5]} />
-      <LinksList project={project} n={num[6]} />
+      <ProductionNotes project={project} n={num[4]} />
+      <StackList project={project} n={num[5]} />
+      <Gallery project={project} n={num[6]} />
+      <LinksList project={project} n={num[7]} />
       <NextProject next={next} index={nextIndex} total={group.length} />
       <CaseNav name={project.name} nextSlug={next.slug} nextName={next.name} stops={stops} />
     </article>

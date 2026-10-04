@@ -23,27 +23,13 @@ const LINKS = [
 
 const WORKING_STYLE = "I work fast, in small teams, and I ship things I can measure.";
 
-const CSS = `
-.email-ch {
-  --k: 0;
-  color: color-mix(in oklab, var(--color-ink), var(--color-accent-hot) calc(var(--k) * 100%));
-  transform: translateY(calc(var(--k) * -0.16em));
-  transition: transform 0.45s var(--ease-out-expo), color 0.45s var(--ease-out-expo);
-}
-.email-wrap { container-type: inline-size; }
-.email-link { --fit: 1; font-size: calc(min(100cqi / 12, 4.5rem) * var(--fit)); }
-@media (min-width: 768px) { .email-link { font-size: calc(min(7.6vw, 7.9rem) * var(--fit)); } }
-.email-link:focus-visible { outline-offset: 10px; }
-`;
-
 export function Contact() {
-  const { state, copy } = useCopy(profile.email);
+  const { state, copy, count } = useCopy(profile.email);
   const egg = useEasterEgg();
   const copied = state === "copied";
 
   return (
     <section id="contact" data-chapter="contact" aria-labelledby="contact-title" className="sx-in relative flex min-h-[min(100svh,820px)] flex-col">
-      <style>{CSS}</style>
       <div className="sx-out shell flex flex-1 flex-col justify-between gap-12 pt-[clamp(72px,11vh,120px)]">
         <div className="relative">
           <Scrim shape="band" strength={0.82} inset="-12% -4% -12% -24px" className="md:hidden" />
@@ -51,7 +37,7 @@ export function Contact() {
           <SectionLabel chapter="contact" className="mb-6" />
           <h2 id="contact-title" className="max-w-[14ch] text-[clamp(2.6rem,6.4vw,6.75rem)] font-medium leading-[0.96] tracking-[-0.04em]">
             <Reveal as="span" className="block">
-              Building something early? Let&rsquo;s talk.
+              Building something early? <em className="voice">Let&rsquo;s talk.</em>
             </Reveal>
           </h2>
           <Reveal as="p" mode="fade" delay={0.2} className="lede mt-6 max-w-[34ch] [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">
@@ -68,9 +54,9 @@ export function Contact() {
             </p>
           </div>
 
-          <EmailLink email={profile.email} onActivate={copy} />
+          <EmailLink email={profile.email} onActivate={copy} sweep={count} />
 
-          <div className="mt-8 flex flex-col gap-6 md:mt-10 md:flex-row md:items-center md:justify-between">
+          <Reveal mode="fade" delay={0.35} className="mt-8 flex flex-col gap-6 md:mt-10 md:flex-row md:items-center md:justify-between">
             <button
               type="button"
               onClick={copy}
@@ -96,7 +82,7 @@ export function Contact() {
                 </li>
               ))}
             </ul>
-          </div>
+          </Reveal>
         </div>
 
         <div className="relative">

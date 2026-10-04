@@ -8,6 +8,7 @@ import { headlineFor, tie } from "../meta";
 import { CaseLabel } from "./CaseLabel";
 import { DrawRule } from "./DrawRule";
 import { assetUrl } from "@/lib/asset";
+import { BasisTag } from "@/components/sections/impact/BasisTag";
 
 /** A receipt chip exists only for a public page, labelled by its host. Files and logs stay off the page. */
 function receipt(source: string): { text: string; href: string } | null {
@@ -68,15 +69,23 @@ export function Outcomes({ project, n }: { project: Project; n: string }) {
                     <p className="cs-out-ctx" data-in>
                       {tie(m.context)}
                     </p>
-                    {r ? (
-                      <p className="label cs-out-src" data-in>
-                        Source:{" "}
-                        <a href={assetUrl(r.href)} target="_blank" rel="noopener noreferrer" className="link !text-ink">
-                          {r.text}
-                          <span aria-hidden> &#8599;</span>
-                        </a>
-                      </p>
-                    ) : null}
+                    <p className="label cs-out-src" data-in>
+                      <BasisTag metric={m} />
+                      {r ? (
+                        <>
+                          <span className="cs-out-sep" aria-hidden>
+                            /
+                          </span>
+                          <span>
+                            Source:{" "}
+                            <a href={assetUrl(r.href)} target="_blank" rel="noopener noreferrer" className="link !text-ink">
+                              {r.text}
+                              <span aria-hidden> &#8599;</span>
+                            </a>
+                          </span>
+                        </>
+                      ) : null}
+                    </p>
                   </div>
                 </div>
               </li>

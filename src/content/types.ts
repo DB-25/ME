@@ -1,5 +1,8 @@
 export type Link = { label: string; href: string; kind?: "live" | "code" | "press" | "video" | "doc" | "award" };
 
+/** Who stands behind a figure. Drives the provenance tag on Impact and on case outcomes. */
+export type Basis = "third-party" | "employer" | "self" | "repo";
+
 export type Metric = {
   value: string;
   numeric?: number;
@@ -7,7 +10,31 @@ export type Metric = {
   label: string;
   context: string;
   source: string;
+  /** Overrides the basis that would be read from `source` (see provenance.ts). */
+  basis?: Basis;
   projectSlug?: string;
+};
+
+/** How far a production-note claim can be trusted. A fixed vocabulary, so every case reads the same way. */
+export type NoteStatus =
+  | "Measured"
+  | "Projected"
+  | "Designed, not run"
+  | "Self-reported"
+  | "Not measured"
+  | "Instrumented, no results"
+  | "Tested"
+  | "Private repo";
+
+export type NoteLink = { label: string; href: string };
+
+/** One row of a case study's production notes: a mono label, an optional status, prose or short lead-in lines, and receipts. */
+export type ProductionNote = {
+  label: string;
+  status?: NoteStatus;
+  text?: string;
+  lines?: { lead: string; text: string }[];
+  links?: NoteLink[];
 };
 
 /** A short launch film for a project (rendered with /brag, encoded by scripts/encode-film.sh). */
@@ -58,6 +85,8 @@ export type Project = {
   outcomes: Metric[];
   /** Project-specific section headings for the case study (fall back to generic ones). */
   headlines?: { problem?: string; built?: string; flows?: string; outcomes?: string };
+  /** What a head of engineering asks next: evaluation, cost, privacy, what broke, what I reversed, and the receipts. Rows only where a link or repo fact backs them. */
+  notes?: ProductionNote[];
   /** Launch film shown at the top of the case study and as the work-list preview. */
   film?: Film;
   /** Designed preview stills for a project without a film (16:9 with title, 4:3 without), from scripts/thumbs. */

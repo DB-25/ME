@@ -23,8 +23,8 @@ const GENERATORS: Record<FormationId, Generator> = {
   singularity: singularityFormation,
 };
 
-/** Formations whose particle index carries meaning (line / slot) must keep their order. */
-const UNSHUFFLED: FormationId[] = ["signal"];
+/** Formations whose particle index carries meaning (signal line / slot, globe arc and city roles) must keep their order. */
+const UNSHUFFLED: FormationId[] = ["signal", "globe"];
 
 /** Generated and shuffled so any prefix is an unbiased subset (used for adaptive quality). */
 export function generateFormation(id: FormationId, count: number): Float32Array {

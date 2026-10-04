@@ -1,9 +1,15 @@
+"use client";
+
+import { useRef } from "react";
 import { FadeIn } from "./FadeIn";
 import { BEATS, CITIES } from "./beats";
 import { BeatTitle, OriginHeader } from "./OriginHeader";
+import { useGlobeStoryFromList } from "./useGlobeStory";
 
 /** Unpinned layout: phones, reduced motion, no JavaScript. Every beat is readable at once. */
 export function StaticJourney() {
+  const list = useRef<HTMLOListElement>(null);
+  useGlobeStoryFromList(list);
   return (
     <div className="shell py-[clamp(64px,7vw,104px)]">
       <OriginHeader />
@@ -15,7 +21,7 @@ export function StaticJourney() {
           </span>
         ))}
       </p>
-      <ol className="mt-8 md:mt-12">
+      <ol ref={list} className="mt-8 md:mt-12">
         {BEATS.map((b) => {
           const city = CITIES[b.city];
           return (

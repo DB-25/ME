@@ -129,7 +129,7 @@ function Rail() {
       {/* Persistent label for the current chapter, set vertically so it stays inside the gutter. */}
       <p
         aria-hidden
-        className="label absolute right-0 top-full mt-4 whitespace-nowrap !text-[10px] !leading-none !text-accent-hot [writing-mode:vertical-rl]"
+        className="label absolute right-0 top-full mt-4 whitespace-nowrap !text-[11px] !leading-none !text-accent-hot [writing-mode:vertical-rl]"
       >
         {current.index} {plainLabel(current.id, current.label)}
       </p>

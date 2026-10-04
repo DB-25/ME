@@ -2,19 +2,22 @@ import { profile } from "@/content";
 
 const CSS = `
 @keyframes building-slide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.building-track { animation: building-slide 70s linear infinite; }
+/* Full bleed, so the strip is never cut at the column edge. The track starts inside the fade, so item 01 is whole on load. */
+.building-viewport { margin-inline: calc(var(--gutter) * -1); }
+.building-track { animation: building-slide 70s linear infinite; margin-left: calc(var(--gutter) + clamp(0px, 5vw, 96px)); }
 .building-viewport:hover .building-track, .building-viewport:focus-within .building-track { animation-play-state: paused; }
 @keyframes building-blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
 .building-dot { animation: building-blink 1.8s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .building-track { animation: none !important; width: auto !important; display: block !important; }
+  .building-track { animation: none !important; width: auto !important; display: block !important; margin-inline: var(--gutter); }
   .building-track ul { flex-wrap: wrap; row-gap: 14px; }
   .building-copy-2 { display: none; }
   .building-viewport { mask-image: none !important; -webkit-mask-image: none !important; }
 }
 `;
 
-const MASK = "linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)";
+const EDGE = "clamp(32px, 9vw, 160px)";
+const MASK = `linear-gradient(90deg, transparent, #000 ${EDGE}, #000 calc(100% - ${EDGE}), transparent)`;
 
 function Items({ hidden }: { hidden?: boolean }) {
   return (

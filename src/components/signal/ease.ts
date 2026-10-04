@@ -23,10 +23,11 @@ export class Tween {
   get settled() {
     return Math.abs(this.value - this.to) < 0.0005;
   }
-  go(to: number, now: number, dur: number) {
+  /** Starts easing toward `to` over `dur` ms (`now` is performance.now()); `delay` (ms) holds the current value first. */
+  go(to: number, now: number, dur: number, delay = 0) {
     this.from = this.value;
     this.to = to;
-    this.t0 = now;
+    this.t0 = now + delay;
     this.dur = Math.max(0.001, dur);
   }
   snap(v: number) {

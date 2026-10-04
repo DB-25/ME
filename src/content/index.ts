@@ -5,3 +5,5 @@ export { timeline } from "./timeline";
 export { metrics } from "./metrics";
 export { recognition } from "./recognition";
 export { stack } from "./stack";
+export { basisOf, BASIS } from "./provenance";
+export { REPO } from "./sources";

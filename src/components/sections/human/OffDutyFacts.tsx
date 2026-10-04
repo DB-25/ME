@@ -58,7 +58,7 @@ export function OffDutyFacts() {
     <dl className="grid grid-cols-2 gap-x-6 border-b border-hairline">
       {FACTS.map((fact) => (
         <div key={fact.label} className={`${ROW} ${WIDE.has(fact.label) ? "col-span-2" : ""}`}>
-          <dt className="label !text-[11px]">{fact.label}</dt>
+          <dt className="label">{fact.label}</dt>
           <dd className="mt-1">
             {renderValue(fact.label, fact.value)}
           </dd>

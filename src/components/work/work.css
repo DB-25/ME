@@ -1,6 +1,7 @@
 /* Work index (home chapter 03). Default layout (phones, tablets, touch): a horizontal scroll-snap carousel of project cards.
-   From 1100px up: compact editorial rows, each with a small in-row still that scales into the film on hover. */
-.wk { --wk-ease: cubic-bezier(0.16, 1, 0.3, 1); --pa: var(--color-accent); --wk-ink: rgb(238 234 246 / 0.78); --wk-card: min(82vw, 340px); --wk-rail: 7rem; --wk-thumb: clamp(176px, 16.5vw, 240px); }
+   From 1100px up with a mouse: a list of projects (name, one line, the proof number) beside one large sticky preview stage
+   that shows the pointed-at project's still and plays its film uncropped. A "Live" chip opens the running product. */
+.wk { --wk-ease: cubic-bezier(0.16, 1, 0.3, 1); --pa: var(--color-accent); --wk-ink: rgb(238 234 246 / 0.78); --wk-card: min(82vw, 340px); --wk-rail: 7rem; }
 @media (min-width: 640px) { .wk { --wk-card: min(44vw, 400px); } }
 /* Mono micro-type over the particle field: 12px at ~70% ink, with a soft void halo so it never dissolves into the dots. */
 .wk .label { font-size: 12px; color: rgb(238 234 246 / 0.7); text-shadow: 0 0 10px rgb(6 5 9 / 1), 0 0 22px rgb(6 5 9 / 0.85); }
@@ -36,9 +37,6 @@
 .wk-media { grid-column: 1 / -1; grid-row: 1; position: relative; aspect-ratio: 4 / 3; }
 .wk-inline { position: absolute; inset: 0; margin: 0; overflow: hidden; background: var(--color-void-2); isolation: isolate; box-sizing: border-box; border: 1px solid var(--color-hairline-strong); }
 .wk-inline img { display: block; width: 100%; height: 100%; object-fit: cover; }
-/* The hover film sits over the still and fades in once it is really playing. */
-.wk-inline video { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s var(--wk-ease); }
-.wk-inline video[data-live] { opacity: 1; transition-delay: 0.3s; }
 /* Designed thumbs are already on-brand: no tint, no desaturation. Raw screenshots keep the ultraviolet cast. */
 .wk-inline:not([data-thumb]) { padding: 5px; }
 /* A raw screenshot (no designed thumb) is shown whole in the 4:3 card, never cropped through a phone. */
@@ -90,15 +88,23 @@
 }
 .wk-row[data-active] .wk-own-v { color: var(--color-ink); }
 .wk-tag, .wk-own-v { text-shadow: 0 0 14px rgb(6 5 9 / 1), 0 0 30px rgb(6 5 9 / 0.9); }
-.wk-pick { display: none; }
-.wk-open { display: none; }
 /* Card footer: says outright that the whole card opens a case study. */
 .wk-go {
-  grid-column: 1 / -1; grid-row: 7; align-self: end; margin: 16px 0 0; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;
+  grid-column: 1 / -1; grid-row: 7; align-self: end; margin: 16px 0 0; min-height: 44px; display: flex; justify-content: space-between; align-items: center;
   border-top: 1px solid var(--color-hairline); color: var(--color-ink); transition: color 0.3s;
 }
 .wk .wk-go { color: var(--color-ink); }
 .wk-row[data-active] .wk-go, .wk .wk-row[data-active] .wk-go { color: var(--color-accent-hot); }
+
+/* "Live": a hairline chip with a pulsing dot that opens the running product in a new tab. A sibling of the case link, never inside it.
+   On cards it sits in the corner of the still, so it is seen before the card is read. */
+.wk-live, .wk .wk-live {
+  position: absolute; z-index: 3; top: 20px; right: 20px; min-height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px;
+  color: var(--color-ink); text-decoration: none; text-shadow: none; background: rgb(6 5 9 / 0.72); border: 1px solid var(--color-hairline-strong);
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
+}
+.wk-live i { width: 6px; height: 6px; flex: none; background: var(--pa); animation: wk-pulse 1.8s ease-in-out infinite; }
+.wk-live:hover, .wk .wk-live:hover { border-color: var(--pa); color: var(--color-accent-hot); background: var(--color-void); }
 
 /* Carousel controls: previous, next, position. Hidden once the rows take over. */
 .wk-ctl { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
@@ -113,14 +119,17 @@
 .wk-prog { position: relative; flex: 1; max-width: 160px; height: 2px; overflow: hidden; background: var(--color-hairline-strong); }
 .wk-prog i { position: absolute; inset: 0 auto 0 0; width: 20%; background: var(--pa); }
 
-/* WIDE (1100px and up): compact editorial rows. A fixed rail (index, year, category) so mono labels never break mid-word, then name and
-   tagline, "I owned", the lead stat, and a 16:9 still that scales leftwards into the film while the row is active or picked. */
-@media (min-width: 1100px) {
+/* The stage only exists in the stage layout below. */
+.wk-stage { display: none; }
+
+/* STAGE (wide screen with a mouse): list on the left, one large sticky preview on the right. */
+@media (min-width: 1100px) and (hover: hover) and (pointer: fine) {
+  .wk-split { --wk-col: calc((min(100vw, var(--maxw)) - 4 * var(--gutter)) / 2.28 - 2.75rem); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.28fr); column-gap: calc(var(--gutter) * 2); align-items: start; }
   .wk-ctl { display: none; }
-  .wk-list { display: block; margin: 0; padding: 0; overflow: visible; scroll-snap-type: none; border-bottom: 1px solid var(--color-hairline); }
+  /* The bottom margin lets the sticky stage ride alongside the last rows instead of leaving the screen with them. */
+  .wk-list { grid-column: 1; grid-row: 1; display: block; margin: 0 0 clamp(120px, 12vw, 170px); padding: 0; overflow: visible; scroll-snap-type: none; border-bottom: 1px solid var(--color-hairline); }
   .wk-row { display: block; border: 0; border-top: 1px solid var(--color-hairline); background: none; }
   .wk-row::before { inset: -1px 0 auto 0; height: 1px; }
-  .wk-row[data-active] { z-index: 5; }
   .wk-row::after {
     content: ""; position: absolute; z-index: -1; inset: 0 calc(var(--gutter) * -1); pointer-events: none; opacity: 0;
     background: linear-gradient(90deg, color-mix(in oklab, var(--pa) 14%, rgb(6 5 9 / 0.6)), rgb(6 5 9 / 0.5) 72%, transparent);
@@ -130,71 +139,63 @@
   }
   .wk-row[data-spot]::after { opacity: 1; }
 
+  /* Row: index and name share a baseline; then the one line, then the proof number. Year, category and what I owned live in the stage caption. */
   .wk-link {
-    display: grid; grid-template-columns: var(--wk-rail) minmax(0, 0.85fr) minmax(0, 1.65fr) 9.5rem var(--wk-thumb); grid-template-rows: auto auto;
-    column-gap: var(--gutter); align-content: normal; align-items: baseline; padding: clamp(14px, 1.2vw, 18px) 0;
+    display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); grid-template-rows: auto auto auto; column-gap: 0; align-items: baseline;
+    padding: clamp(16px, 1.5vw, 22px) 0; transition: opacity 0.5s var(--wk-ease);
   }
   /* A soft void behind the copy so the drifting particles never sit under it. Feathered on every side. */
   .wk-link::before {
-    content: ""; position: absolute; z-index: -1; pointer-events: none; inset: 4% 22% 4% calc(var(--gutter) * -1);
-    background: linear-gradient(90deg, rgb(6 5 9 / 0.82), rgb(6 5 9 / 0.6) 66%, rgb(6 5 9 / 0.2));
+    content: ""; position: absolute; z-index: -1; pointer-events: none; inset: 4% 0 4% calc(var(--gutter) * -1);
+    background: linear-gradient(90deg, rgb(6 5 9 / 0.82), rgb(6 5 9 / 0.62) 70%, rgb(6 5 9 / 0.3));
     -webkit-mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
     mask-image: linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
   }
-  .wk-list[data-spot] .wk-row:not([data-spot]) .wk-link { opacity: 0.12; }
+  /* The pointed-at row is full strength, the rest step back a little (never below easy reading). */
+  .wk-row:not([data-active]) .wk-link { opacity: 0.7; }
+  .wk-list[data-spot] .wk-row:not([data-spot]) .wk-link { opacity: 0.25; }
+  .wk-link:hover, .wk-link:focus-visible { opacity: 1 !important; }
 
-  /* Row 1 shares one baseline: index, name and the stat's number. Row 2: year and category, tagline, "I owned". */
   .wk-idx { grid-column: 1; grid-row: 1; margin: 0; }
-  .wk-meta { grid-column: 1; grid-row: 2; margin: 0; flex-direction: column; flex-wrap: nowrap; justify-content: flex-start; align-items: flex-start; gap: 2px; }
-  .wk-name {
-    grid-column: 2 / 4; grid-row: 1; margin: 0; position: relative; z-index: 3;
-    font-size: clamp(2rem, min(4.8vw, calc((min(100vw, var(--maxw)) - 2 * var(--gutter)) / var(--n))), 5rem);
-  }
-  .wk-out { grid-column: 4; grid-row: 1 / 3; align-self: start; margin: 0.45rem 0 0; min-height: 0; flex-direction: column; align-items: flex-start; gap: 6px; }
-  .wk-out-v { font-size: clamp(1.5rem, 2.2vw, 2.125rem); }
-  .wk-out-l { max-width: none; line-height: 1.35; }
-  .wk-tag { grid-column: 2; grid-row: 2; margin: 8px 0 0; font-size: clamp(1rem, 1.25vw, 1.1875rem); text-wrap: balance; }
-  .wk-own { grid-column: 3; grid-row: 2; margin: 8px 0 0; grid-template-columns: 4.25rem minmax(0, 1fr); column-gap: 12px; align-items: baseline; }
-  .wk-own-v { font-size: clamp(0.875rem, 1vw, 0.9375rem); }
-  .wk-go { display: none; }
+  .wk-meta, .wk-media, .wk-own, .wk-go { display: none; }
+  .wk-name { grid-column: 2; grid-row: 1; margin: 0; font-size: min(3.25rem, 3.4vw, calc(var(--wk-col) / var(--n-max) * 1.9)); }
+  .wk-tag { grid-column: 2; grid-row: 2; margin: 10px 0 0; font-size: clamp(1rem, 1.2vw, 1.1875rem); text-wrap: balance; }
+  .wk-out { grid-column: 2; grid-row: 3; margin: 12px 0 0; min-height: 0; gap: 10px; }
+  .wk-out-v { font-size: clamp(1.25rem, 1.7vw, 1.625rem); }
+  .wk-out-l { max-width: none; }
 
-  /* The still: 16:9, centred on the row. The film is 16:9 too, so scaling it up never crops it. Hover scales it from its right edge. */
-  .wk-media { grid-column: 5; grid-row: 1 / 3; align-self: center; aspect-ratio: 16 / 9; z-index: 2; }
-  .wk-inline {
-    inset: 0; border-color: var(--color-hairline); transform-origin: right center; transition: transform 0.75s var(--wk-ease), border-color 0.4s;
-  }
-  .wk-inline:not([data-thumb]) img { object-fit: cover; }
-  .wk-inline-type { font-size: clamp(1rem, 1.5vw, 1.4rem); padding: 8px; }
-  /* Dim at rest, full strength when active. */
-  .wk-inline[data-thumb] img { filter: brightness(0.62) saturate(0.78); transition: filter 0.7s var(--wk-ease); }
-  .wk-row[data-active] .wk-inline[data-thumb] img { filter: none; }
-  .wk-row[data-active] .wk-inline { border-color: var(--pa); transform: scale(1.6); }
-  /* "Opens": a small hairline arrow in the corner of the still, so every row reads as a link before it is hovered. */
-  .wk-open {
-    position: absolute; top: 6px; right: 6px; z-index: 2; width: 22px; height: 22px; display: grid; place-items: center; font-size: 12px; line-height: 1;
-    color: rgb(238 234 246 / 0.85); background: rgb(6 5 9 / 0.72); border: 1px solid var(--color-hairline-strong); transition: color 0.3s, border-color 0.3s, background 0.3s;
-  }
-  .wk-row[data-active] .wk-open { color: var(--color-accent-hot); border-color: var(--pa); background: var(--color-void); }
-  /* The scaled film reaches into the lead stat's column: let the stat step aside while the row is active (inline opacity from the entrance tween loses to !important). */
-  .wk-row[data-active] .wk-out { opacity: 0 !important; }
+  /* The chip sits on the proof-number line, at the right edge of the list column. */
+  .wk-live, .wk .wk-live { top: auto; right: 0; bottom: clamp(14px, 1.3vw, 20px); min-height: 36px; padding: 0 12px; background: rgb(6 5 9 / 0.72); }
 
-  /* The director's pick: one strip replaces the tagline and "I owned" cells (facts, then role and the case-study line), kept clear of the film. The row never grows. */
-  .wk-pick {
-    grid-column: 2 / 5; grid-row: 2; position: absolute; inset: 8px 0 0 0; z-index: 1; padding: 6px calc(var(--wk-thumb) * 0.6 - var(--gutter) + 12px) 6px 14px; pointer-events: none; opacity: 0;
-    display: flex; align-items: center; gap: clamp(20px, 2.4vw, 40px); overflow: hidden;
-    background: linear-gradient(90deg, rgb(6 5 9 / 0.94), rgb(6 5 9 / 0.78)); border-top: 1px solid var(--pa); transition: opacity 0.6s var(--wk-ease);
+  /* THE STAGE: sticky, 16:9, never taller than the list. The film is 16:9 too, so nothing is ever cropped. */
+  .wk-stage { grid-column: 2; grid-row: 1; display: block; position: sticky; top: 88px; }
+  .wk-stage-link { display: block; color: inherit; text-decoration: none; }
+  .wk-frame {
+    position: relative; aspect-ratio: 16 / 9; overflow: hidden; isolation: isolate; background: var(--color-void-2);
+    border: 1px solid var(--color-hairline-strong); transition: border-color 0.5s var(--wk-ease);
   }
-  .wk-row[data-spot] .wk-pick { opacity: 1; }
-  .wk-pick-facts { flex: 1 1 0; min-width: 0; margin: 0; display: flex; align-items: center; gap: clamp(20px, 2.4vw, 40px); }
-  .wk-pick-facts > div { flex: 1 1 0; display: flex; align-items: center; gap: 10px; min-width: 0; }
-  .wk-pick-facts dd { margin: 0; font-size: clamp(1.25rem, 2vw, 1.75rem); font-weight: 500; line-height: 1; white-space: nowrap; }
-  .wk .wk-pick-facts dt { color: var(--color-ink); line-height: 1.3; }
-  .wk-pick-cta { flex: none; max-width: 11rem; margin: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
-  .wk .wk-pick-cta { color: var(--pa); }
-  /* The facts replace the tagline cells (inline opacity from the entrance tween loses to !important). */
-  .wk-row[data-spot] :is(.wk-tag, .wk-out, .wk-own) { opacity: 0 !important; }
+  .wk-stage:hover .wk-frame, .wk-stage[data-spot] .wk-frame { border-color: var(--pa); }
+  .wk-still {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.04);
+    transition: opacity 0.5s var(--wk-ease), transform 1.4s var(--wk-ease);
+  }
+  .wk-still[data-on] { opacity: 1; transform: none; z-index: 1; transition: opacity 0.7s var(--wk-ease), transform 1.4s var(--wk-ease); }
+  .wk-frame video { position: absolute; inset: 0; z-index: 2; display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.3s var(--wk-ease); }
+  .wk-frame video[data-live] { opacity: 1; transition: opacity 0.4s var(--wk-ease); }
+
+  /* Captions for every project share one grid cell, so the stage never changes height as the pointer moves. */
+  .wk-caps { display: grid; margin-top: 14px; }
+  .wk-cap { grid-area: 1 / 1; visibility: hidden; opacity: 0; transition: opacity 0.35s var(--wk-ease), visibility 0s 0.35s; }
+  .wk-cap[data-on] { visibility: visible; opacity: 1; transition: opacity 0.6s var(--wk-ease) 0.12s, visibility 0s; }
+  .wk-cap-meta { margin: 0; display: flex; justify-content: space-between; gap: 16px; }
+  .wk .wk-cap .wk-badge { display: inline-flex; }
+  .wk .wk-cap-go { color: var(--color-accent-hot); }
+  .wk-cap-own { margin: 10px 0 0; max-width: 62ch; color: var(--color-ink); font-size: clamp(0.9375rem, 1.1vw, 1.0625rem); line-height: 1.5; text-wrap: pretty; }
+  .wk-cap-own .label { display: block; margin-bottom: 4px; }
 }
-@media (min-width: 1100px) and (max-width: 1279px) { .wk-pick-cta { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .wk-still, .wk-still[data-on] { transform: none; transition: opacity 0.3s; }
+}
 
 /* THE LAB. Filters are a single swipeable row on phones. */
 .wk-lab-filters {
@@ -240,6 +241,7 @@ a.wk-lab-name::after { content: ""; position: absolute; inset: 0; }
 .wk .wk-lab-cat { display: block; margin-top: 6px; color: rgb(238 234 246 / 0.6); }
 .wk-lab-year { white-space: nowrap; }
 .wk .wk-lab-link { justify-self: start; color: var(--color-ink); text-decoration: none; }
+.wk-lab-link i { display: inline-block; width: 6px; height: 6px; margin-right: 8px; vertical-align: 1px; background: var(--pa); animation: wk-pulse 1.8s ease-in-out infinite; }
 .wk .wk-lab-badge { display: none; position: absolute; right: 0; top: 8px; color: var(--pa); }
 .wk-lab-list[data-spot] .wk-lab-row:not([data-spot]) { opacity: 0.15; }
 .wk-lab-row[data-spot] { border-bottom-color: var(--pa); }
@@ -264,8 +266,6 @@ a.wk-lab-name::after { content: ""; position: absolute; inset: 0; }
   .wk-lab-row > .wk-lab-year { grid-column: 4; }
   .wk-lab-row > .wk-lab-link { grid-column: 5; }
 }
-/* No opacity transition here: it fights the entrance tween (gsap.from) and can strand the stat at 0. */
-.wk-row[data-spot] .wk-out { opacity: 0; }
 
 /* "Show all N": opens the rest of the lab table. */
 .wk-lab-more {

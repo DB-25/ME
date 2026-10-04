@@ -1,5 +1,5 @@
 import type { Project } from "../types";
-import { SRC } from "../sources";
+import { REPO, SRC } from "../sources";
 import { FILM_TRANSCRIPTS } from "../transcripts";
 
 const BURNES = "The Burnes Center for Social Change";
@@ -8,7 +8,7 @@ const BURNES = "The Burnes Center for Social Change";
 export const flagshipProjects: Project[] = [
   {
     slug: "a-iep",
-    headlines: { problem: "Parents were signing plans they couldn’t read.", built: "A pipeline that reads the plan, so parents don’t have to decode it.", flows: "Upload in, plain language out, nothing private left behind.", outcomes: "A thousand families, four languages." },
+    headlines: { problem: "Parents were signing plans they couldn’t read.", built: "A pipeline that reads the plan, so parents don’t have to decode it.", flows: "Upload in, plain language out, the original deleted.", outcomes: "A thousand families, four languages." },
     film: {
       src: "/films/a-iep.mp4",
       poster: "/films/a-iep.jpg",
@@ -22,7 +22,7 @@ export const flagshipProjects: Project[] = [
     tagline: "A special‑education plan, in words a parent actually uses.",
     year: "2025 to now",
     role: "Lead AI Engineer",
-    owned: "Lead engineer who took the earlier co-op prototype to production: 652 of the repo’s 1,263 commits, including the processing pipeline and the privacy design.",
+    owned: "Lead engineer who took the earlier co-op prototype to production: 712 of the repo’s 1,266 commits, including the processing pipeline and the privacy design.",
     org: BURNES,
     featured: true,
     category: "gov-ai",
@@ -31,10 +31,10 @@ export const flagshipProjects: Project[] = [
       "An Individualized Education Program is the legal document that decides a child’s support. It is dense, full of jargon and usually in English. Parents often sign it without being able to read it.",
     approach: [
       "I took the AI-EP prototype from the 2023 to 2024 co-op team and rebuilt it as a production, open source platform.",
-      "A Step Functions pipeline runs OCR, redacts personal information with Comprehend, deletes the original upload, writes a plain-language summary in nine sections, then translates it.",
+      "A Step Functions pipeline runs OCR, redacts personal information with Comprehend (every name included, dates kept), deletes the original upload, writes a plain-language summary in nine sections, then translates it. OCR is the one step that sees the original page; the models that summarize and translate only ever see redacted text.",
       "Privacy comes first: every stage catches into a failure handler that purges unredacted artifacts, every durable store is protected from deletion, and infrastructure tests check both.",
       "Parents helped design it. We showed them the prompts and let their feedback reshape the output. Jargon words open a tap-to-define drawer, and each section points back to the original page.",
-      "Quality is next. In July 2026 I audited the pipeline, found its only automated check was a schema check, and started building a synthetic IEP benchmark with a public RFC.",
+      "Quality is next. In July 2026 I audited the pipeline and found its only automated check on output was a schema check. The evaluation design is written up in the repo: atomic-fact checks, a cross-family judge and a translation judge, projected at about $0.25 to $0.55 per document. The synthetic benchmark behind it is still being built, and no accuracy results are published yet.",
     ],
     architecture: {
       nodes: [
@@ -78,19 +78,19 @@ export const flagshipProjects: Project[] = [
         projectSlug: "a-iep",
       },
       {
-        value: "652",
-        numeric: 652,
+        value: "712",
+        numeric: 712,
         label: "Commits by me",
-        context: "Of 1,263 in the repository, from February 2025 to October 2026.",
+        context: "Of 1,266 on the public main branch, from February 2025 to October 2026.",
         source: "git log in /Users/db/Burnes Center Fulltime/A-IEP/ai-iep",
         projectSlug: "a-iep",
       },
       {
-        value: "451",
-        numeric: 451,
-        label: "Jest tests green",
-        context: "Plus 351 pytest and 187 vitest tests, with Playwright end-to-end runs against staging.",
-        source: SRC.aiepHandoff,
+        value: "100",
+        numeric: 100,
+        label: "Test files on main",
+        context: "69 TypeScript and 31 Python test files in the public repo, including the pipeline’s failure-path tests and a Playwright end-to-end suite.",
+        source: REPO.aiepRepo,
         projectSlug: "a-iep",
       },
     ],
@@ -105,7 +105,7 @@ export const flagshipProjects: Project[] = [
       "S3",
       "KMS",
       "Mistral OCR",
-      "OpenAI",
+      "OpenAI GPT-4.1",
       "React",
       "Vite",
       "Playwright",
@@ -173,7 +173,7 @@ export const flagshipProjects: Project[] = [
     approach: [
       "Built with the Executive Office of Technology Services and Security and AWS on top of the open source AWS GenAI chatbot.",
       "A chat playground, a multi-chat view that compares two to four models side by side, a task carousel of ready-made prompts, and RAG workspaces where staff upload their own documents.",
-      "My own piece was Smart Model. It chooses a model for each request from the task, cost, token size and model capability, so beginners never have to know which model to pick.",
+      "My own piece was Smart Model, an LLM router. One Claude call reads each prompt beside a sheet of every model’s languages, token limits, use cases and prices, and names the model to use, so beginners never have to know which to pick.",
       "The sandbox also hosted the RIDE Guide and MassHealth Helper builds from the same co-op cohort.",
     ],
     architecture: {
@@ -182,12 +182,12 @@ export const flagshipProjects: Project[] = [
         "Cognito",
         "API Gateway",
         "Lambda handlers",
-        "Smart Model selector",
+        "Smart Model router",
         "Bedrock models",
         "RAG workspaces",
         "DynamoDB",
       ],
-      flow: "Sign in, send a prompt, Smart Model picks a model by task, cost and tokens, the answer streams back, and RAG workspaces ground it in uploaded documents.",
+      flow: "Sign in, send a prompt, a Claude call picks the model from a capability sheet, the answer streams back, and RAG workspaces ground it in uploaded documents.",
     },
     outcomes: [
       {
@@ -204,7 +204,7 @@ export const flagshipProjects: Project[] = [
         numeric: 40,
         suffix: "%",
         label: "Lower model spend from Smart Model",
-        context: "Cut by routing each request through Smart Model, so beginners get an answer without choosing a model.",
+        context: "The saving from routing every request through Smart Model. The baseline and the period are not published, and each routed request also pays for one router call.",
         source: SRC.resume,
         projectSlug: "genie",
       },
@@ -278,7 +278,7 @@ export const flagshipProjects: Project[] = [
     tagline: "Two AI agents for state procurement. They won a national award.",
     year: "2025 to 2026",
     role: "Technical lead, ABE evaluation and observability",
-    owned: "Technical lead: top committer on ABE (280 of 690 commits) and owner of its evaluation and observability; on One‑L I set the direction and wrote 97 of 576 commits, with four co-op students on the build.",
+    owned: "Technical lead: top committer on ABE (270 of 678 commits on main), where I built the quality monitoring, the thumbs-up-to-test-case pipeline and the alarms; on One‑L I set the direction and wrote 97 of 576 commits, with four co-op students on the build.",
     org: BURNES,
     featured: true,
     category: "gov-ai",
@@ -287,8 +287,8 @@ export const flagshipProjects: Project[] = [
       "Massachusetts buyers wade through a thicket of purchasing rules, and lawyers redline every vendor contract against state terms by hand. Both jobs are slow and easy to get wrong.",
     approach: [
       "ABE, the Assistive Buyer Engine, is an agentic RAG chatbot. Claude on Bedrock calls four tools in a loop (knowledge base search, full-document retrieval, metadata and structured spreadsheet queries) and answers with citations.",
-      "One‑L takes a vendor contract through an 11-stage Step Functions workflow. It splits the document, retrieves state requirements, has Claude flag conflicts, merges the results and writes a redlined file. A human reviews every redline.",
-      "I own ABE’s quality loop: a RAGAS evaluation pipeline scoring faithfulness, relevancy, precision and recall, feedback that becomes test cases, and CloudWatch alarms.",
+      "One‑L takes a vendor contract through an 11-stage Step Functions workflow. It splits the document, retrieves state requirements, has Claude 4 Sonnet flag conflicts, merges the results and writes a redlined file. A human reviews every redline.",
+      "I own ABE’s quality loop today. A teammate, Ritik Bompilwar, wrote the first RAGAS pipeline in 2025. From February 2026 I built the quality-monitoring platform around it, added the path that turns thumbs-up answers into test cases, and built the CloudWatch alarms.",
       "ABE is now a white-label template. One config file sets the brand, so another agency can rebrand and deploy it from a single file.",
       "I set the technical direction for One‑L, and four Northeastern co-op students built it with me.",
     ],
@@ -342,7 +342,7 @@ export const flagshipProjects: Project[] = [
         numeric: 83,
         suffix: "%",
         label: "Less legal review time",
-        context: "Lawyers review a redline that One‑L has already drafted, instead of marking up each contract by hand.",
+        context: "From my résumé: lawyers review a redline that One‑L has already drafted, instead of marking up each contract by hand. The baseline and sample are not published here.",
         source: SRC.resume,
         projectSlug: "abe-one-l",
       },
@@ -421,8 +421,8 @@ export const flagshipProjects: Project[] = [
     name: "VCT Scout",
     tagline: "Ask in plain English, get a Valorant roster. Second place worldwide.",
     year: "2024",
-    role: "Generative AI integration, prompt engineering, architecture",
-    owned: "One of four on a hackathon team; I owned the generative AI layer: the tool-calling design, the system prompt that orchestrates it, and the architecture.",
+    role: "Generative AI layer: system prompt and tool design",
+    owned: "One of four on a hackathon team. I designed the agent’s tool calling and wrote the system prompt that orchestrates it, plus the tools that save and load a team composition; teammates built the chat backend, the player-data tools and the map tools.",
     org: "AWS x Riot Games hackathon",
     featured: true,
     category: "hackathon",
@@ -434,19 +434,20 @@ export const flagshipProjects: Project[] = [
       "Lambda and SQS convert match JSON to JSONL so Athena can query it. Claude’s tool API links those tables to a Bedrock Knowledge Base of agents, abilities and gameplay.",
       "The hardest bug was Athena’s 30 minute limit. We fixed it by splitting queries per tournament and building intermediate tables.",
       "A manager types something like a request for an aggressive duelist and gets a roster grounded in real stats.",
+      "My layer sits on top: the system prompt that says when to call which tool and how to present a roster, and tools that save and fetch a versioned team composition, so a follow-up question edits the roster instead of rebuilding it.",
     ],
     architecture: {
       nodes: [
         "Esports manager",
         "React and Cognito",
         "API Gateway",
-        "Bedrock agent with Claude",
+        "Claude tool-use loop on Bedrock",
         "Knowledge Base",
         "Athena",
         "S3 game logs",
         "Lambda and SQS ingest",
       ],
-      flow: "The manager asks a question, the agent picks tools, Athena queries player tables built from 4,700+ match files, and the Knowledge Base supplies game context.",
+      flow: "The manager asks a question, Claude picks tools, typed arguments become Athena queries over player tables built from 4,700+ match files, and the Knowledge Base supplies game context.",
     },
     outcomes: [
       {
@@ -471,7 +472,7 @@ export const flagshipProjects: Project[] = [
         numeric: 4700,
         suffix: "+",
         label: "Match files queried",
-        context: "VCT Challengers data, restructured so Athena could answer in time.",
+        context: "The size of the data the team restructured so Athena could answer in time, not a measure of accuracy.",
         source: SRC.devpost,
         projectSlug: "vct-scout",
       },

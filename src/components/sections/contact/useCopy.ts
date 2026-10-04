@@ -9,6 +9,8 @@ export type CopyState = "idle" | "copied" | "failed";
 /** Clipboard write with a legacy fallback; `state` resets itself. */
 export function useCopy(text: string) {
   const [state, setState] = useState<CopyState>("idle");
+  /** Counts successful copies, so a consumer can replay a one-shot effect on every copy. */
+  const [count, setCount] = useState(0);
   const timer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -22,11 +24,12 @@ export function useCopy(text: string) {
       ok = legacyCopy(text);
     }
     setState(ok ? "copied" : "failed");
+    if (ok) setCount((n) => n + 1);
     window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setState("idle"), RESET_MS);
   }, [text]);
 
-  return { state, copy };
+  return { state, copy, count };
 }
 
 function legacyCopy(text: string): boolean {

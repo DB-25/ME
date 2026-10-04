@@ -25,12 +25,14 @@ import {
 } from "./fieldFrame";
 import { BASE_PARTICLE_SIZE, createFieldBuffers } from "./fieldMaterial";
 import type { FieldQuality, FrameInfo } from "./fieldTypes";
+import { createGlobeRig, stepGlobe, type GlobeRig } from "./globeRig";
+import { onGlobeStory } from "./globeStory";
 import { createReading, fieldMotion, stepReading, timeScaleFor, type ReadingState } from "./readingMode";
 import { FRAME_H } from "./fromSvg";
 import { getFormation, prepareCustomPoints, warmFormations } from "./formations";
 
-const OVERRIDE_SECONDS = 1.6;
-const OVERRIDE_SECONDS_REDUCED = 0.4;
+const OVERRIDE_MS = 1600;
+const OVERRIDE_MS_REDUCED = 400;
 const MAX_DT = 0.25;
 /** First frame after an idle stretch (on-demand rendering): treat it as one 60 Hz step, not the whole gap. */
 const RESUME_DT = 1 / 60;
@@ -88,6 +90,7 @@ type Rig = {
   spreadNow: number;
   /** Eased override and slot mix, written each frame. */
   ov: { value: number; mix: number };
+  globe: GlobeRig;
 };
 
 /** Writes every uniform the shader reads this frame, plus camera distance and sprite scale. */
@@ -184,6 +187,7 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
     toId: "noise",
     spreadNow: INTRO_SPREAD,
     ov: { value: 0, mix: 0 },
+    globe: createGlobeRig(),
   };
   // Dev flags fold to `false` in production builds, string literals included.
   const noAdapt = process.env.NODE_ENV !== "production" && devFlag("noadapt");
@@ -232,7 +236,10 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
     });
   }
   // Reduced motion renders on demand: any store change (scroll, Director) wakes the loop.
-  if (reducedMotion) detach.push(signalStore.subscribe(() => invalidate()));
+  if (reducedMotion) {
+    detach.push(signalStore.subscribe(() => invalidate()));
+    detach.push(onGlobeStory(invalidate));
+  }
 
   /** Swap position/aB buffers only when formation ids change. */
   const bindFormations = (scene: Scene) => {
@@ -249,7 +256,7 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
   /** Director override: ping-pong between slots C and D. Writes the eased override and slot mix into `out`. */
   const stepOverride = (o: OverrideState, s: SignalState, now: number, out: { value: number; mix: number }) => {
     if (s.override !== o.last) {
-      const dur = reducedMotion ? OVERRIDE_SECONDS_REDUCED : OVERRIDE_SECONDS;
+      const dur = reducedMotion ? OVERRIDE_MS_REDUCED : OVERRIDE_MS;
       o.last = s.override;
       if (s.override) o.points = s.override.kind === "points";
       if (s.override) {
@@ -327,10 +334,14 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
       const hasHue = !!s.hue && parseHex(s.hue, u.uHueColor.value as Color);
       const hueGap = stepHue(smooth, hasHue, dt);
       stepPointer(u, r.pointer, !reducedMotion && !coarse, dt);
+      u.uGlobeA.value = scene.fromId === "globe" ? 1 : 0;
+      u.uGlobeB.value = scene.toId === "globe" ? 1 : 0;
+      u.uOvGlobe.value = s.override?.kind === "formation" && s.override.id === "globe" ? 1 : 0;
+      const globeMoving = stepGlobe(r.globe, u, now, reducedMotion);
       writeUniforms(u, camera, { width, height }, r, { reduced: reducedMotion, sizeBoost, reading, still });
 
       // Frame loop is on demand: keep it going while anything moves, and always when motion is allowed.
-      const keepGoing = !reducedMotion || isSettling({ look: lookGap, reducedMorph: reducedGap, hue: hueGap }, r.intro, r.override);
+      const keepGoing = !reducedMotion || globeMoving || isSettling({ look: lookGap, reducedMorph: reducedGap, hue: hueGap }, r.intro, r.override);
       r.chained = keepGoing;
       return keepGoing;
     },

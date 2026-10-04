@@ -175,6 +175,7 @@ export function useDirectorRun() {
           figRef.current += 1;
           patch({ figure: { n: figRef.current, label } });
         },
+        clearFigure: () => patch({ figure: null }),
         deferNavigation: (slug: string) => {
           deferred = slug;
         },

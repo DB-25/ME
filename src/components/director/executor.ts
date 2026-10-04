@@ -1,12 +1,13 @@
 import type { DirectorAction } from "@/lib/director/protocol";
-import { signalStore } from "@/lib/signal-store";
+import { signalStore, type SignalOverride } from "@/lib/signal-store";
 import { prefersReducedMotion } from "@/lib/motion";
 import { projects } from "@/content";
 import { SPOTLIGHT_EVENT, type SpotlightDetail } from "./types";
 
 /** How long each action needs to finish visually before the next one starts. */
 const SPOTLIGHT_MS = 1100;
-const DRAW_MS = 1900;
+/** Long enough for the particles to gather into the sketch; the line that follows is spoken over it. */
+const DRAW_MS = 1300;
 const FORM_MS = 1500;
 const HUE_MS = 450;
 const REDUCED_MS = 350;
@@ -17,6 +18,8 @@ export type ExecContext = {
   signal: AbortSignal;
   log: (text: string) => void;
   showFigure: (label: string) => void;
+  /** The sketch is gone: take its figure label off the HUD. */
+  clearFigure: () => void;
   /** Case study to open once the queue is empty (it navigates away). */
   deferNavigation: (slug: string) => void;
 };
@@ -107,13 +110,13 @@ async function travel(y: number, signal: AbortSignal): Promise<void> {
   return sleep(seconds * 1000 + 150, signal);
 }
 
-/** Chapters whose content sits low in the section are focused on that content, not the section top. */
-const CHAPTER_FOCUS: Partial<Record<string, string>> = { contact: '#contact a[href^="mailto:"]' };
+/** Chapters whose content sits low in the section are focused on that content, not the section top. Contact lands on its headline, so the ask and the email are both on stage. */
+const CHAPTER_FOCUS: Partial<Record<string, string>> = { contact: "#contact-title" };
 
 async function gotoChapter(chapter: string, signal: AbortSignal) {
   const focus = CHAPTER_FOCUS[chapter] && document.querySelector<HTMLElement>(CHAPTER_FOCUS[chapter]!);
   const section = document.getElementById(chapter);
-  if (focus) return travel(stageY(focus, "center"), signal);
+  if (focus) return travel(stageY(focus, "top"), signal);
   if (section) return travel(stageY(section, "top"), signal);
 }
 
@@ -147,6 +150,26 @@ function spotlight(slug: string) {
   window.dispatchEvent(new CustomEvent<SpotlightDetail>(SPOTLIGHT_EVENT, { detail: { slug } }));
 }
 
+/*
+ * A sketch is held while the line after it is spoken, and dissolves when the page moves on. While it is
+ * up the page content steps back (html.dir-sketch, see director.css), so no drawing is ever struck
+ * through a heading or a paragraph. Only one sketch lives at a time.
+ */
+const SKETCH_CLASS = "dir-sketch";
+let sketch: { before: SignalOverride | null; mine: SignalOverride; clearFigure: () => void } | null = null;
+
+/** Dissolve the held sketch: the content returns and the field goes back to what it was doing. */
+function endSketch() {
+  document.documentElement.classList.remove(SKETCH_CLASS);
+  if (!sketch) return;
+  const { before, mine, clearFigure } = sketch;
+  sketch = null;
+  clearFigure();
+  const store = signalStore.getState();
+  // Only undo our own override: a later `form` has already replaced it.
+  if (store.override === mine) store.set({ override: before && before.kind === "formation" ? before : null });
+}
+
 async function draw(svg: string, label: string, ctx: ExecContext) {
   ctx.log(`draw: ${label}`);
   try {
@@ -157,7 +180,12 @@ async function draw(svg: string, label: string, ctx: ExecContext) {
       ctx.log("draw skipped: shape could not be sampled");
       return;
     }
-    signalStore.getState().set({ override: { kind: "points", points, label } });
+    endSketch();
+    const store = signalStore.getState();
+    const mine: SignalOverride = { kind: "points", points, label };
+    sketch = { before: store.override, mine, clearFigure: ctx.clearFigure };
+    document.documentElement.classList.add(SKETCH_CLASS);
+    store.set({ override: mine });
     ctx.showFigure(label);
     await beat(DRAW_MS, ctx.signal);
   } catch {
@@ -168,6 +196,7 @@ async function draw(svg: string, label: string, ctx: ExecContext) {
 /** Run one action and resolve when it has visually finished. */
 export async function runAction(action: DirectorAction, ctx: ExecContext): Promise<void> {
   const store = signalStore.getState();
+  if (action.name !== "speak" && action.name !== "end_scene" && action.name !== "draw" && action.name !== "set_hue") endSketch();
   switch (action.name) {
     case "goto_chapter":
       ctx.log(`goto ${action.args.chapter}`);
@@ -208,6 +237,7 @@ export async function runAction(action: DirectorAction, ctx: ExecContext): Promi
 
 /** Hand the particle field and the Work chapter back to the visitor. */
 export function releaseStage() {
+  endSketch();
   signalStore.getState().set({ override: null, hue: null, energy: 0 });
   window.dispatchEvent(new CustomEvent("director:release"));
 }

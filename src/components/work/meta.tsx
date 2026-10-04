@@ -49,6 +49,9 @@ export function primaryLink(p: Project) {
   return p.links[0];
 }
 
+/** The project's live product link (a place to try it), if it has one. */
+export const liveLink = (p: Project) => p.links.find((l) => l.kind === "live");
+
 export const KIND_LABEL: Record<NonNullable<Project["links"][number]["kind"]>, string> = {
   live: "Live",
   code: "Code",

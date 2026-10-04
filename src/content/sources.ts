@@ -33,3 +33,35 @@ export const SRC = {
   acharyaUsers: `${ROOT}/ME/public/photos/acharya-users.jpg`,
   citation: `${ROOT}/ME/public/photos/governors-citation.jpg`,
 } as const;
+
+// Public repo receipts. Every path below was confirmed on the default branch of its public repo (4 Oct 2026).
+const AIEP = "https://github.com/The-Burnes-Center/a-iep";
+const ABE = "https://github.com/The-Burnes-Center/ai4impact-abe-chatbot-osd";
+const ARC = "https://github.com/DB-25/arc-control-mcp";
+const VCT = "https://github.com/DB-25/vct-gen-ai";
+
+export const REPO = {
+  aiepRepo: AIEP,
+  aiepEvalCost: `${AIEP}/blob/main/docs/EVAL_FEASIBILITY_COST.md`,
+  aiepEvalResearch: `${AIEP}/blob/main/docs/AI_EVALUATION_RESEARCH.md`,
+  aiepRedactionPlan: `${AIEP}/blob/main/docs/STUDENT_NAME_REDACTION_PLAN.md`,
+  aiepTestingPlan: `${AIEP}/blob/main/docs/TESTING_PROTOCOL_PLAN.md`,
+  aiepRedactor: `${AIEP}/blob/main/lib/chatbot-api/functions/metadata-handler/steps/redact_ocr/comprehend_redactor.py`,
+  aiepStateMachine: `${AIEP}/blob/main/lib/chatbot-api/state-machines/iep-processing.asl.json`,
+  aiepStateMachineTests: `${AIEP}/blob/main/test/python/test_iep_processing_state_machine.py`,
+  aiepOcr: `${AIEP}/blob/main/lib/chatbot-api/functions/metadata-handler/steps/mistral_ocr/mistral_ocr.py`,
+  aiepSubstituteOnRead: `${AIEP}/commit/8303344`,
+  aiepOtpFix: `${AIEP}/pull/51`,
+  abeEval: `${ABE}/tree/main/lib/chatbot-api/functions/step-functions/llm-evaluation`,
+  abeFeedbackToTests: `${ABE}/tree/main/lib/chatbot-api/functions/llm-eval/feedback-to-test-library`,
+  abeEvalFix: `${ABE}/commit/7c95b1c`,
+  abeReadme: `${ABE}/blob/main/README.md`,
+  arcReview: `${ARC}/blob/main/docs/agent-review-2026-08-31.md`,
+  arcChangelog: `${ARC}/blob/main/CHANGELOG.md`,
+  arcSecurity: `${ARC}/blob/main/SECURITY.md`,
+  arcTests: `${ARC}/tree/main/test`,
+  vctFork: VCT,
+  vctTools: `${VCT}/blob/main/lib/chatbot-api/functions/websocket-chat/models/claude3Sonnet.mjs`,
+  vctPrompt: `${VCT}/blob/main/lib/chatbot-api/functions/functions.ts`,
+  vctReadme: `${VCT}/blob/main/README.md`,
+} as const;

@@ -1,66 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { Project } from "@/content";
-import {
-  gsap,
-  ScrollTrigger,
-  EASE_OUT,
-  prefersReducedMotion,
-} from "@/lib/motion";
+import { gsap, ScrollTrigger, EASE_OUT, prefersReducedMotion } from "@/lib/motion";
 import { assetUrl, caseHref } from "./asset";
-import { CATEGORY_LABEL, pad, previewImage } from "./meta";
-import { useDesktopHover } from "./useDesktopHover";
-import { useRowFilm } from "./useRowFilm";
+import { LiveChip } from "./LiveChip";
+import { CATEGORY_LABEL, liveLink, pad, previewImage } from "./meta";
+import { RollName } from "./RollName";
+import { useReducedMotion, useStageLayout } from "./useDesktopHover";
+import { WorkStage } from "./WorkStage";
 
 type Props = { projects: Project[]; spotlight: string | null };
-
-/** Name as rolling characters: sans on top, the last word swaps whole into the accent colour on activate. */
-function RollName({ name }: { name: string }) {
-  const words = name.split(" ");
-  const offsets = words.map((_, wi) =>
-    words.slice(0, wi).reduce((n, w) => n + [...w].length, 0),
-  );
-  return (
-    <h3 className="wk-name" style={{ ["--n" as string]: Math.max(name.length, 8) }}>
-      <span className="sr-only">{name}</span>
-      <span className="wk-nmask" aria-hidden>
-        <span className="wk-nline">
-          {words.map((w, wi) => {
-            const last = wi === words.length - 1;
-            // Earlier words roll letter by letter; the last word swaps whole.
-            const parts = last ? [w] : [...w];
-            return (
-              <Fragment key={wi}>
-                <span className={last ? "wk-word wk-last" : "wk-word"}>
-                  {parts.map((c, ci) => (
-                    <span
-                      key={ci}
-                      className="wk-ch"
-                      style={{ ["--i" as string]: last ? 0 : offsets[wi] + ci }}
-                    >
-                      <span className="wk-a">{c}</span>
-                      <span className="wk-b">{c}</span>
-                    </span>
-                  ))}
-                </span>
-                {last ? null : " "}
-              </Fragment>
-            );
-          })}
-        </span>
-      </span>
-    </h3>
-  );
-}
 
 function Row({
   project,
   index,
   active,
   spot,
-  films,
   warm,
   onHover,
   onFocusChange,
@@ -69,29 +26,31 @@ function Row({
   index: number;
   active: boolean;
   spot: boolean;
-  films: boolean;
   warm: boolean;
-  onHover: (slug: string | null, e: React.PointerEvent) => void;
-  onFocusChange: (slug: string | null) => void;
+  onHover: (slug: string, e: React.PointerEvent) => void;
+  onFocusChange: (slug: string, focused: boolean) => void;
 }) {
   const img = previewImage(project);
   const lead = project.outcomes[0];
-  const frame = useRef<HTMLElement>(null);
-  useRowFilm(frame, project.film ? assetUrl(project.film.src) : undefined, active, films);
+  const descId = useId();
+  const live = Boolean(liveLink(project));
   return (
     <li
       className="wk-row"
       data-slug={project.slug}
       data-active={active ? "" : undefined}
       data-spot={spot ? "" : undefined}
+      data-live={live ? "" : undefined}
     >
       <Link
         href={caseHref(project.slug)}
         className="wk-link"
         data-cursor="open"
+        aria-label={`${project.name}, case study`}
+        aria-describedby={descId}
         onPointerEnter={(e) => onHover(project.slug, e)}
-        onFocus={() => onFocusChange(project.slug)}
-        onBlur={() => onFocusChange(null)}
+        onFocus={() => onFocusChange(project.slug, true)}
+        onBlur={() => onFocusChange(project.slug, false)}
       >
         <span className="wk-idx label num" data-reveal>
           {pad(index + 1)}
@@ -109,18 +68,15 @@ function Row({
 
         <div className="wk-media">
           {img ? (
-            <figure ref={frame} className="wk-inline" data-thumb={img.thumb ? "" : undefined}>
+            <figure className="wk-inline" data-thumb={img.thumb ? "" : undefined}>
               <img
                 src={assetUrl(img.src43 ?? img.src)}
-                alt={img.alt}
+                alt=""
                 width={img.src43 ? 1200 : img.width}
                 height={img.src43 ? 900 : img.height}
                 loading={warm ? "eager" : "lazy"}
                 decoding="async"
               />
-              <span className="wk-open" aria-hidden>
-                &#8599;
-              </span>
             </figure>
           ) : (
             <div className="wk-inline wk-inline-type" aria-hidden>
@@ -148,36 +104,29 @@ function Row({
         ) : null}
 
         <p className="wk-go label" aria-hidden>
-          <span>Open case study</span>
-          <span>&rarr;</span>
+          <span>Case study</span>
+          <span className="wk-go-arrow">&rarr;</span>
         </p>
-
-        <div className="wk-pick" aria-hidden={!spot}>
-          <dl className="wk-pick-facts">
-            {project.outcomes.slice(0, 3).map((o) => (
-              <div key={o.label}>
-                <dd className="num">{o.value}</dd>
-                <dt className="label">{o.label}</dt>
-              </div>
-            ))}
-          </dl>
-          <p className="wk-pick-cta label">
-            <span>{project.role}</span>
-            <span>
-              Open case study <span aria-hidden>&rarr;</span>
-            </span>
-          </p>
-        </div>
       </Link>
+      <LiveChip project={project} />
+      <span id={descId} className="sr-only">
+        {project.tagline} {lead ? `${lead.value} ${lead.label}.` : ""} {project.year}, {CATEGORY_LABEL[project.category]}.
+        {project.owned ? ` I owned: ${project.owned}` : ""}
+      </span>
     </li>
   );
 }
 
 export function FeaturedIndex({ projects, spotlight }: Props) {
   const list = useRef<HTMLOListElement>(null);
-  const [hover, setHover] = useState<string | null>(null);
-  const [focus, setFocus] = useState<string | null>(null);
-  const desktop = useDesktopHover();
+  // Stage layout (wide screen, mouse): `picked` is the last row pointed at or focused and stays up when the pointer
+  // moves across to the stage; `inside` is whether the pointer or focus is still in the list or stage. Elsewhere
+  // (cards) a row is only active while the pointer is on it.
+  const stageOn = useStageLayout();
+  const reduced = useReducedMotion();
+  const [picked, setPicked] = useState<string | null>(null);
+  const [pointerIn, setPointerIn] = useState(false);
+  const [focusIn, setFocusIn] = useState(false);
 
   // Cards sit off-screen in a scroller where native lazy loading never reaches them: once the list is near the
   // viewport, load every still so a swipe never lands on an empty frame.
@@ -292,15 +241,17 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
     el.scrollBy({ left: dir * (card.offsetWidth + gap), behavior: prefersReducedMotion() ? "auto" : "smooth" });
   };
 
-  const current = hover ?? focus;
+  const inside = pointerIn || focusIn;
+  const lastPick = picked ?? projects[0].slug;
+  const active = spotlight ?? (stageOn ? lastPick : inside ? picked : null);
+  const intent = Boolean(spotlight) || (stageOn && inside);
   return (
-    <>
+    <div className="wk-split" data-stage={stageOn ? "" : undefined} onPointerLeave={() => setPointerIn(false)}>
       <ol
         ref={list}
         className="wk-list"
-        data-hover={current ? "" : undefined}
         data-spot={spotlight ? "" : undefined}
-        onPointerLeave={() => setHover(null)}
+        style={{ ["--n-max" as string]: Math.max(...projects.map((p) => p.name.length), 8) }}
         onScroll={readPos}
       >
         {projects.map((p, i) => (
@@ -308,15 +259,22 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
             key={p.slug}
             project={p}
             index={i}
-            active={current === p.slug || spotlight === p.slug}
+            active={active === p.slug}
             spot={spotlight === p.slug}
-            films={desktop}
-            warm={warm}
-            onHover={(slug, e) => e.pointerType === "mouse" && setHover(slug)}
-            onFocusChange={setFocus}
+            warm={warm && !stageOn}
+            onHover={(slug, e) => {
+              if (e.pointerType !== "mouse") return;
+              setPicked(slug);
+              setPointerIn(true);
+            }}
+            onFocusChange={(slug, focused) => {
+              setFocusIn(focused);
+              if (focused) setPicked(slug);
+            }}
           />
         ))}
       </ol>
+      <WorkStage projects={projects} slug={active ?? lastPick} spot={Boolean(spotlight)} intent={intent} films={stageOn && !reduced} />
       <div className="wk-ctl" role="group" aria-label="Browse featured projects">
         <button type="button" className="wk-arrow" aria-label="Previous project" disabled={pos.start} onClick={() => page(-1)}>
           <span aria-hidden>&larr;</span>
@@ -331,6 +289,6 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
           <i ref={thumb} />
         </span>
       </div>
-    </>
+    </div>
   );
 }

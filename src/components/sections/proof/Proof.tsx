@@ -26,7 +26,7 @@ export function Proof() {
               <SectionLabel chapter="proof" />
               <Reveal as="h2" className="headline mt-5 !text-[clamp(2.25rem,4.6vw,4.5rem)]">
                 <span id="proof-title">
-                  Proof, in other people&rsquo;s words
+                  Proof, in <em className="voice">other people&rsquo;s</em> words
                 </span>
               </Reveal>
               <FadeIn delay={0.15} className="label mt-6 flex flex-wrap gap-x-6 gap-y-1 !text-[12px] !text-ink/75">

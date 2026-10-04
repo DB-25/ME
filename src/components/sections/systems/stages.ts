@@ -1,47 +1,52 @@
-import { projects } from "@/content";
+import { projects, REPO } from "@/content";
 
-/** The architecture the strip is grounded in. Every component name below is read from it. */
-const BASE = projects.find((p) => p.slug === "knowledge-agent-for-impact");
+/**
+ * The pipeline the strip is drawn from: A-IEP's, because it is the flagship and the privacy story is the point.
+ * Component names are read from the project's own architecture, so a rename there reaches this strip.
+ */
+const BASE = projects.find((p) => p.slug === "a-iep");
 const NODES = BASE?.architecture?.nodes ?? [];
 const node = (prefix: string, fallback: string) => NODES.find((n) => n.startsWith(prefix)) ?? fallback;
 
 export const PIPELINE_SOURCE = {
-  name: BASE?.name ?? "knowledge-agent-for-impact",
-  tagline: BASE?.tagline ?? "",
-  flow: BASE?.architecture?.flow ?? "",
+  name: BASE?.name ?? "A-IEP",
+  tagline: "The path every IEP takes: names redacted before a writing model reads a word, the original deleted, and a purge on any failure.",
+  /** The state machine definition in the public repo, so the strip can be checked against the real thing. */
+  href: REPO.aiepStateMachine,
+  hrefLabel: "State machine",
 };
 
 export type Stage = { id: string; label: string; component: string; line: string };
 
 export const STAGES: Stage[] = [
   {
-    id: "documents",
-    label: "Documents",
-    component: "S3",
-    line: "Source documents land in S3 and sync into the index on their own.",
+    id: "upload",
+    label: "Upload",
+    component: `${node("S3", "S3")}, Step Functions`,
+    line: "A parent’s IEP lands in an encrypted bucket and a Step Functions run starts.",
   },
   {
-    id: "index",
-    label: "Index",
-    component: node("Amazon Kendra", "Amazon Kendra"),
-    line: "Every document is indexed by meaning, not just keywords.",
+    id: "ocr",
+    label: "OCR",
+    component: node("Mistral OCR", "Mistral OCR"),
+    line: "The one step that sees the original page, names included. Mistral’s copy is deleted once it answers.",
   },
   {
-    id: "retrieval",
-    label: "Retrieval",
-    component: node("Chat Lambda", "Lambda"),
-    line: "A chat Lambda pulls the passages closest to the question.",
+    id: "redact",
+    label: "Redact",
+    component: node("Comprehend", "Comprehend"),
+    line: "Every identifier except dates is replaced, and an error stops the run. Then the original upload is deleted.",
   },
   {
-    id: "model",
-    label: "Model",
-    component: node("Bedrock", "Bedrock"),
-    line: "The model answers from those passages, not from memory.",
+    id: "summarize",
+    label: "Summarize",
+    component: "OpenAI GPT-4.1",
+    line: "Reads redacted text only and writes the summary in nine sections, each pointing back to its pages.",
   },
   {
-    id: "answer",
-    label: "Answer",
-    component: node("React", "React app"),
-    line: `The answer streams to the app over a WebSocket. ${node("Cognito", "Cognito")} gates every call.`,
+    id: "translate",
+    label: "Translate",
+    component: "OpenAI GPT-4.1",
+    line: "Spanish, Vietnamese and Chinese, from the English summary. Any failure purges unredacted artifacts.",
   },
 ];

@@ -2,18 +2,21 @@
 
 import { useEffect, useState } from "react";
 
-/** Fine pointer, real hover, wide enough, motion allowed: the only case where the cursor-follow preview runs. */
-export const DESKTOP_HOVER_QUERY =
-  "(hover: hover) and (pointer: fine) and (min-width: 1100px) and (prefers-reduced-motion: no-preference)";
+/** Wide screen with a real mouse: the work index becomes a list with one large preview stage beside it. */
+export const STAGE_QUERY = "(min-width: 1100px) and (hover: hover) and (pointer: fine)";
+const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
-export function useDesktopHover(): boolean {
+function useMedia(query: string): boolean {
   const [on, setOn] = useState(false);
   useEffect(() => {
-    const mq = window.matchMedia(DESKTOP_HOVER_QUERY);
+    const mq = window.matchMedia(query);
     const sync = () => setOn(mq.matches);
     sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
-  }, []);
+  }, [query]);
   return on;
 }
+
+export const useStageLayout = () => useMedia(STAGE_QUERY);
+export const useReducedMotion = () => useMedia(REDUCED_QUERY);

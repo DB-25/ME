@@ -15,7 +15,22 @@ export function SystemsHeader() {
         </Reveal>
         {/* Under the headline, on the left: the network owns the right half, so nothing readable sits there. */}
         <FadeIn delay={0.15} className="mt-6 max-w-[26rem]">
-          <p className="label !text-[12px] !text-ink/75">Architecture: {PIPELINE_SOURCE.name}</p>
+          <p className="label !text-[12px] !text-ink/75">
+            Pipeline: {PIPELINE_SOURCE.name}
+            <span className="mx-2 text-dim" aria-hidden>
+              /
+            </span>
+            <a
+              href={PIPELINE_SOURCE.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-cursor="read"
+              className="link !text-ink/85 hover:!text-accent-hot focus-visible:!text-accent-hot"
+            >
+              {PIPELINE_SOURCE.hrefLabel}
+              <span aria-hidden> &#8599;</span>
+            </a>
+          </p>
           <p className="lede mt-2 !text-ink/80 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">{PIPELINE_SOURCE.tagline}</p>
         </FadeIn>
       </div>
