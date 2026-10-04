@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { Project } from "@/content";
 import { gsap, EASE_OUT, prefersReducedMotion } from "@/lib/motion";
 import { caseHref } from "./asset";
@@ -12,18 +12,27 @@ import { assetUrl } from "@/lib/asset";
 type Filter = "all" | "gov" | "tools";
 const FILTER_LABEL: Record<Filter, string> = { all: "All", gov: "Government AI", tools: "Tools and lab" };
 const FILTERS: Filter[] = ["all", "gov", "tools"];
+/** The table opens on this many rows; the rest sit behind "Show all". */
+const COLLAPSED_ROWS = 4;
 const groupOf = (p: Project): Exclude<Filter, "all"> => (p.category === "gov-ai" ? "gov" : "tools");
 
 /** The lab: non-featured work as a quiet mono table, filterable by category. */
 export function LabTable({ projects, offset, spotlight }: { projects: Project[]; offset: number; spotlight: string | null }) {
   const [picked, setFilter] = useState<Filter>("all");
+  const [open, setOpen] = useState(false);
   const list = useRef<HTMLUListElement>(null);
+  const listId = useId();
   const first = useRef(true);
 
   // A Director pick inside a hidden category must be visible, so it overrides the filter.
   const hidesPick = Boolean(spotlight) && picked !== "all" && !projects.some((p) => p.slug === spotlight && groupOf(p) === picked);
   const filter: Filter = hidesPick ? "all" : picked;
-  const shown = filter === "all" ? projects : projects.filter((p) => groupOf(p) === filter);
+  const matching = filter === "all" ? projects : projects.filter((p) => groupOf(p) === filter);
+  // A Director pick below the fold opens the table so it is never hidden.
+  const pickHidden = matching.findIndex((p) => p.slug === spotlight) >= COLLAPSED_ROWS;
+  const expanded = open || pickHidden;
+  const canCollapse = matching.length > COLLAPSED_ROWS;
+  const shown = expanded ? matching : matching.slice(0, COLLAPSED_ROWS);
 
   useEffect(() => {
     if (first.current) {
@@ -55,7 +64,7 @@ export function LabTable({ projects, offset, spotlight }: { projects: Project[];
         ))}
       </div>
 
-      <ul ref={list} className="wk-lab-list" data-spot={spotlight ? "" : undefined}>
+      <ul ref={list} id={listId} className="wk-lab-list" data-spot={spotlight ? "" : undefined}>
         {shown.map((p, i) => {
           const ext = primaryLink(p);
           const linked = hasCase(p);
@@ -99,6 +108,20 @@ export function LabTable({ projects, offset, spotlight }: { projects: Project[];
           );
         })}
       </ul>
+
+      {canCollapse ? (
+        <button
+          type="button"
+          className="wk-lab-more label"
+          aria-expanded={expanded}
+          aria-controls={listId}
+          disabled={pickHidden}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {expanded ? "Show fewer" : `Show all ${matching.length}`}
+          <span aria-hidden>{expanded ? " \u2191" : " \u2193"}</span>
+        </button>
+      ) : null}
     </div>
   );
 }

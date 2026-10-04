@@ -8,7 +8,7 @@ import { Scrim } from "../Scrim";
 import { YearRoll } from "./YearRoll";
 
 /** Scroll distance owned by each beat, in viewport heights. */
-const VH_PER_BEAT = 48;
+const VH_PER_BEAT = 14;
 /** Share of the pinned scroll that walks the beats; the tail fades the whole stage out before Systems arrives. */
 const BEAT_SHARE = 0.9;
 const N = BEATS.length;

@@ -30,8 +30,9 @@ const CSS = `
   transform: translateY(calc(var(--k) * -0.16em));
   transition: transform 0.45s var(--ease-out-expo), color 0.45s var(--ease-out-expo);
 }
-.email-link { font-size: clamp(1.5rem, calc((100vw - 2 * var(--gutter)) / 11.6), 4.5rem); }
-@media (min-width: 768px) { .email-link { font-size: min(7.6vw, 7.9rem); } }
+.email-wrap { container-type: inline-size; }
+.email-link { --fit: 1; font-size: calc(min(100cqi / 12, 4.5rem) * var(--fit)); }
+@media (min-width: 768px) { .email-link { font-size: calc(min(7.6vw, 7.9rem) * var(--fit)); } }
 .email-link:focus-visible { outline-offset: 10px; }
 `;
 
@@ -41,9 +42,9 @@ export function Contact() {
   const copied = state === "copied";
 
   return (
-    <section id="contact" data-chapter="contact" aria-labelledby="contact-title" className="sx-in relative flex min-h-svh flex-col">
+    <section id="contact" data-chapter="contact" aria-labelledby="contact-title" className="sx-in relative flex min-h-[min(100svh,820px)] flex-col">
       <style>{CSS}</style>
-      <div className="sx-out shell flex flex-1 flex-col justify-between gap-16 pt-[16vh] md:pt-[14vh]">
+      <div className="sx-out shell flex flex-1 flex-col justify-between gap-12 pt-[clamp(72px,11vh,120px)]">
         <div className="relative">
           <Scrim shape="band" strength={0.82} inset="-12% -4% -12% -24px" className="md:hidden" />
           <Scrim shape="hold" strength={0.7} inset="-12% -4% -12% -24px" className="hidden md:block" />

@@ -1,45 +1,20 @@
 import type { FormationId } from "@/lib/director/protocol";
-import { constellationFormation } from "./constellation";
-import { crosshairFormation } from "./crosshair";
-import { crowdFormation } from "./crowd";
-import { globeFormation } from "./globe";
-import { networkFormation } from "./network";
-import { noiseFormation } from "./noise";
-import { gauss, mulberry32, shufflePoints } from "./rng";
-import { signalFormation } from "./signal";
-import { singularityFormation } from "./singularity";
+import { generateFormation } from "./generate";
+import { gauss, mulberry32 } from "./rng";
+import type { FormationReply, FormationRequest } from "./worker";
 
 export { sampleSvg, sampleSvgPath } from "../fromSvg";
 export { signalAttributes, signalLayout, signalRotation } from "./signal";
 
-type Generator = (count: number) => Float32Array;
-
-const GENERATORS: Record<FormationId, Generator> = {
-  noise: noiseFormation,
-  signal: signalFormation,
-  globe: globeFormation,
-  network: networkFormation,
-  crowd: crowdFormation,
-  constellation: constellationFormation,
-  crosshair: crosshairFormation,
-  singularity: singularityFormation,
-};
-
 const cache = new Map<string, Float32Array>();
+const keyOf = (id: FormationId, count: number) => `${id}:${count}`;
 
-/** Formations whose particle index carries meaning (line / slot) must keep their order. */
-const UNSHUFFLED: FormationId[] = ["signal"];
-
-/**
- * Cached formation positions. Generated once per (id, count). Points are
- * shuffled so any prefix is an unbiased subset (used for adaptive quality).
- */
+/** Formation positions, cached per (id, count). Generates on the calling thread if the worker has not delivered yet. */
 export function getFormation(id: FormationId, count: number): Float32Array {
-  const key = `${id}:${count}`;
+  const key = keyOf(id, count);
   const hit = cache.get(key);
   if (hit) return hit;
-  const raw = GENERATORS[id](count);
-  const made = UNSHUFFLED.includes(id) ? raw : shufflePoints(raw, mulberry32(count + id.length * 7919));
+  const made = generateFormation(id, count);
   cache.set(key, made);
   return made;
 }
@@ -62,6 +37,58 @@ export function prepareCustomPoints(points: Float32Array, count: number): Float3
   return out;
 }
 
+type Waiter = () => void;
+let worker: Worker | null | undefined;
+const pending = new Map<string, Waiter[]>();
+
+function getWorker(): Worker | null {
+  if (worker !== undefined) return worker;
+  worker = null;
+  if (typeof Worker === "undefined") return worker;
+  try {
+    const w = new Worker(new URL("./worker.ts", import.meta.url));
+    w.onmessage = (event: MessageEvent<FormationReply>) => {
+      const { id, count, data } = event.data;
+      const key = keyOf(id, count);
+      // The main thread may have generated it already as a fallback; either copy is identical.
+      if (!cache.has(key)) cache.set(key, data);
+      pending.get(key)?.forEach((done) => done());
+      pending.delete(key);
+    };
+    w.onerror = () => {
+      // Pending ids fall back to main-thread generation on demand.
+      worker = null;
+      w.terminate();
+      pending.forEach((waiters) => waiters.forEach((done) => done()));
+      pending.clear();
+    };
+    worker = w;
+  } catch {
+    worker = null;
+  }
+  return worker;
+}
+
+/** Asks the worker for each missing formation. Resolves once all are cached, or at once if there is no worker. */
+export function requestFormations(count: number, ids: FormationId[]): Promise<void> {
+  const w = ids.some((id) => !cache.has(keyOf(id, count))) ? getWorker() : null;
+  if (!w) return Promise.resolve();
+  const waits = ids
+    .filter((id) => !cache.has(keyOf(id, count)))
+    .map(
+      (id) =>
+        new Promise<void>((resolve) => {
+          const key = keyOf(id, count);
+          const waiters = pending.get(key);
+          if (waiters) return void waiters.push(resolve);
+          pending.set(key, [resolve]);
+          const request: FormationRequest = { id, count };
+          w.postMessage(request);
+        }),
+    );
+  return Promise.all(waits).then(() => undefined);
+}
+
 const idle = (fn: () => void) => {
   const w = window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
   if (w.requestIdleCallback) w.requestIdleCallback(fn, { timeout: 1500 });
@@ -69,15 +96,19 @@ const idle = (fn: () => void) => {
 };
 
 /**
- * Generate the given formations, one per idle slice, skipping any already cached. Called with the
- * chapters the visitor is about to reach so the heavy ones (globe, network, crowd, constellation)
- * are not built at boot. Returns a cancel function.
+ * Have the given formations ready, skipping any already cached. Called with the chapters the visitor
+ * is about to reach. The worker builds them off the main thread; without one, they are built one per
+ * idle slice. Returns a cancel function (only the idle fallback is cancellable).
  */
 export function warmFormations(count: number, ids: FormationId[]): () => void {
+  if (getWorker()) {
+    void requestFormations(count, ids);
+    return () => {};
+  }
   let cancelled = false;
   let i = 0;
   const step = () => {
-    while (i < ids.length && cache.has(`${ids[i]}:${count}`)) i++;
+    while (i < ids.length && cache.has(keyOf(ids[i], count))) i++;
     if (cancelled || i >= ids.length) return;
     getFormation(ids[i++], count);
     idle(step);

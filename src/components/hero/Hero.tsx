@@ -32,7 +32,7 @@ function Lede({ text }: { text: string }) {
  */
 const CSS = `
 #hero .hero-first { font-size: 23vw; }
-#hero .hero-last { font-size: 17vw; }
+#hero .hero-last { font-size: 15.5vw; }
 #hero [data-out] { text-shadow: 0 0 14px rgb(6 5 9 / 0.9), 0 0 4px rgb(6 5 9 / 0.8); }
 @media (min-width: 768px) {
   #hero .hero-first { font-size: clamp(4.5rem, 12.5vw, 14rem); }

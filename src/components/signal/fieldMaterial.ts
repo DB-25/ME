@@ -1,4 +1,4 @@
-import * as THREE from "three";
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, Matrix3, ShaderMaterial, Sphere, Vector2, Vector3, Vector4 } from "three";
 import { getFormation, signalAttributes, signalLayout, signalRotation } from "./formations";
 import { FRAGMENT, VERTEX } from "./shaders";
 
@@ -8,14 +8,14 @@ const BOUNDING_RADIUS = 40;
 export const BASE_PARTICLE_SIZE = PARTICLE_WORLD_SIZE;
 
 export type FieldBuffers = {
-  geometry: THREE.BufferGeometry;
-  material: THREE.ShaderMaterial;
+  geometry: BufferGeometry;
+  material: ShaderMaterial;
   /** Formation buffers by `f:<id>`; filled lazily as chapters approach. */
-  attrs: Map<string, THREE.BufferAttribute>;
+  attrs: Map<string, BufferAttribute>;
 };
 
 /** Per-particle random seeds: x seed, y size jitter, z heat, w phase. */
-function randomAttribute(count: number): THREE.BufferAttribute {
+function randomAttribute(count: number): BufferAttribute {
   const rand = new Float32Array(count * 4);
   for (let i = 0; i < count; i++) {
     rand[i * 4] = Math.random();
@@ -23,31 +23,32 @@ function randomAttribute(count: number): THREE.BufferAttribute {
     rand[i * 4 + 2] = Math.random();
     rand[i * 4 + 3] = Math.random();
   }
-  return new THREE.BufferAttribute(rand, 4);
+  return new BufferAttribute(rand, 4);
 }
 
-/** Geometry, shader material and the buffer cache. Only the noise formation exists up front. */
-export function createFieldBuffers(count: number): FieldBuffers {
-  const geometry = new THREE.BufferGeometry();
+/** Geometry, shader material and the buffer cache. Only the noise formation exists up front. `lean` compiles in the shader's own glow, vignette and tone curve (no postprocessing). */
+export function createFieldBuffers(count: number, lean: boolean): FieldBuffers {
+  const geometry = new BufferGeometry();
   const layout = signalLayout(count);
   geometry.setAttribute("aRand", randomAttribute(count));
-  geometry.setAttribute("aSig", new THREE.BufferAttribute(signalAttributes(count), 4));
+  geometry.setAttribute("aSig", new BufferAttribute(signalAttributes(count), 4));
   // Placeholder so the geometry is valid before the first formation lands.
-  const noiseAttr = new THREE.BufferAttribute(getFormation("noise", count), 3);
+  const noiseAttr = new BufferAttribute(getFormation("noise", count), 3);
   geometry.setAttribute("position", noiseAttr);
   geometry.setAttribute("aB", noiseAttr);
   geometry.setAttribute("aC", noiseAttr);
   geometry.setAttribute("aD", noiseAttr);
-  geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), BOUNDING_RADIUS);
+  geometry.boundingSphere = new Sphere(new Vector3(), BOUNDING_RADIUS);
 
   const sigRot = signalRotation(layout) as [number, number, number, number, number, number, number, number, number];
-  const material = new THREE.ShaderMaterial({
+  const material = new ShaderMaterial({
     vertexShader: VERTEX,
     fragmentShader: FRAGMENT,
+    defines: lean ? { LEAN: 1 } : {},
     transparent: true,
     depthWrite: false,
     depthTest: false,
-    blending: THREE.AdditiveBlending,
+    blending: AdditiveBlending,
     uniforms: {
       uMorph: { value: 0 },
       uOverride: { value: 0 },
@@ -59,24 +60,25 @@ export function createFieldBuffers(count: number): FieldBuffers {
       uDensity: { value: 1 },
       uSpark: { value: 1 },
       uSpread: { value: 1 },
-      uPointer: { value: new THREE.Vector2(9, 9) },
+      uPointer: { value: new Vector2(9, 9) },
       uPointerStrength: { value: 0 },
       uAspect: { value: 1 },
       uScale: { value: 1000 },
       uSize: { value: PARTICLE_WORLD_SIZE },
       uPixelRatio: { value: 1 },
-      uOffset: { value: new THREE.Vector3() },
+      uOffset: { value: new Vector3() },
       uFog: { value: 0.09 },
       uSigA: { value: 0 },
       uSigB: { value: 0 },
-      uSigDims: { value: new THREE.Vector4(layout.width, layout.depth, layout.wavelength, layout.amplitude) },
-      uSigParam: { value: new THREE.Vector4(layout.noise, layout.phasePerLine, 0, 0) },
-      uSigRot: { value: new THREE.Matrix3().set(...sigRot) },
+      uSigDims: { value: new Vector4(layout.width, layout.depth, layout.wavelength, layout.amplitude) },
+      uSigParam: { value: new Vector4(layout.noise, layout.phasePerLine, 0, 0) },
+      uSigRot: { value: new Matrix3().set(...sigRot) },
       uAlpha: { value: 0.5 },
       uBrightness: { value: 1 },
       uRightDim: { value: 0 },
-      uHueColor: { value: new THREE.Color("#8b7bff") },
+      uHueColor: { value: new Color("#8b7bff") },
       uHueMix: { value: 0 },
+      uBloom: { value: 0.4 },
     },
   });
   return { geometry, material, attrs: new Map([["f:noise", noiseAttr]]) };

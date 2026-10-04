@@ -49,21 +49,21 @@ export function WorkIndex() {
 
   return (
     <section id="work" data-chapter="work" aria-labelledby="work-heading" className="wk sx-in relative">
-      <div className="sx-out pb-[clamp(64px,8vw,120px)] pt-[clamp(48px,5.5vw,80px)]">
+      <div className="sx-out pb-[clamp(32px,3.4vw,48px)] pt-[clamp(32px,3.4vw,48px)]">
         <div className="shell">
           <div className="flex items-baseline justify-between">
             <SectionLabel chapter="work" />
             <p className="label num">{pad(featured.length)} selected</p>
           </div>
-          <div className="grid-12 mt-5 items-end gap-y-5 md:mt-7">
-            <h2 id="work-heading" className="col-span-12 lg:col-span-7">
-              <Reveal as="span" className="display block text-[clamp(2.75rem,7vw,6.5rem)]">
+          <div className="grid-12 mt-4 items-end gap-y-4 md:mt-5">
+            <h2 id="work-heading" className="col-span-12 lg:col-span-5">
+              <Reveal as="span" className="display wk-title block">
                 Selected work
               </Reveal>
             </h2>
-            <div className="col-span-12 lg:col-span-5 lg:pb-3">
+            <div className="col-span-12 lg:col-span-7 lg:pb-1">
               <Reveal mode="fade" delay={0.1}>
-                <p className="lede max-w-[42ch]">
+                <p className="lede max-w-[62ch]">
                   Production systems, one hackathon podium, a tool on npm and the app where it started. Each one opens into a full case study with the
                   problem, the architecture and the receipts.
                 </p>
@@ -72,16 +72,16 @@ export function WorkIndex() {
           </div>
         </div>
 
-        <div className="shell mt-[clamp(28px,3.6vw,52px)]">
+        <div className="shell mt-[clamp(20px,2.4vw,32px)]">
           <FeaturedIndex projects={featured} spotlight={featuredPick} />
         </div>
 
-        <div className="shell mt-[clamp(64px,8vw,120px)]" aria-labelledby="lab-heading">
-          <div className="grid-12 items-end gap-y-6">
+        <div className="shell mt-[clamp(32px,3.4vw,48px)]" aria-labelledby="lab-heading">
+          <div className="grid-12 items-end gap-y-3">
             <div className="col-span-12 lg:col-span-7">
               <p className="label">The lab</p>
-              <h3 id="lab-heading" className="mt-6">
-                <Reveal as="span" className="headline block">
+              <h3 id="lab-heading" className="mt-3">
+                <Reveal as="span" className="headline wk-lab-title block">
                   Everything else
                 </Reveal>
               </h3>
@@ -92,7 +92,7 @@ export function WorkIndex() {
               </Reveal>
             </div>
           </div>
-          <div className="mt-10 md:mt-14">
+          <div className="mt-5 md:mt-7">
             <LabTable projects={lab} offset={featured.length} spotlight={labPick} />
           </div>
         </div>

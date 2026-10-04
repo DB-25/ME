@@ -36,12 +36,12 @@ export function BuildingTicker() {
   return (
     <div aria-label="Currently building" role="region">
       <style>{CSS}</style>
-      <p className="label mb-5 flex items-center gap-3">
+      <p className="label mb-3 flex items-center gap-3">
         <span aria-hidden className="building-dot h-[6px] w-[6px] bg-accent" />
         Currently building
       </p>
       <div
-        className="building-viewport overflow-clip border-y border-hairline py-6"
+        className="building-viewport overflow-clip border-y border-hairline py-4"
         style={{ maskImage: MASK, WebkitMaskImage: MASK }}
       >
         <div className="building-track flex w-max">

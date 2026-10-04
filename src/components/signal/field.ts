@@ -1,8 +1,4 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
-import * as THREE from "three";
+import { BufferAttribute, Color, Points, Vector2, Vector3, type PerspectiveCamera, type ShaderMaterial } from "three";
 import { CHAPTERS, chapterById } from "@/lib/chapters";
 import type { FormationId } from "@/lib/director/protocol";
 import { signalStore, type SignalOverride, type SignalState } from "@/lib/signal-store";
@@ -28,11 +24,10 @@ import {
   type Smooth,
 } from "./fieldFrame";
 import { BASE_PARTICLE_SIZE, createFieldBuffers } from "./fieldMaterial";
+import type { FieldQuality, FrameInfo } from "./fieldTypes";
 import { createReading, fieldMotion, stepReading, timeScaleFor, type ReadingState } from "./readingMode";
 import { FRAME_H } from "./fromSvg";
 import { getFormation, prepareCustomPoints, warmFormations } from "./formations";
-
-export type FieldQuality = { count: number; sizeBoost: number; reducedMotion: boolean; coarse: boolean; maxDpr: number };
 
 const OVERRIDE_SECONDS = 1.6;
 const OVERRIDE_SECONDS_REDUCED = 0.4;
@@ -60,14 +55,14 @@ const DRAWING_BOTTOM_LIMIT = 0.3;
 const DRAWING_LIFT_MARGIN = 0.02;
 const SPARK_READING_CUT = 0.6;
 
-function parseHex(hex: string, out: THREE.Color): boolean {
+function parseHex(hex: string, out: Color): boolean {
   if (!/^#?[0-9a-f]{3}([0-9a-f]{3})?$/i.test(hex.trim())) return false;
   out.set(hex.startsWith("#") ? hex : `#${hex}`);
   return true;
 }
 
 /** Formations to have ready for a chapter: its own, then the next ones in scroll order. */
-function formationsAhead(chapterId: SignalState["chapter"]): FormationId[] {
+export function formationsAhead(chapterId: SignalState["chapter"]): FormationId[] {
   if (!chapterPresence.present) return [];
   const idx = CHAPTERS.indexOf(chapterById(chapterId));
   const ids: FormationId[] = [];
@@ -97,8 +92,8 @@ type Rig = {
 
 /** Writes every uniform the shader reads this frame, plus camera distance and sprite scale. */
 function writeUniforms(
-  u: THREE.ShaderMaterial["uniforms"],
-  camera: THREE.PerspectiveCamera,
+  u: ShaderMaterial["uniforms"],
+  camera: PerspectiveCamera,
   size: { width: number; height: number },
   r: Rig,
   opts: { reduced: boolean; sizeBoost: number; reading: number; still: boolean },
@@ -131,94 +126,95 @@ function writeUniforms(
   const lift = Math.max(0, heightShare / 2 - (0.5 - DRAWING_BOTTOM_LIMIT)) + DRAWING_LIFT_MARGIN;
   const drawing = r.override.points ? ov.value : 0;
   u.uSpread.value = scene.spread * smooth.lscale * (1 + (fit - 1) * drawing);
-  (u.uOffset.value as THREE.Vector3).set(smooth.lx * visibleH * aspect, (smooth.ly + lift * drawing) * visibleH, smooth.lz);
+  (u.uOffset.value as Vector3).set(smooth.lx * visibleH * aspect, (smooth.ly + lift * drawing) * visibleH, smooth.lz);
   u.uScale.value = (size.height / (2 * HALF_TAN_FOV)) * smooth.sizeMul;
   u.uSize.value = BASE_PARTICLE_SIZE * opts.sizeBoost * Math.pow(z / BASE_CAMERA_Z, 0.85);
 }
 
 /** Pointer is smoothed (spring back is the lag) and fades in only while it is over the page. */
-function stepPointer(u: THREE.ShaderMaterial["uniforms"], p: Rig["pointer"], enabled: boolean, dt: number) {
+function stepPointer(u: ShaderMaterial["uniforms"], p: Rig["pointer"], enabled: boolean, dt: number) {
   if (enabled) {
     const follow = Math.min(1, dt * POINTER_FOLLOW_RATE);
     p.x += (p.tx - p.x) * follow;
     p.y += (p.ty - p.y) * follow;
-    (u.uPointer.value as THREE.Vector2).set(p.x, p.y);
+    (u.uPointer.value as Vector2).set(p.x, p.y);
   }
   const strength = enabled && p.active ? POINTER_STRENGTH : 0;
   u.uPointerStrength.value += (strength - u.uPointerStrength.value) * Math.min(1, dt * POINTER_FADE_RATE);
 }
 
-export function SignalField({ quality }: { quality: FieldQuality }) {
-  const { count, sizeBoost, reducedMotion, coarse } = quality;
-  const size = useThree((s) => s.size);
-  const viewport = useThree((s) => s.viewport);
-  const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
-  const gl = useThree((s) => s.gl);
-  const invalidate = useThree((s) => s.invalidate);
 
-  const { geometry, material, attrs } = useMemo(() => createFieldBuffers(count), [count]);
-  useEffect(() => () => { geometry.dispose(); material.dispose(); }, [geometry, material]);
+export type Field = {
+  points: Points;
+  resize(width: number, height: number, pixelRatio: number): void;
+  /** Lean pipeline only: the bloom amount the point shader fakes. */
+  setBloom(intensity: number): void;
+  /** Advances one frame; true when another frame is needed. */
+  step(f: FrameInfo): boolean;
+  dispose(): void;
+};
+
+export function createField(camera: PerspectiveCamera, quality: FieldQuality, invalidate: () => void): Field {
+  const { count, sizeBoost, reducedMotion, coarse, lean } = quality;
+  const { geometry, material, attrs } = createFieldBuffers(count, lean);
+  const points = new Points(geometry, material);
+  points.frustumCulled = false;
+  const u = material.uniforms;
 
   // Formations are generated in idle slices, only for chapters the visitor is about to reach.
-  useEffect(() => {
-    let cancel = warmFormations(count, formationsAhead(signalStore.getState().chapter));
-    const unsubscribe = signalStore.subscribe((s, prev) => {
-      if (s.chapter === prev.chapter) return;
-      cancel();
-      cancel = warmFormations(count, formationsAhead(s.chapter));
-    });
-    return () => {
-      cancel();
-      unsubscribe();
-    };
-  }, [count]);
-
-  const [r] = useState<Rig>(() => {
-    const now = performance.now();
-    return {
-      t: 0,
-      chained: false,
-      reading: createReading(),
-      pointer: { x: 9, y: 9, tx: 9, ty: 9, active: 0 },
-      intro: createIntro(now),
-      override: createOverrideState(),
-      scene: createScene(),
-      smooth: createSmooth(),
-      adapt: createAdapt(now, count),
-      fromId: "noise",
-      toId: "noise",
-      spreadNow: INTRO_SPREAD,
-      ov: { value: 0, mix: 0 },
-    };
+  let cancelWarm = warmFormations(count, formationsAhead(signalStore.getState().chapter));
+  const unsubscribeChapter = signalStore.subscribe((s, prev) => {
+    if (s.chapter === prev.chapter) return;
+    cancelWarm();
+    cancelWarm = warmFormations(count, formationsAhead(s.chapter));
   });
+
+  const now0 = performance.now();
+  const r: Rig = {
+    t: 0,
+    chained: false,
+    reading: createReading(),
+    pointer: { x: 9, y: 9, tx: 9, ty: 9, active: 0 },
+    intro: createIntro(now0),
+    override: createOverrideState(),
+    scene: createScene(),
+    smooth: createSmooth(),
+    adapt: createAdapt(now0, count),
+    fromId: "noise",
+    toId: "noise",
+    spreadNow: INTRO_SPREAD,
+    ov: { value: 0, mix: 0 },
+  };
   // Dev flags fold to `false` in production builds, string literals included.
-  const noAdapt = useMemo(() => process.env.NODE_ENV !== "production" && devFlag("noadapt"), []);
-  const holdIntro = useMemo(() => process.env.NODE_ENV !== "production" && devFlag("introhold"), []);
+  const noAdapt = process.env.NODE_ENV !== "production" && devFlag("noadapt");
+  const holdIntro = process.env.NODE_ENV !== "production" && devFlag("introhold");
+  let width = 1;
+  let height = 1;
 
   const formationAttr = (id: FormationId) => {
     const key = `f:${id}`;
     let a = attrs.get(key);
     if (!a) {
-      a = new THREE.BufferAttribute(getFormation(id, count), 3);
+      a = new BufferAttribute(getFormation(id, count), 3);
       attrs.set(key, a);
     }
     return a;
   };
 
-  const pointsCache = useMemo(() => new WeakMap<Float32Array, THREE.BufferAttribute>(), []);
+  const pointsCache = new WeakMap<Float32Array, BufferAttribute>();
   const overrideAttr = (o: SignalOverride) => {
     if (o.kind === "formation") return formationAttr(o.id);
     let a = pointsCache.get(o.points);
     if (!a) {
-      a = new THREE.BufferAttribute(prepareCustomPoints(o.points, count), 3);
+      a = new BufferAttribute(prepareCustomPoints(o.points, count), 3);
       pointsCache.set(o.points, a);
     }
     return a;
   };
 
   // Pointer tracking (window-level; the canvas itself is pointer-events: none).
-  useEffect(() => {
-    if (reducedMotion || coarse) return;
+  const detach: Array<() => void> = [];
+  if (!reducedMotion && !coarse) {
     const p = r.pointer;
     const move = (e: PointerEvent) => {
       p.tx = (e.clientX / window.innerWidth) * 2 - 1;
@@ -230,30 +226,16 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     };
     window.addEventListener("pointermove", move, { passive: true });
     document.documentElement.addEventListener("pointerleave", leave);
-    return () => {
+    detach.push(() => {
       window.removeEventListener("pointermove", move);
       document.documentElement.removeEventListener("pointerleave", leave);
-    };
-  }, [reducedMotion, coarse, r]);
-
+    });
+  }
   // Reduced motion renders on demand: any store change (scroll, Director) wakes the loop.
-  useEffect(() => {
-    if (!reducedMotion) return;
-    return signalStore.subscribe(() => invalidate());
-  }, [reducedMotion, invalidate]);
-
-  // Static camera + pixel scale setup; distance is driven per frame from each formation's `fit`.
-  useEffect(() => {
-    camera.fov = CAMERA_FOV;
-    camera.updateProjectionMatrix();
-    const u = material.uniforms;
-    u.uAspect.value = size.width / size.height;
-    u.uPixelRatio.value = gl.getPixelRatio();
-    invalidate();
-  }, [size, viewport, camera, gl, material, invalidate]);
+  if (reducedMotion) detach.push(signalStore.subscribe(() => invalidate()));
 
   /** Swap position/aB buffers only when formation ids change. */
-  const bindFormations = (scene: Scene, r: Rig) => {
+  const bindFormations = (scene: Scene) => {
     if (scene.fromId !== r.fromId) {
       geometry.setAttribute("position", formationAttr(scene.fromId));
       r.fromId = scene.fromId;
@@ -264,7 +246,7 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     }
   };
 
-  /** Director override: ping-pong between slots C and D. Returns the eased override and slot mix. */
+  /** Director override: ping-pong between slots C and D. Writes the eased override and slot mix into `out`. */
   const stepOverride = (o: OverrideState, s: SignalState, now: number, out: { value: number; mix: number }) => {
     if (s.override !== o.last) {
       const dur = reducedMotion ? OVERRIDE_SECONDS_REDUCED : OVERRIDE_SECONDS;
@@ -293,54 +275,71 @@ export function SignalField({ quality }: { quality: FieldQuality }) {
     out.mix = o.mix.step(now);
   };
 
-  useFrame((state, delta) => {
-    const s = signalStore.getState();
-    const u = material.uniforms;
-    const now = performance.now();
-    const dt = r.chained ? Math.min(delta, MAX_DT) : RESUME_DT;
-    const aspect = size.width / size.height;
-    const { scene, smooth } = r;
+  return {
+    points,
+    resize(w, h, pixelRatio) {
+      width = w;
+      height = h;
+      camera.fov = CAMERA_FOV;
+      camera.updateProjectionMatrix();
+      u.uAspect.value = w / h;
+      u.uPixelRatio.value = pixelRatio;
+    },
+    setBloom(intensity) {
+      u.uBloom.value = intensity;
+    },
+    step({ delta, now }) {
+      const s = signalStore.getState();
+      const dt = r.chained ? Math.min(delta, MAX_DT) : RESUME_DT;
+      const aspect = width / height;
+      const { scene, smooth } = r;
 
-    const still = !chapterPresence.present;
-    const reading = reducedMotion ? 1 : stepReading(r.reading, window.scrollY, dt, still);
-    fieldMotion.reading = reading;
-    fieldMotion.timeScale = timeScaleFor(reading, still);
-    if (!reducedMotion) r.t += dt * fieldMotion.timeScale;
-    u.uTime.value = reducedMotion ? REDUCED_SHADER_TIME : r.t;
-    recordFrame();
+      const still = !chapterPresence.present;
+      const reading = reducedMotion ? 1 : stepReading(r.reading, window.scrollY, dt, still);
+      fieldMotion.reading = reading;
+      fieldMotion.timeScale = timeScaleFor(reading, still);
+      if (!reducedMotion) r.t += dt * fieldMotion.timeScale;
+      u.uTime.value = reducedMotion ? REDUCED_SHADER_TIME : r.t;
+      recordFrame();
 
-    if (!reducedMotion && !noAdapt) {
-      const next = adaptQuality(r.adapt, r.chained ? delta : 0, now, count);
-      if (next !== null) geometry.setDrawRange(0, next);
-    }
+      if (!reducedMotion && !noAdapt) {
+        const next = adaptQuality(r.adapt, r.chained ? delta : 0, now, count);
+        if (next !== null) geometry.setDrawRange(0, next);
+      }
 
-    resolveScroll(scene, s, aspect, chapterPresence.present);
-    stepIntro(r.intro, scene, now, {
-      ready: s.ready,
-      reduced: reducedMotion,
-      hold: holdIntro,
-      skip: !chapterPresence.present,
-      spreadNow: r.spreadNow,
-      brightnessNow: smooth.brightness,
-    });
-    r.spreadNow = scene.spread;
-    const reducedGap = reducedMotion && r.intro.phase === "done" ? settleReduced(smooth, scene, dt) : 0;
+      resolveScroll(scene, s, aspect, chapterPresence.present);
+      stepIntro(r.intro, scene, now, {
+        ready: s.ready,
+        reduced: reducedMotion,
+        hold: holdIntro,
+        skip: !chapterPresence.present,
+        spreadNow: r.spreadNow,
+        brightnessNow: smooth.brightness,
+      });
+      r.spreadNow = scene.spread;
+      const reducedGap = reducedMotion && r.intro.phase === "done" ? settleReduced(smooth, scene, dt) : 0;
 
-    bindFormations(scene, r);
-    stepOverride(r.override, s, now, r.ov);
-    blendLook(scene, smooth, r.ov.value, reducedMotion, reading);
-    const lookGap = smoothLook(smooth, scene, s.energy, dt);
+      bindFormations(scene);
+      stepOverride(r.override, s, now, r.ov);
+      blendLook(scene, smooth, r.ov.value, reducedMotion, reading);
+      const lookGap = smoothLook(smooth, scene, s.energy, dt);
 
-    const hasHue = !!s.hue && parseHex(s.hue, u.uHueColor.value as THREE.Color);
-    const hueGap = stepHue(smooth, hasHue, dt);
-    stepPointer(u, r.pointer, !reducedMotion && !coarse, dt);
-    writeUniforms(u, camera, size, r, { reduced: reducedMotion, sizeBoost, reading, still });
+      const hasHue = !!s.hue && parseHex(s.hue, u.uHueColor.value as Color);
+      const hueGap = stepHue(smooth, hasHue, dt);
+      stepPointer(u, r.pointer, !reducedMotion && !coarse, dt);
+      writeUniforms(u, camera, { width, height }, r, { reduced: reducedMotion, sizeBoost, reading, still });
 
-    // Frame loop is on demand: keep it going while anything moves, and always when motion is allowed.
-    const keepGoing = !reducedMotion || isSettling({ look: lookGap, reducedMorph: reducedGap, hue: hueGap }, r.intro, r.override);
-    r.chained = keepGoing;
-    if (keepGoing) state.invalidate();
-  });
-
-  return <points geometry={geometry} material={material} frustumCulled={false} />;
+      // Frame loop is on demand: keep it going while anything moves, and always when motion is allowed.
+      const keepGoing = !reducedMotion || isSettling({ look: lookGap, reducedMorph: reducedGap, hue: hueGap }, r.intro, r.override);
+      r.chained = keepGoing;
+      return keepGoing;
+    },
+    dispose() {
+      cancelWarm();
+      unsubscribeChapter();
+      detach.forEach((d) => d());
+      geometry.dispose();
+      material.dispose();
+    },
+  };
 }

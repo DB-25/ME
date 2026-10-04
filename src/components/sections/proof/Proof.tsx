@@ -19,12 +19,12 @@ export function Proof() {
   return (
     <section id="proof" data-chapter="proof" aria-labelledby="proof-title" className="sx-in relative">
       <div className="sx-out">
-        <div className="shell pt-[clamp(88px,11vw,170px)]">
+        <div className="shell pt-[clamp(56px,7vw,104px)]">
           <header className="grid-12 gap-y-6">
             <div className="relative col-span-12 md:col-span-7">
               <Scrim shape="left" strength={0.85} inset="-12% -8% -12% -24px" />
               <SectionLabel chapter="proof" />
-              <Reveal as="h2" className="headline mt-5 !text-[clamp(2.5rem,5.6vw,5.5rem)]">
+              <Reveal as="h2" className="headline mt-5 !text-[clamp(2.25rem,4.6vw,4.5rem)]">
                 <span id="proof-title">
                   Proof, in other people&rsquo;s words
                 </span>
@@ -43,14 +43,14 @@ export function Proof() {
             </div>
           </header>
 
-          <div className="mt-[clamp(40px,6vw,96px)]">
+          <div className="mt-[clamp(28px,4vw,56px)]">
             <AwardList items={awards} />
           </div>
         </div>
 
         <PressMarquee items={press} />
 
-        <div className="shell pb-[clamp(88px,11vw,170px)]">
+        <div className="shell pb-[clamp(56px,7vw,104px)]">
           <PressIndex items={[...press, ...talks]} />
         </div>
       </div>

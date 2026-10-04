@@ -61,7 +61,7 @@ export function Impact() {
   if (!LEAD) return null;
   return (
     <section id="impact" data-chapter="impact" aria-labelledby="impact-title" className="sx-in relative">
-      <div className="sx-out shell pb-[clamp(72px,8vw,120px)] pt-[clamp(32px,4vw,64px)]">
+      <div className="sx-out shell pb-[clamp(48px,6vw,96px)] pt-[clamp(24px,3vw,48px)]">
         <header className="grid-12 gap-y-6">
           <div className="col-span-12 md:col-span-8">
             <SectionLabel chapter="impact" />
@@ -81,7 +81,7 @@ export function Impact() {
           <FadeIn className="col-span-12 border-t border-hairline-strong pt-4 md:col-span-8">
             <p className="label !text-[12px] !text-ink">{LEAD.label}</p>
             <div className="mt-[clamp(10px,1.6vw,22px)]">
-              <Figure metric={LEAD} size="text-[clamp(4.75rem,20vw,20rem)]" />
+              <Figure metric={LEAD} size="text-[clamp(4rem,17vw,15rem)]" />
             </div>
           </FadeIn>
           <FadeIn delay={0.1} className="col-span-12 md:col-span-4 md:pb-4">
@@ -89,13 +89,13 @@ export function Impact() {
           </FadeIn>
         </div>
 
-        <ul className="grid-12 mt-[clamp(40px,6vw,88px)] gap-y-12">
+        <ul className="grid-12 mt-[clamp(28px,4vw,56px)] gap-y-8">
           {LARGE.map((m, i) => (
-            <li key={m.label} className={`col-span-12 md:col-span-6 ${i === 1 ? "md:mt-[5vw]" : ""}`}>
+            <li key={m.label} className={`col-span-12 md:col-span-6 ${i === 1 ? "md:mt-[3vw]" : ""}`}>
               <FadeIn className="border-t border-hairline-strong pt-4">
                 <p className="label !text-[12px] !text-ink">{m.label}</p>
                 <div className="mt-[clamp(10px,1.6vw,22px)]">
-                  <Figure metric={m} size="text-[clamp(3.75rem,9vw,9rem)]" />
+                  <Figure metric={m} size="text-[clamp(3.25rem,8vw,8rem)]" />
                 </div>
                 <Context metric={m} className="mt-[clamp(12px,1.6vw,22px)]" />
               </FadeIn>
@@ -103,13 +103,13 @@ export function Impact() {
           ))}
         </ul>
 
-        <ul className="grid-12 mt-[clamp(40px,6vw,88px)] gap-y-12">
+        <ul className="grid-12 mt-[clamp(28px,4vw,56px)] gap-y-8">
           {MEDIUM.map((m, i) => (
-            <li key={m.label} className={`col-span-12 md:col-span-4 ${i === 1 ? "md:mt-[3vw]" : i === 2 ? "md:mt-[6vw]" : ""}`}>
+            <li key={m.label} className={`col-span-12 md:col-span-4 ${i === 1 ? "md:mt-[2vw]" : i === 2 ? "md:mt-[4vw]" : ""}`}>
               <FadeIn className="border-t border-hairline-strong pt-4">
                 <p className="label !text-[12px] !text-ink">{m.label}</p>
                 <div className="mt-[clamp(8px,1.2vw,16px)]">
-                  <Figure metric={m} size="text-[clamp(3.25rem,6vw,6rem)]" />
+                  <Figure metric={m} size="text-[clamp(2.75rem,5.4vw,5.5rem)]" />
                 </div>
                 <Context metric={m} className="mt-[clamp(10px,1.2vw,16px)]" />
               </FadeIn>
@@ -118,9 +118,9 @@ export function Impact() {
         </ul>
 
         {LEDGER.length > 0 && (
-          <ul className="mt-[clamp(40px,6vw,88px)] grid gap-x-[var(--gutter)] md:grid-cols-2">
+          <ul className="mt-[clamp(28px,4vw,56px)] grid gap-x-[var(--gutter)] md:grid-cols-2">
             {LEDGER.map((m) => (
-              <li key={m.label} className="relative grid grid-cols-[minmax(0,7.5rem)_1fr] items-baseline gap-x-5 border-t border-hairline-strong py-5 md:grid-cols-[minmax(0,10rem)_1fr]">
+              <li key={m.label} className="relative grid grid-cols-[minmax(0,7.5rem)_1fr] items-baseline gap-x-5 border-t border-hairline-strong py-4 md:grid-cols-[minmax(0,10rem)_1fr]">
                 <Scrim strength={0.75} />
                 <Figure metric={m} size="text-[clamp(2.5rem,4.4vw,4.25rem)]" />
                 <div>

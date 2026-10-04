@@ -36,15 +36,15 @@ const CSS = `
 
 function Row({ item }: { item: Recognition }) {
   const body = (
-    <div className="grid-12 items-start gap-y-3 py-6 md:py-8">
+    <div className="grid-12 items-start gap-y-3 py-4 md:py-5">
       <p className="label num col-span-3 pt-[0.6em] !text-[12px] !text-ink/75 md:col-span-1 md:pt-[1.1em]">{item.year}</p>
       <div className="col-span-12 md:col-span-8 md:col-start-2">
-        <h3 className={`text-[clamp(1.75rem,4vw,4rem)] font-medium leading-[0.98] tracking-[-0.04em] text-ink text-balance ${LEGIBLE}`}>
+        <h3 className={`text-[clamp(1.5rem,3.2vw,3rem)] font-medium leading-[0.98] tracking-[-0.04em] text-ink text-balance ${LEGIBLE}`}>
           {item.title}
         </h3>
         <div className="proof-detail">
           <div>
-            <div className="grid-12 pt-5 md:pt-6">
+            <div className="grid-12 pt-3 md:pt-4">
               <p className="label col-span-12 !text-[12px] !text-ink md:col-span-4">{item.issuer}</p>
               {item.note && (
                 <p className={`col-span-12 mt-3 max-w-[34rem] text-[1rem] leading-[1.55] text-ink/85 md:col-span-8 md:mt-0 ${LEGIBLE}`}>
@@ -57,7 +57,7 @@ function Row({ item }: { item: Recognition }) {
                   title={item.title}
                   meta={`${item.issuer} · ${item.year}`}
                   note={item.note}
-                  className="col-span-12 mt-5 aspect-[16/10] w-full max-w-[22rem] md:col-span-6 md:col-start-5 [&_img]:object-[50%_26%]"
+                  className="col-span-12 mt-3 aspect-[16/10] w-full max-w-[9rem] md:mt-5 md:max-w-[22rem] md:col-span-6 md:col-start-5 [&_img]:object-[50%_26%]"
                 />
               )}
             </div>
@@ -104,7 +104,7 @@ export function AwardList({ items }: { items: Recognition[] }) {
     <div className="relative">
       <style>{CSS}</style>
       <Scrim shape="left" strength={0.85} inset="-4% -3% -4% -24px" />
-      <p className="label mb-6 !text-[12px] !text-ink/75">Awards</p>
+      <p className="label mb-4 !text-[12px] !text-ink/75">Awards</p>
       <ul className="proof-list border-b border-hairline-strong">
         {items.map((item) => (
           <Row key={item.title} item={item} />

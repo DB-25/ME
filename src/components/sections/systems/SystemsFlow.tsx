@@ -7,7 +7,7 @@ import { STAGES } from "./stages";
 import "./systems.css";
 
 const N = STAGES.length;
-const ROW = 124;
+const ROW = 106;
 const W = 120;
 const X_A = 36;
 const X_B = 84;
@@ -170,9 +170,9 @@ export function SystemsFlow() {
       <ol className="sys-rows">
         {STAGES.map((s) => (
           <li key={s.id} className="sys-row" data-lit="">
-            <h3 className="text-[clamp(1.375rem,2.2vw,1.875rem)] font-medium leading-none tracking-[-0.035em] text-ink">{s.label}</h3>
+            <h3 className="text-[clamp(1.25rem,2vw,1.625rem)] font-medium leading-none tracking-[-0.035em] text-ink">{s.label}</h3>
             <p className="label mt-1.5 !text-[12px] !text-ink/70">{s.component}</p>
-            <p className="mt-1.5 max-w-[28rem] text-[0.9375rem] leading-[1.4] text-ink/85 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">{s.line}</p>
+            <p className="mt-1 max-w-[28rem] text-[0.875rem] leading-[1.35] max-md:sr-only md:text-[0.9375rem] text-ink/85 [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">{s.line}</p>
           </li>
         ))}
       </ol>

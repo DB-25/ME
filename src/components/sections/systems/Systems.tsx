@@ -12,8 +12,8 @@ import { SystemsHeader } from "./SystemsHeader";
 export function Systems() {
   return (
     <section id="systems" data-chapter="systems" aria-labelledby="systems-title" className="sx-in relative">
-      <div className="sx-out shell flex flex-col gap-[clamp(64px,8vw,120px)] py-[clamp(88px,10vw,160px)]">
-        <div className="flex flex-col gap-[clamp(40px,6vw,88px)]">
+      <div className="sx-out shell flex flex-col gap-[clamp(40px,5vw,72px)] py-[clamp(56px,7vw,104px)]">
+        <div className="flex flex-col gap-[clamp(28px,4vw,48px)]">
           <SystemsHeader />
           <div className="grid-12">
             <div className="col-span-12 md:col-span-6">
@@ -21,7 +21,7 @@ export function Systems() {
             </div>
           </div>
         </div>
-        <ReadingZone className="flex flex-col gap-[clamp(64px,8vw,120px)]">
+        <ReadingZone className="flex flex-col gap-[clamp(32px,4vw,56px)]">
           <Principles />
           <StackIndex />
         </ReadingZone>

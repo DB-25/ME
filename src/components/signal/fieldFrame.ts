@@ -6,7 +6,7 @@ import { SETTLE_EPSILON, Tween, clamp01, easeInOut, easeOut, mix, smoothstep01 }
 import { DUCK_DIM, READING_DIM, fieldMotion } from "./readingMode";
 
 /**
- * Pure per-frame steps for the field. SignalField's useFrame calls them in order:
+ * Pure per-frame steps for the field; its per-frame step calls them in order:
  * resolveScroll -> stepIntro -> settleReduced -> (buffer swaps) -> blendLook -> smoothLook -> uniforms.
  * Each writes into preallocated `Scene` / `Rig` objects, so nothing allocates per frame.
  */

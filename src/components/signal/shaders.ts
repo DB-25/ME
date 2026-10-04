@@ -1,5 +1,19 @@
 /** GLSL for the SIGNAL field. One draw call, everything on the GPU. */
 
+/**
+ * Lean (phone) pipeline constants: sprite growth that leaves room for the faked bloom skirt, and the
+ * hairline minimum in pixels. Bloom, tone curve and vignette are approximated per particle instead of
+ * running a postprocessing chain.
+ */
+const LEAN_SPREAD = "1.7";
+const LEAN_HAIRLINE = "2.2";
+/** Skirt strength relative to the particle, and the exponent that stands in for linear to sRGB encoding. */
+const LEAN_GLOW = "0.35";
+const LEAN_TONE = "0.92";
+/** Share of white mixed in: the real chain tone-maps accumulated light toward white. */
+const LEAN_WASH = "0.3";
+const LEAN_LINE_GAIN = "0.7";
+
 const SNOISE = /* glsl */ `
 vec3 mod289(vec3 x){return x-floor(x*(1./289.))*289.;}
 vec4 mod289(vec4 x){return x-floor(x*(1./289.))*289.;}
@@ -47,6 +61,10 @@ float snoise(vec3 v){
 `;
 
 export const VERTEX = /* glsl */ `
+#ifdef LEAN
+const float LEAN_SPREAD = ${LEAN_SPREAD};
+const float LEAN_HAIRLINE = ${LEAN_HAIRLINE};
+#endif
 attribute vec3 aB;
 attribute vec3 aC;
 attribute vec3 aD;
@@ -85,6 +103,9 @@ varying float vNear;
 varying float vFade; // density cull and mid-morph dip
 varying float vRight; // 0 on the left of the screen, 1 on the far right
 varying vec4 vSig; // x: signal weight, y: noise->signal (weighted), z: crest (weighted), w: edge fade (weighted)
+#ifdef LEAN
+varying float vVig; // phones: the postprocessing vignette, evaluated per particle
+#endif
 
 ${SNOISE}
 
@@ -190,12 +211,22 @@ void main(){
     clip.xy += vec2(push.x / uAspect, push.y) * clip.w;
   }
   gl_Position = clip;
+#ifdef LEAN
+  vec2 ndcV = clip.xy / max(clip.w, 0.0001);
+  vVig = smoothstep(0.8, 0.2237, length(ndcV) * 0.5 * 0.98);
+#endif
   vRight = smoothstep(0., 0.95, clip.x / max(clip.w, 0.0001));
 
   float dist = -mv.z;
   float spark = mix(step(1. - 0.012 * uSpark, aRand.z), step(0.9994, aRand.z), sigW);
   float px = uSize * aRand.y * (1. + spark * 0.25) * uPixelRatio * uScale / max(dist, 0.1);
+#ifdef LEAN
+  // The sprite is LEAN_SPREAD wider than the particle so the fragment shader has room for a bloom skirt.
+  px *= LEAN_SPREAD;
+  gl_PointSize = max(px, mix(0., LEAN_HAIRLINE, sigW) * uPixelRatio);
+#else
   gl_PointSize = max(px, mix(0., 1.05, sigW) * uPixelRatio);
+#endif
 
   vHeat = aRand.z;
   vSpark = spark;
@@ -219,6 +250,15 @@ varying float vNear;
 varying float vRight;
 varying float vFade;
 varying vec4 vSig;
+#ifdef LEAN
+varying float vVig;
+uniform float uBloom;
+const float LEAN_SPREAD = ${LEAN_SPREAD};
+const float LEAN_GLOW = ${LEAN_GLOW};
+const float LEAN_TONE = ${LEAN_TONE};
+const float LEAN_WASH = ${LEAN_WASH};
+const float LEAN_LINE_GAIN = ${LEAN_LINE_GAIN};
+#endif
 
 const vec3 DEEP = vec3(0.3569, 0.2784, 0.8784);  // #5B47E0
 const vec3 UV = vec3(0.5451, 0.4824, 1.0);       // #8B7BFF
@@ -231,10 +271,20 @@ void main(){
   float d = length(c) * 2.;
   if (d > 1.) discard;
   float sigW = vSig.x;
+#ifdef LEAN
+  float edge = 1. - smoothstep(0.55, 1., d);
+  d *= LEAN_SPREAD; // profile below is in the original (unspread) sprite units
+#endif
   // Tiny hairline sprites need a flatter profile than the soft glows of the other formations.
   float core = exp(-d * d * mix(10., 3.2, sigW));
   float halo = exp(-d * d * 3.) * 0.45 * (1. - sigW);
-  float a = (core + halo) * uAlpha * uBrightness * vDepth;
+  float lit = uAlpha * uBrightness * vDepth;
+  float a = (core + halo) * lit;
+#ifdef LEAN
+  // Faked bloom: a wide soft skirt that scales with the chapter's bloom amount, fading out at the sprite edge.
+  a += exp(-d * d * 1.1) * edge * uBloom * LEAN_GLOW * lit;
+  a *= vVig;
+#endif
   a *= 1. + vNear * 0.6;
   a *= 1. - uRightDim * vRight;
   a *= vFade;
@@ -249,6 +299,10 @@ void main(){
   vec3 sigCol = mix(NOISE_VIOLET, UV * 0.92, s);
   sigCol = mix(sigCol, HOT, crest * crest * 0.9);
   col = mix(col, sigCol, sigW);
+#ifdef LEAN
+  col = mix(col, vec3(0.8, 0.77, 1.), LEAN_WASH);
+  a *= 1. + LEAN_LINE_GAIN * sigW;
+#endif
   a *= mix(1., fade * mix(0.7, 1., s) * (0.5 + 1.0 * crest), sigW);
 
   col = mix(col, SAFFRON, vSpark * (1. - uHueMix));
@@ -256,6 +310,9 @@ void main(){
   col = mix(col, tint, uHueMix * 0.85);
   a *= 1. + vSpark * 0.7;
 
+#ifdef LEAN
+  a = pow(clamp(a, 0., 1.), LEAN_TONE);
+#endif
   gl_FragColor = vec4(col, a);
 }
 `;

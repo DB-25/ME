@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import type { Project } from "@/content";
 import {
   gsap,
@@ -23,7 +23,7 @@ function RollName({ name }: { name: string }) {
     words.slice(0, wi).reduce((n, w) => n + [...w].length, 0),
   );
   return (
-    <h3 className="wk-name">
+    <h3 className="wk-name" style={{ ["--n" as string]: Math.max(name.length, 8) }}>
       <span className="sr-only">{name}</span>
       <span className="wk-nmask" aria-hidden>
         <span className="wk-nline">
@@ -104,25 +104,24 @@ function Row({
           <span>{CATEGORY_LABEL[project.category]}</span>
         </div>
 
-        {img ? (
-          <figure ref={frame} className="wk-inline" data-cursor="open" data-thumb={img.thumb ? "" : undefined} data-reveal>
-            <picture>
-              {img.src43 ? <source media="(max-width: 559px), (min-width: 900px)" srcSet={assetUrl(img.src43)} /> : null}
+        <div className="wk-media">
+          {img ? (
+            <figure ref={frame} className="wk-inline" data-cursor="open" data-thumb={img.thumb ? "" : undefined}>
               <img
-                src={assetUrl(img.src)}
+                src={assetUrl(img.src43 ?? img.src)}
                 alt={img.alt}
-                width={img.width}
-                height={img.height}
+                width={img.src43 ? 1200 : img.width}
+                height={img.src43 ? 900 : img.height}
                 loading="lazy"
                 decoding="async"
               />
-            </picture>
-          </figure>
-        ) : (
-          <div className="wk-inline wk-inline-type" aria-hidden data-reveal>
-            <span>{project.name}</span>
-          </div>
-        )}
+            </figure>
+          ) : (
+            <div className="wk-inline wk-inline-type" aria-hidden>
+              <span>{project.name}</span>
+            </div>
+          )}
+        </div>
 
         <p className="wk-tag" data-reveal>
           {project.tagline}
@@ -143,19 +142,20 @@ function Row({
         ) : null}
 
         <div className="wk-pick" aria-hidden={!spot}>
-          <div className="wk-pick-body">
-            <dl className="wk-pick-facts">
-              {project.outcomes.slice(0, 3).map((o) => (
-                <div key={o.label}>
-                  <dd className="num">{o.value}</dd>
-                  <dt className="label">{o.label}</dt>
-                </div>
-              ))}
-            </dl>
-            <p className="wk-pick-cta label">
-              {project.role} <span aria-hidden>/</span> Open case study <span aria-hidden>&rarr;</span>
-            </p>
-          </div>
+          <dl className="wk-pick-facts">
+            {project.outcomes.slice(0, 3).map((o) => (
+              <div key={o.label}>
+                <dd className="num">{o.value}</dd>
+                <dt className="label">{o.label}</dt>
+              </div>
+            ))}
+          </dl>
+          <p className="wk-pick-cta label">
+            <span>{project.role}</span>
+            <span>
+              Open case study <span aria-hidden>&rarr;</span>
+            </span>
+          </p>
         </div>
       </Link>
     </li>
@@ -220,7 +220,39 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
         st.animation?.progress(1);
         st.kill();
       });
+    // On the phone carousel, bring the picked card into view.
+    const el = list.current;
+    if (el && el.scrollWidth > el.clientWidth + 4) {
+      el.scrollTo({ left: Math.max(0, row.offsetLeft - parseFloat(getComputedStyle(el).paddingLeft)), behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    }
   }, [spotlight]);
+
+  // Carousel state (phones and tablets): which card leads, and whether either end is reached.
+  const [pos, setPos] = useState({ i: 0, start: true, end: false });
+  const readPos = useCallback(() => {
+    const el = list.current;
+    const card = el?.querySelector<HTMLElement>(".wk-row");
+    if (!el || !card) return;
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+    const next = {
+      i: Math.round(el.scrollLeft / (card.offsetWidth + gap)),
+      start: el.scrollLeft <= 2,
+      end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 2,
+    };
+    setPos((prev) => (prev.i === next.i && prev.start === next.start && prev.end === next.end ? prev : next));
+  }, []);
+  useEffect(() => {
+    readPos();
+    window.addEventListener("resize", readPos);
+    return () => window.removeEventListener("resize", readPos);
+  }, [readPos]);
+  const page = (dir: 1 | -1) => {
+    const el = list.current;
+    const card = el?.querySelector<HTMLElement>(".wk-row");
+    if (!el || !card) return;
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+    el.scrollBy({ left: dir * (card.offsetWidth + gap), behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  };
 
   const current = hover ?? focus;
   return (
@@ -231,6 +263,7 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
         data-hover={current ? "" : undefined}
         data-spot={spotlight ? "" : undefined}
         onPointerLeave={() => setHover(null)}
+        onScroll={readPos}
       >
         {projects.map((p, i) => (
           <Row
@@ -245,6 +278,18 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
           />
         ))}
       </ol>
+      <div className="wk-ctl" role="group" aria-label="Browse featured projects">
+        <button type="button" className="wk-arrow" aria-label="Previous project" disabled={pos.start} onClick={() => page(-1)}>
+          <span aria-hidden>&larr;</span>
+        </button>
+        <button type="button" className="wk-arrow" aria-label="Next project" disabled={pos.end} onClick={() => page(1)}>
+          <span aria-hidden>&rarr;</span>
+        </button>
+        <p className="wk-ctl-count label num" aria-hidden>
+          {pad(pos.end ? projects.length : Math.min(pos.i + 1, projects.length))} / {pad(projects.length)}
+          <span className="wk-ctl-hint"> Swipe</span>
+        </p>
+      </div>
     </>
   );
 }

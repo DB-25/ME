@@ -6,11 +6,13 @@ import { moreProjects } from "./project-data/more";
 // Ordered by impact: featured first, then platform, tools and lab work.
 const ordered: Project[] = [...flagshipProjects, ...featuredMoreProjects, ...moreProjects];
 
-/** arc-control-mcp is the best solo, founder-relevant tool: it sits third in the featured list, after A-IEP and GENIE. */
-const ARC_SLUG = "arc-control-mcp";
-const ARC_POSITION = 2;
+/**
+ * The top of the featured list is pinned: A-IEP, GENIE, then arc-control-mcp (the best solo, founder-relevant
+ * tool) and Civic AI Course Delivery (DB's current primary focus at work). The rest keep their data-file order.
+ */
+const PINNED_SLUGS = ["a-iep", "genie", "arc-control-mcp", "course-delivery"];
 
-const arc = ordered.find((p) => p.slug === ARC_SLUG);
-const rest = ordered.filter((p) => p.slug !== ARC_SLUG);
+const pinned = PINNED_SLUGS.flatMap((slug) => ordered.filter((p) => p.slug === slug));
+const rest = ordered.filter((p) => !PINNED_SLUGS.includes(p.slug));
 
-export const projects: Project[] = arc ? [...rest.slice(0, ARC_POSITION), arc, ...rest.slice(ARC_POSITION)] : ordered;
+export const projects: Project[] = [...pinned, ...rest];

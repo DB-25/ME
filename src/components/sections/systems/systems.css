@@ -1,6 +1,6 @@
 /* The five-stage flow. The path lives in a fixed-width SVG rail on the left; labels sit in their own
    column on the right, one fixed-height row per stage, so nothing can ever overlap. */
-.sys-flow { --row: 124px; --rail: 120px; position: relative; display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); column-gap: 14px; }
+.sys-flow { --row: 106px; --rail: 120px; position: relative; display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); column-gap: 14px; }
 .sys-svg { grid-column: 1; grid-row: 1; display: block; width: var(--rail); height: calc(var(--row) * 5); overflow: visible; }
 .sys-rows { grid-column: 2; grid-row: 1; list-style: none; margin: 0; padding: 0; }
 .sys-row { height: var(--row); display: flex; flex-direction: column; justify-content: center; opacity: 0.62; transition: opacity 0.6s var(--ease-out-expo); }

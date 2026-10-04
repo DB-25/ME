@@ -25,10 +25,10 @@ export default function Home() {
       <Hero />
       <Impact />
       <WorkIndex />
-      <Origin />
-      <Systems />
       <Proof />
+      <Systems />
       <Director />
+      <Origin />
       <OffDuty />
       <Contact />
     </>

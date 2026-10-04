@@ -41,7 +41,7 @@ function Strip({ list, hidden }: { list: Outlet[]; hidden?: boolean }) {
             tabIndex={-1}
             data-cursor="read"
             title={o.title}
-            className="group inline-flex items-baseline gap-3 text-[clamp(2.75rem,7.2vw,7.5rem)] font-medium leading-none tracking-[-0.045em] text-ink/75 transition-colors duration-300 hover:text-ink focus-visible:text-ink"
+            className="group inline-flex items-baseline gap-3 text-[clamp(2rem,4.8vw,4.75rem)] font-medium leading-none tracking-[-0.045em] text-ink/75 transition-colors duration-300 hover:text-ink focus-visible:text-ink"
           >
             {o.name}
             <span className="label num !text-[12px] !text-ink/65">{o.year}</span>
@@ -56,13 +56,13 @@ function Strip({ list, hidden }: { list: Outlet[]; hidden?: boolean }) {
 export function PressMarquee({ items }: { items: Recognition[] }) {
   const list = outlets(items);
   return (
-    <div className="relative mt-[clamp(56px,8vw,120px)]">
+    <div className="relative mt-[clamp(32px,4vw,56px)]">
       <style>{CSS}</style>
       {/* A soft band, feathered top and bottom, so outlet names never sit on bright particles. */}
       <Scrim shape="band" strength={0.9} inset="2% 0 -4% 0" />
-      <p className="label shell mb-5 !text-[12px] !text-ink/75">As covered by</p>
+      <p className="label shell mb-3 !text-[12px] !text-ink/75">As covered by</p>
       {/* Decorative: the same outlets are listed, focusable, in PressIndex below. */}
-      <div aria-hidden className="press-marquee overflow-hidden py-[clamp(20px,3vw,44px)]">
+      <div aria-hidden className="press-marquee overflow-hidden py-[clamp(12px,2vw,24px)]">
         <div className="press-track">
           <Strip list={list} />
           <Strip list={list} hidden />
