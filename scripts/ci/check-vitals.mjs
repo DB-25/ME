@@ -7,7 +7,9 @@ import { chromium } from "playwright";
 const base = (process.env.BASE_URL ?? "http://localhost:4173").replace(/\/$/, "");
 const FONT_DELAY_MS = 700;
 const CLS_BUDGET = 0.1;
-const LONG_TASK_BUDGET_MS = 400;
+// Calibrated on an M-series laptop (400 ms). Hosted CI runners are 2 to 3x slower before any throttling, so CI
+// gets more headroom; it still fails the regressions this guards against (the old synchronous SVG scan ran 2 to 3 s).
+const LONG_TASK_BUDGET_MS = Number(process.env.LONG_TASK_BUDGET_MS ?? (process.env.CI ? 1000 : 400));
 const CPU_SLOWDOWN = 4;
 const SETTLE_MS = 4000;
 
