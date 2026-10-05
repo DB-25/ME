@@ -1,4 +1,5 @@
 import "../fade.css";
+import { AgentsPanel } from "./AgentsPanel";
 import { Principles } from "./Principles";
 import { ReadingZone } from "./ReadingZone";
 import { StackIndex } from "./StackIndex";
@@ -7,7 +8,7 @@ import { SystemsHeader } from "./SystemsHeader";
 
 /**
  * 04 / How I build. A single flowing line through the five stages on the left half (the particle network
- * owns the right), then the principles and a short stack list.
+ * owns the right), then the principles, a short stack list and the agent activity log.
  */
 export function Systems() {
   return (
@@ -24,6 +25,7 @@ export function Systems() {
         <ReadingZone className="flex flex-col gap-[clamp(32px,4vw,56px)]">
           <Principles />
           <StackIndex />
+          <AgentsPanel />
         </ReadingZone>
       </div>
     </section>

@@ -73,6 +73,7 @@ export function sourceOf(source: string): LedgerSource {
   if (source.endsWith(".tex")) return { label: "Résumé", href: profile.resumeHref, isPrivate: false };
   const i = source.indexOf(PUBLIC_MARK);
   if (i >= 0) return { label: source.includes("acharya-users") ? "Store analytics screenshot" : "Document scan", href: `/${source.slice(i + PUBLIC_MARK.length)}`, isPrivate: false };
+  if (source.includes("claude-code-logs")) return { label: "Local Claude Code logs (private)", isPrivate: true };
   if (source.includes("play-console")) return { label: "Play Console (private)", isPrivate: true };
   if (source.endsWith(".csv")) return { label: "My notes (not linked)", isPrivate: true };
   if (source.startsWith("git log")) return { label: "Private repo, git history", isPrivate: true };
