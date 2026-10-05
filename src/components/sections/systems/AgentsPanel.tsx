@@ -12,18 +12,19 @@ const SHADOW = "[text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]";
 const PROVENANCE = { source: SRC.agentLogs, basis: "self" } as const;
 const CASE_STUDY = "/work/arc-control-mcp/";
 
+const { claudeCode, cursor } = usage.tools;
 const STATS = [
-  { label: "Subagents", value: fmt.count(usage.subagents), note: `across ${fmt.count(usage.sessions)} sessions` },
   { label: "Tool calls", value: fmt.count(usage.toolCalls), note: `in ${fmt.count(usage.turns)} model turns` },
+  { label: "Sessions", value: fmt.count(usage.sessions), note: `plus ${fmt.count(usage.subagents)} subagents` },
   { label: "Active days", value: fmt.count(usage.activeDays), note: `of ${fmt.count(heat.spanDays)} in the window` },
-  { label: "Output tokens", value: fmt.compact(usage.tokens.output, 1), note: `from ${fmt.count(usage.prompts)} prompts I wrote` },
+  { label: "Output tokens", value: fmt.compact(usage.tokens.output, 1), note: `Claude Code, from ${fmt.count(claudeCode.prompts)} prompts` },
 ];
 
 const SUMMARY = `Activity strip, ${heat.window}: ${fmt.count(usage.activeDays)} active days out of ${fmt.count(heat.spanDays)}. The busiest day was ${heat.busiestDay}, with ${fmt.count(usage.busiest.turns)} model turns. Each day is shaded by how many turns the agents took.`;
 
 /**
  * Closes the chapter on how I work with agents. The activity strip and four counts come from agent-usage.json
- * (scripts/agent-usage.mjs reads my own Claude Code logs), so re-running the script updates the page. Nothing here
+ * (scripts/agent-usage.mjs reads my own Claude Code logs and Cursor chat history), so re-running the script updates the page. Nothing here
  * is hand-typed except the wording. Server-rendered: the strip is plain CSS grid cells.
  */
 export function AgentsPanel() {
@@ -33,7 +34,7 @@ export function AgentsPanel() {
       <Scrim shape="hold" strength={0.9} inset="-6% -22% -6% -28px" />
       <h3 className="label !text-[12px] !text-ink/70">Built with agents</h3>
       <Reveal as="p" className="mt-4 text-[clamp(1.125rem,1.7vw,1.5rem)] font-medium leading-[1.25] tracking-[-0.02em] text-ink text-balance">
-        I build with agents most days. Here is the log.
+        Building with agents since {heat.sinceMonth}. Here is the log.
       </Reveal>
 
       <FadeIn className="mt-6 border-t border-hairline pt-4 md:mt-8">
@@ -97,8 +98,10 @@ export function AgentsPanel() {
           </span>
         </p>
         <p className={`mt-3 max-w-[34rem] text-[0.8125rem] leading-[1.55] text-ink/70 ${SHADOW}`}>
-          Counts come from the logs on this one Mac, so earlier work is not in them. Total tokens were {fmt.compact(usage.tokens.total, 2)}, but{" "}
-          {fmt.percent(usage.tokens.cacheShare)} of that is cached context read back in on each turn. That is why output tokens are the figure above.
+          Counted from what this Mac kept: {fmt.count(cursor?.chats ?? 0)} Cursor chats and {fmt.count(claudeCode.sessions)} Claude Code sessions. Claude Code logs
+          only go back to {heat.claudeSince}, and Cursor does not record tokens, so the token figure is Claude Code alone. Its total was{" "}
+          {fmt.compact(usage.tokens.total, 2)}, but {fmt.percent(usage.tokens.cacheShare)} of that is cached context read back in on each turn, which is
+          why output tokens are the figure above.
         </p>
       </FadeIn>
     </div>

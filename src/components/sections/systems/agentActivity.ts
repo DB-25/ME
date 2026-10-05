@@ -5,10 +5,16 @@ const DAYS_PER_WEEK = 7;
 const LEVELS = 4;
 /** Columns a month name needs before the next one starts. */
 const OPENING_MONTH_ROOM = 3;
+/** Past this many weeks only quarters are named (Jan, Apr, Jul, Oct), or the names run into each other. */
+const QUARTERS_ONLY_AFTER_WEEKS = 40;
+const QUARTER_MONTHS = new Set([0, 3, 6, 9]);
 
 const NUMBER = new Intl.NumberFormat("en-US");
 const PERCENT = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 1 });
 const MONTH = new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "UTC" });
+const LONG_MONTH = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+/** A January mark names its year instead, so a strip that spans two years reads unambiguously. */
+const monthMark = (t: number) => (new Date(t).getUTCMonth() === 0 ? String(new Date(t).getUTCFullYear()) : MONTH.format(t));
 /** The site's date style, "5 Oct 2026". Intl en-GB spells September "Sept", so the parts are joined by hand. */
 const dayMonth = (t: number) => `${new Date(t).getUTCDate()} ${MONTH.format(t)}`;
 const fullDate = (t: number) => `${dayMonth(t)} ${new Date(t).getUTCFullYear()}`;
@@ -47,10 +53,16 @@ function build() {
   const months: MonthMark[] = [];
   for (let w = 0; w < weeks; w++) {
     const first = Array.from({ length: DAYS_PER_WEEK }, (_, d) => start + (w * DAYS_PER_WEEK + d) * DAY_MS).find((t) => new Date(t).getUTCDate() === 1 && t >= from && t <= to);
-    if (first !== undefined) months.push({ label: MONTH.format(first), column: w + 1 });
+    if (first === undefined) continue;
+    if (weeks > QUARTERS_ONLY_AFTER_WEEKS && !QUARTER_MONTHS.has(new Date(first).getUTCMonth())) continue;
+    months.push({ label: monthMark(first), column: w + 1 });
   }
-  if (months[0]?.column !== 1 && (months[0]?.column ?? Infinity) > OPENING_MONTH_ROOM) {
-    months.unshift({ label: MONTH.format(from), column: 1 });
+  // A name that starts in the last few columns would run off the right edge.
+  while (months.length > 0 && months[months.length - 1]!.column > weeks - OPENING_MONTH_ROOM + 1) months.pop();
+  // Quarter marks sit far apart in columns but close in pixels on a phone, so the opening name needs more room there.
+  const openingRoom = weeks > QUARTERS_ONLY_AFTER_WEEKS ? OPENING_MONTH_ROOM * 3 : OPENING_MONTH_ROOM;
+  if (months[0]?.column !== 1 && (months[0]?.column ?? Infinity) > openingRoom) {
+    months.unshift({ label: monthMark(from), column: 1 });
   }
 
   const spanDays = Math.round((to - from) / DAY_MS) + 1;
@@ -62,6 +74,10 @@ function build() {
     spanDays,
     window: `${sameYear ? dayMonth(from) : fullDate(from)} to ${fullDate(to)}`,
     busiestDay: fullDate(toTime(usage.busiest.day)),
+    /** "February 2025", for the headline. */
+    sinceMonth: LONG_MONTH.format(from),
+    /** Where Claude Code's own logs start, which is later than Cursor's. */
+    claudeSince: fullDate(toTime(usage.tools.claudeCode.from)),
   };
 }
 

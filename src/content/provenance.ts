@@ -37,6 +37,6 @@ export function basisOf(metric: Pick<Metric, "source" | "basis">): Basis {
   }
   if (src.endsWith(".tex") || src.endsWith(".csv")) return "self";
   if (src.includes("governors-citation")) return "third-party";
-  if (src.includes("acharya-users") || src.includes("play-console") || src.includes("claude-code-logs")) return "self";
+  if (src.includes("acharya-users") || src.includes("play-console") || src.includes("agent-logs")) return "self";
   return "repo";
 }

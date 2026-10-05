@@ -31,8 +31,8 @@ export const SRC = {
   arcNpm: "https://api.npmjs.org/downloads/point/last-month/arc-control-mcp",
   /** Play Console statistics (monthly and daily active users, installed audience), read 5 Oct 2026 for my tenure, 1 Sep 2021 to 31 Aug 2023. Private, so self-reported. */
   acharyaPlay: `${ROOT}play-console.stats`,
-  /** Counts aggregated from Claude Code logs on my own Mac (scripts/agent-usage.mjs). Private, so self-reported. */
-  agentLogs: `${ROOT}claude-code-logs.json`,
+  /** Counts aggregated from my local Claude Code logs and Cursor chat history (scripts/agent-usage.mjs). Private, so self-reported. */
+  agentLogs: `${ROOT}agent-logs.json`,
   acharyaUsers: `${ROOT}/ME/public/photos/acharya-users.jpg`,
   citation: `${ROOT}/ME/public/photos/governors-citation.jpg`,
 } as const;
