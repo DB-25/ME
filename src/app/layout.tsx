@@ -3,7 +3,10 @@ import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { profile } from "@/content";
 import { JsonLd } from "./JsonLd";
 import { SITE_ROOT, siteUrl } from "./site";
+import { OG_IMAGE, SITE_TITLE } from "./page-metadata";
 import { PERSON } from "./structured-data";
+import { MotionState } from "@/components/providers/MotionState";
+import { MOTION_ATTR_SCRIPT } from "@/components/providers/motion-attr";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { SignalMount } from "@/components/signal/SignalMount";
 import { Chrome } from "@/components/chrome/Chrome";
@@ -54,8 +57,7 @@ const instrument = Instrument_Serif({
   fallback: ["Instrument Serif Fit", "ui-serif", "Georgia", "serif"],
 });
 
-const TITLE = `${profile.name}, ${profile.title}`;
-const OG_IMAGE = { url: "/og.png", width: 1200, height: 630, alt: TITLE };
+const TITLE = SITE_TITLE;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ROOT),
@@ -71,13 +73,15 @@ export const viewport: Viewport = { themeColor: "#060509", colorScheme: "dark", 
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${instrument.variable}`}>
+    <html lang="en" className={`${geist.variable} ${geistMono.variable} ${instrument.variable}`} suppressHydrationWarning>
       <head>
         <style dangerouslySetInnerHTML={{ __html: FALLBACK_CSS }} />
+        <script dangerouslySetInnerHTML={{ __html: MOTION_ATTR_SCRIPT }} />
       </head>
       <body>
         <JsonLd data={PERSON} />
         <SmoothScroll />
+        <MotionState />
         <SignalMount />
         <Chrome />
         <main id="main" className="relative z-10">

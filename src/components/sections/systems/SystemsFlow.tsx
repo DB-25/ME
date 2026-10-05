@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { isMotionPaused, onMotionPausedChange } from "@/components/providers/motion-attr";
 import { gsap, prefersReducedMotion } from "@/lib/motion";
 import { Scrim } from "../Scrim";
 import { STAGES } from "./stages";
@@ -125,8 +126,32 @@ export function SystemsFlow() {
         p.setAttribute("opacity", String(Math.sin(f * Math.PI) * 0.95));
       });
     };
-    gsap.ticker.add(tick);
+    // The ticker only exists while the diagram can be seen, the tab is visible and motion is not paused: one
+    // getPointAtLength per packet per frame is not free, and nothing here is worth it off screen.
+    let inView = false;
+    let running = false;
+    const hidePackets = () => packets.forEach((p) => p.setAttribute("opacity", "0"));
+    const sync = () => {
+      const should = inView && !document.hidden && !isMotionPaused();
+      if (should === running) return;
+      running = should;
+      if (should) gsap.ticker.add(tick);
+      else {
+        gsap.ticker.remove(tick);
+        hidePackets();
+      }
+    };
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      sync();
+    });
+    io.observe(wrapEl);
+    document.addEventListener("visibilitychange", sync);
+    const offPaused = onMotionPausedChange(sync);
     return () => {
+      io.disconnect();
+      document.removeEventListener("visibilitychange", sync);
+      offPaused();
       gsap.ticker.remove(tick);
       ctx.revert();
     };

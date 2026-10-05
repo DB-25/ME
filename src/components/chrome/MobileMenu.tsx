@@ -1,5 +1,6 @@
 "use client";
 
+import { mailtoHref } from "@/components/sections/contact/mailto";
 import { useEffect, useRef, type RefObject } from "react";
 import { profile } from "@/content";
 import { gsap, prefersReducedMotion } from "@/lib/motion";
@@ -99,7 +100,7 @@ export function MobileMenu({ open, onClose, toggle }: Props) {
   const gitHub = profile.links.find((l) => l.label === "GitHub");
   const cells: { label: string; href: string; external: boolean }[] = [
     { label: "Résumé", href: assetUrl(profile.resumeHref), external: true },
-    { label: "Email", href: `mailto:${profile.email}`, external: false },
+    { label: "Email", href: mailtoHref(profile.email), external: false },
     ...(linkedIn ? [{ label: "LinkedIn", href: linkedIn.href, external: true }] : []),
     ...(gitHub ? [{ label: "GitHub", href: gitHub.href, external: true }] : []),
   ];

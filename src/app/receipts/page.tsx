@@ -2,16 +2,11 @@ import type { Metadata } from "next";
 import { Emph } from "@/components/ui/Emph";
 import { Ledger } from "@/components/receipts/Ledger";
 import { ledger, ledgerProjects } from "@/content/ledger";
-import { siteUrl } from "../site";
+import { pageMetadata } from "../page-metadata";
 
 const DESCRIPTION = "Every number and factual claim on this site in one table: what it counts, where it appears, who stands behind it, and where to check.";
 
-export const metadata: Metadata = {
-  title: "Receipts",
-  description: DESCRIPTION,
-  alternates: { canonical: "/receipts/" },
-  openGraph: { title: "Receipts", description: DESCRIPTION, type: "website", url: siteUrl("/receipts/") },
-};
+export const metadata: Metadata = pageMetadata({ title: "Receipts", description: DESCRIPTION, path: "/receipts/" });
 
 /** /receipts/: the claims ledger. Rows are derived from the site's content, so a number can never be printed here and not there. */
 export default function ReceiptsPage() {

@@ -1,7 +1,8 @@
-import type { FormationId } from "@/lib/director/protocol";
+import type { ChapterId, FormationId } from "@/lib/director/protocol";
 import { CHAPTERS, chapterById } from "@/lib/chapters";
 import type { SignalState, SignalOverride } from "@/lib/signal-store";
-import { CHAPTER_LOOK, CHAPTER_LOOK_MOBILE, FORMATION_LOOK, NO_CHAPTER_LOOK, OVERRIDE_LOOK, type ChapterLook } from "./look";
+import { getDock } from "./docks";
+import { CHAPTER_LOOK, CHAPTER_LOOK_MOBILE, EMAIL_SPRITE, EMAIL_SPRITE_PHONE, FORMATION_LOOK, NO_CHAPTER_LOOK, OVERRIDE_LOOK, type ChapterLook } from "./look";
 import { SETTLE_EPSILON, Tween, clamp01, easeInOut, easeOut, mix, smoothstep01 } from "./ease";
 import { DUCK_DIM, READING_DIM, fieldMotion } from "./readingMode";
 
@@ -34,6 +35,14 @@ export type Scene = {
   toId: FormationId;
   /** Morph progress between fromId and toId, 0..1. */
   m: number;
+  /** The chapters this frame blends between, and the eased blend (0 = prev, 1 = cur). Docks follow them. */
+  prevId: ChapterId;
+  curId: ChapterId;
+  eb: number;
+  /** True while the current formation is the email frame instead of the plain singularity. */
+  email: boolean;
+  /** Portrait phone layout: the email frame uses its finer sprite. */
+  compact: boolean;
   /** Chapter look, blended by scroll morph. */
   look: ChapterLook;
   /** Intro particle spread multiplier and how far the chapter look has faded in. */
@@ -100,6 +109,11 @@ export function createScene(): Scene {
     fromId: "noise",
     toId: "noise",
     m: 0,
+    prevId: "hero",
+    curId: "hero",
+    eb: 1,
+    email: false,
+    compact: false,
     look: { brightness: 0, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
     spread: 1,
     introW: 1,
@@ -129,7 +143,7 @@ export function createAdapt(now: number, count: number): AdaptState {
 }
 
 /** Scroll position -> formations, morph and chapter look. */
-export function resolveScroll(out: Scene, s: Pick<SignalState, "chapter" | "morph">, aspect: number, hasChapters: boolean) {
+export function resolveScroll(out: Scene, s: Pick<SignalState, "chapter" | "morph">, aspect: number, hasChapters: boolean, emailReady: boolean) {
   const chapter = chapterById(s.chapter);
   const idx = CHAPTERS.indexOf(chapter);
   const prev = CHAPTERS[Math.max(0, idx - 1)];
@@ -142,10 +156,16 @@ export function resolveScroll(out: Scene, s: Pick<SignalState, "chapter" | "morp
   out.fromId = idx === 0 ? chapter.formation : prev.formation;
   out.toId = chapter.formation;
   out.m = s.morph;
+  out.prevId = prev.id;
+  out.curId = chapter.id;
+  out.eb = eb;
+  out.email = emailReady && chapter.id === "contact";
+  out.compact = aspect <= 1.2;
   look.brightness = mix(lp.brightness, lc.brightness, eb);
   look.rightDim = mix(lp.rightDim, lc.rightDim, eb);
-  look.x = mix(lp.x, lc.x, eb);
-  look.y = mix(lp.y, lc.y, eb);
+  // A docked chapter is placed by its box (see docks.ts), not by the screen-fraction offsets.
+  look.x = mix(getDock(prev.id) ? 0 : lp.x, getDock(chapter.id) ? 0 : lc.x, eb);
+  look.y = mix(getDock(prev.id) ? 0 : lp.y, getDock(chapter.id) ? 0 : lc.y, eb);
   look.z = mix(lp.z, lc.z, eb);
   look.scale = mix(lp.scale, lc.scale, eb);
 
@@ -154,6 +174,8 @@ export function resolveScroll(out: Scene, s: Pick<SignalState, "chapter" | "morp
     out.fromId = "noise";
     out.toId = "noise";
     out.m = 0;
+    out.email = false;
+    out.eb = 0;
     Object.assign(look, NO_CHAPTER_LOOK);
   }
 }
@@ -212,7 +234,7 @@ export function settleReduced(smooth: Smooth, out: Scene, dt: number): number {
 /** Per-formation sprite look, chapter look under intro and Director override. `ov` is the override mix. */
 export function blendLook(out: Scene, smooth: Smooth, ov: number, reduced: boolean, reading: number) {
   const lookA = FORMATION_LOOK[out.fromId];
-  const lookB = FORMATION_LOOK[out.toId];
+  const lookB = out.email ? (out.compact ? EMAIL_SPRITE_PHONE : EMAIL_SPRITE) : FORMATION_LOOK[out.toId];
   const mm = reduced ? out.m : smoothstep01(out.m);
   const look = out.look;
 

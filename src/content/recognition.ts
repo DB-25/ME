@@ -20,7 +20,7 @@ export const recognition: Recognition[] = [
     year: "2025",
     kind: "award",
     href: "https://www.naspo.org/awards/george-cronin-awards/winners/2025/",
-    note: "Won by Massachusetts OSD for its dual AI agents, ABE and One‑L, built with the Burnes Center. I was part of the team behind them.",
+    note: "Won by Massachusetts OSD for its dual AI agents, ABE and One‑L, built with the Burnes Center. The award came before I joined: I started on One‑L in November 2025 and ABE in February 2026, and now lead ABE’s quality monitoring and One‑L’s direction.",
   },
   {
     title: "Academic Collaboration Award",
@@ -28,7 +28,7 @@ export const recognition: Recognition[] = [
     year: "2025",
     kind: "award",
     href: "https://www.naspo.org/awards/academic-collaboration-recognition/winners/",
-    note: "For the OSD and Northeastern partnership behind the procurement AI tools.",
+    note: "For the OSD and Northeastern partnership behind the procurement AI tools. Also before I joined the work.",
   },
   {
     title: "2nd place, VALORANT Champions Tour Hackathon",

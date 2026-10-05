@@ -31,6 +31,10 @@ const CSS = `
   backdrop-filter: blur(14px) saturate(1.2);
 }
 .chrome-nav[data-compact="true"] .chrome-nav-inner { padding-block: 12px; }
+/* On a still or software GL the compositor is the bottleneck (blur plus a blend mode measured 83 ms a frame there):
+   the bar is an opaque strip, no backdrop filter and no blend. Its look is unchanged, since it sits on near-void anyway. */
+html[data-field-light] .chrome-nav { mix-blend-mode: normal; -webkit-backdrop-filter: none; backdrop-filter: none; }
+html[data-field-light] .chrome-nav[data-compact="true"] { background: rgb(6 5 9); }
 `;
 
 export function goTo(id: string) {
@@ -112,12 +116,12 @@ export function Nav() {
                 {logo}
               </a>
             ) : (
-              <Link href="/" className={logoClass}>
+              <Link href="/" prefetch={false} className={logoClass}>
                 {logo}
               </Link>
             )}
             {!isHome && (
-              <Link href="/#work" className="label -my-3 inline-flex items-center gap-1.5 py-3 !text-ink lg:hidden">
+              <Link href="/#work" prefetch={false} className="label -my-3 inline-flex items-center gap-1.5 py-3 !text-ink lg:hidden">
                 <span aria-hidden>←</span>
                 Work
               </Link>

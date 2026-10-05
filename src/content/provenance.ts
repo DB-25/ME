@@ -5,7 +5,7 @@ export const BASIS: Record<Basis, { label: string; meaning: string }> = {
   "third-party": { label: "Third party", meaning: "Published by someone who is not me or my employer." },
   employer: { label: "Employer-reported", meaning: "Published by the Burnes Center, my employer." },
   self: { label: "Self-reported", meaning: "Comes from my résumé or my own notes." },
-  repo: { label: "From the repo", meaning: "Read from a repository or its docs." },
+  repo: { label: "From the repo", meaning: "Read from a repository or its docs. A public repo links out; a private one is labelled and cannot be opened." },
 };
 
 const THIRD_PARTY_HOSTS = [

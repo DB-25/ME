@@ -76,7 +76,7 @@ export function WorkIndex() {
           <FeaturedIndex projects={featured} spotlight={featuredPick} />
         </div>
 
-        <div className="shell mt-[clamp(32px,3.4vw,48px)]" aria-labelledby="lab-heading">
+        <div role="region" className="shell wk-lab-wrap" aria-labelledby="lab-heading">
           <div className="grid-12 items-end gap-y-3">
             <div className="col-span-12 lg:col-span-7">
               <p className="label">The lab</p>

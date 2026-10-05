@@ -43,6 +43,7 @@ export const DUCK_DIM = 0.7;
 
 /**
  * Shared with the camera rig, which reads it each frame.
+ * `hold` (0..1) freezes the camera's orbit and parallax while a formation must stay registered to the DOM (Contact).
  * `duck` is set by a section (0 or 1) and eased by the look smoothing; it dims the field under dense copy.
  */
-export const fieldMotion = { reading: 0, timeScale: 1, duck: 0 };
+export const fieldMotion = { reading: 0, timeScale: 1, duck: 0, hold: 0 };

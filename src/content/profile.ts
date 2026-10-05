@@ -44,7 +44,7 @@ export const profile: Profile = {
     { label: "Workshop", value: "3D printing whatever the desk needs next" },
   ],
   currentlyBuilding: [
-    "A synthetic IEP benchmark, so A‑IEP can report accuracy instead of hoping",
+    "A synthetic IEP benchmark, so A‑IEP can report measured accuracy",
     "Course Delivery SMS: an 8‑day, text‑paced video course for InnovateUS",
     "Public Voice, a no‑login voice survey that asks one smart follow‑up",
     "arc-control-mcp, a 26-tool MCP server that lets agents drive the Arc browser",

@@ -7,11 +7,17 @@ import { gsap, ScrollTrigger, EASE_OUT, prefersReducedMotion } from "@/lib/motio
 import { assetUrl, caseHref } from "./asset";
 import { LiveChip } from "./LiveChip";
 import { CATEGORY_LABEL, liveLink, pad, previewImage } from "./meta";
+import { OwnershipBadge, OWNERSHIP_TITLE } from "./OwnershipBadge";
 import { RollName } from "./RollName";
 import { useReducedMotion, useStageLayout } from "./useDesktopHover";
 import { WorkStage } from "./WorkStage";
 
 type Props = { projects: Project[]; spotlight: string | null };
+
+/** The idle stage follows the row beside a point that slides down the stage's height (inset this far from its edges) as the list scrolls, so it never sits frozen. */
+const FOLLOW_OFFSET_PX = 48;
+/** Share of the stage that must be on screen before an idle film may play. */
+const STAGE_VISIBLE = 0.4;
 
 function Row({
   project,
@@ -66,6 +72,8 @@ function Row({
           <span>{CATEGORY_LABEL[project.category]}</span>
         </div>
 
+        <OwnershipBadge ownership={project.ownership} className="wk-ob" />
+
         <div className="wk-media">
           {img ? (
             <figure className="wk-inline" data-thumb={img.thumb ? "" : undefined}>
@@ -111,6 +119,7 @@ function Row({
       <LiveChip project={project} />
       <span id={descId} className="sr-only">
         {project.tagline} {lead ? `${lead.value} ${lead.label}.` : ""} {project.year}, {CATEGORY_LABEL[project.category]}.
+        {project.ownership ? ` ${OWNERSHIP_TITLE[project.ownership]}.` : ""}
         {project.owned ? ` I owned: ${project.owned}` : ""}
       </span>
     </li>
@@ -242,11 +251,68 @@ export function FeaturedIndex({ projects, spotlight }: Props) {
   };
 
   const inside = pointerIn || focusIn;
+  const insideRef = useRef(false);
+  useEffect(() => {
+    insideRef.current = inside;
+  }, [inside]);
+
+  // Idle (nobody pointing at the list or stage): scrolling moves the stage to the row beside it. A pointer or
+  // keyboard focus in the list always wins, so hover stays exact; the pick only changes here when nothing is pointed at.
+  useEffect(() => {
+    const el = list.current;
+    if (!stageOn || !el) return;
+    let raf = 0;
+    const follow = () => {
+      raf = 0;
+      if (insideRef.current) return;
+      const stage = el.parentElement?.querySelector<HTMLElement>(".wk-stage");
+      if (!stage) return;
+      const box = stage.getBoundingClientRect();
+      if (box.bottom < 0 || box.top > window.innerHeight) return;
+      // How far the list has travelled while the stage is stuck (0 at the first row, 1 when the last row ends), so the
+      // pick moves from the stage's top edge to its bottom edge and every row, the last ones included, gets its turn.
+      const listBox = el.getBoundingClientRect();
+      const travel = listBox.height - box.height;
+      const stuckAt = parseFloat(getComputedStyle(stage).top) || 0;
+      const progress = travel > 0 ? Math.min(1, Math.max(0, (stuckAt - listBox.top) / travel)) : 0;
+      const y = box.top + FOLLOW_OFFSET_PX + progress * (box.height - 2 * FOLLOW_OFFSET_PX);
+      let hit: HTMLElement | undefined;
+      el.querySelectorAll<HTMLElement>(".wk-row").forEach((row, i) => {
+        if (i === 0 || row.getBoundingClientRect().top <= y) hit = row;
+      });
+      const slug = hit?.dataset.slug;
+      if (slug) setPicked((cur) => (cur === slug ? cur : slug));
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(follow);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, [stageOn]);
+
+  // The first project's film plays on its own while the stage is on screen and nobody is pointing; every other
+  // film waits for a real dwell, so scrolling past the list never fetches eight videos.
+  const [stageSeen, setStageSeen] = useState(false);
+  const split = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = split.current;
+    if (!stageOn || !el || typeof IntersectionObserver === "undefined") return;
+    const stage = el.querySelector<HTMLElement>(".wk-stage");
+    if (!stage) return;
+    const io = new IntersectionObserver(([e]) => setStageSeen(e.intersectionRatio >= STAGE_VISIBLE), { threshold: [0, STAGE_VISIBLE, 1] });
+    io.observe(stage);
+    return () => io.disconnect();
+  }, [stageOn]);
+
   const lastPick = picked ?? projects[0].slug;
   const active = spotlight ?? (stageOn ? lastPick : inside ? picked : null);
-  const intent = Boolean(spotlight) || (stageOn && inside);
+  const idleFilm = stageOn && stageSeen && !inside && active === projects[0].slug;
+  const intent = Boolean(spotlight) || (stageOn && inside) || idleFilm;
   return (
-    <div className="wk-split" data-stage={stageOn ? "" : undefined} onPointerLeave={() => setPointerIn(false)}>
+    <div ref={split} className="wk-split" data-stage={stageOn ? "" : undefined} onPointerLeave={() => setPointerIn(false)}>
       <ol
         ref={list}
         className="wk-list"

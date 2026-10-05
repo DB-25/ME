@@ -6,6 +6,7 @@ import { FILM_TRANSCRIPTS } from "../transcripts";
 export const featuredMoreProjects: Project[] = [
   {
     slug: "public-voice",
+    ownership: "lead",
     headlines: { problem: "Surveys ask too much and hear too little.", built: "A survey you answer out loud, with one smart follow‑up.", flows: "Voice in, themes out, no recordings kept.", outcomes: "Live at InnovateUS." },
     film: {
       src: "/films/public-voice.mp4",
@@ -20,7 +21,7 @@ export const featuredMoreProjects: Project[] = [
     tagline: "A voice survey that asks one smart follow‑up, then lets you go.",
     year: "2026",
     role: "Technical lead",
-    owned: "Technical lead: I set the technical direction and built the 2025 voice survey prototype it grew from, while two teammates wrote most of the production code.",
+    owned: "Technical lead: I set the technical direction and built the 2025 voice survey prototype it grew from. Two teammates built most of the production code.",
     org: "InnovateUS",
     featured: true,
     category: "gov-ai",
@@ -50,7 +51,9 @@ export const featuredMoreProjects: Project[] = [
         value: "Live",
         label: "In production at InnovateUS",
         context: "Open at publicvoice.innovate-us.org, no login needed.",
-        source: SRC.publicVoiceReadme,
+        source: SRC.publicVoiceLive,
+        basis: "third-party",
+        asOf: "5 Oct 2026",
         projectSlug: "public-voice",
       },
       {
@@ -59,6 +62,7 @@ export const featuredMoreProjects: Project[] = [
         label: "Audio recordings stored",
         context: "Answers are transcribed and personal details are redacted before anything is saved.",
         source: SRC.publicVoiceReadme,
+        asOf: "9 Sep 2026",
         projectSlug: "public-voice",
       },
       {
@@ -68,6 +72,7 @@ export const featuredMoreProjects: Project[] = [
         label: "Design target to finish a survey",
         context: "The survey is built to take about three minutes.",
         source: SRC.publicVoiceReadme,
+        asOf: "9 Sep 2026",
         projectSlug: "public-voice",
       },
     ],
@@ -119,6 +124,7 @@ export const featuredMoreProjects: Project[] = [
   },
   {
     slug: "acharya-erp",
+    ownership: "sole",
     headlines: { problem: "Attendance, marks and fees lived in different places.", built: "One Flutter app for all of it, start to finish.", flows: "One codebase, Android and iOS.", outcomes: "Twenty thousand people opened it every day." },
     name: "Acharya ERP",
     tagline: "Where the shipping started: one Flutter app, thousands of students.",
@@ -144,6 +150,7 @@ export const featuredMoreProjects: Project[] = [
         label: "Daily users",
         context: "Students and staff across Acharya Institutes used it every day for attendance, marks and payments.",
         source: SRC.resume,
+        asOf: "Aug 2023",
         projectSlug: "acharya-erp",
       },
       {
@@ -151,6 +158,7 @@ export const featuredMoreProjects: Project[] = [
         label: "App store rating",
         context: "From 1.2 stars to 4.5 while I owned the app.",
         source: SRC.resume,
+        asOf: "Aug 2023",
         projectSlug: "acharya-erp",
       },
     ],

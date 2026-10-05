@@ -107,7 +107,7 @@ const AUTHORED = {
   ],
   accessCaveat: ["That counts access, not daily use.", "tour", "metric", "honest"],
   hiringAbe: [
-    "ABE and One-L: I built ABE's quality monitoring and alarms, and the pair won two NASPO awards.",
+    "ABE and One-L won NASPO awards before I joined. I lead ABE's monitoring and One-L's direction.",
     "tour", "recruiter", "owned", "project:abe-one-l",
   ],
   hiringScale: [
@@ -153,7 +153,7 @@ const AUTHORED = {
     "tour", "engineer", "project:knowledge-agent-for-impact",
   ],
   engineerRagHonest: [
-    "A teammate wrote most of the code, so technical lead is the honest word.",
+    "Student engineers built it. I directed and reviewed the work.",
     "tour", "engineer", "honest", "project:knowledge-agent-for-impact",
   ],
   engineerMeasure: ["Then measurement. I found that A-IEP's only automated check was a schema check.", "tour", "engineer", "honest"],
@@ -272,7 +272,7 @@ const AUTHORED = {
     "arc-control-mcp never touches the tab I'm looking at, and it reports missing permissions instead of failing silently.",
     "detail", "engineer", "project:arc-control-mcp",
   ],
-  arcLean: ["It has one runtime dependency and no build step.", "detail", "engineer", "project:arc-control-mcp"],
+  arcLean: ["It has two runtime dependencies and no build step.", "detail", "engineer", "project:arc-control-mcp"],
   curiousAsk: ["Ask for anything on this site, or just watch.", "greeting", "curious"],
   keepShort: ["I'll keep this short.", "transition"],
   askAgain: ["Ask again, and I'll cut it differently.", "closer"],
@@ -308,10 +308,10 @@ export const PROJECT_INTRO: Record<string, VoiceLine> = Object.fromEntries(
 const OWNED_TEXT: Record<string, string> = {
   "a-iep": "I took the earlier co-op prototype to production and made just over half of its commits.",
   "acharya-erp": "I built the Flutter app and owned it from design to deployment, then trained interns to take over.",
-  genie: "I was top committer on a team build, and wrote Smart Model, the router that picks a model per request.",
-  "abe-one-l": "I built ABE's quality monitoring and alarms, and I set the direction on One-L.",
+  genie: "Top committer on the Burnes team's build, I wrote Smart Model, the router that picks a model per request.",
+  "abe-one-l": "I joined ABE and One-L after their NASPO awards. I built ABE's monitoring and alarms, and direct One-L.",
   "vct-scout": "One of four on a hackathon team, I designed the agent's tool calling and wrote the system prompt that orchestrates it.",
-  "public-voice": "I set the technical direction and built the prototype it grew from. Two teammates wrote most of the production code.",
+  "public-voice": "I set the technical direction and built the prototype it grew from. Two teammates built most of the production code.",
   "course-delivery": "I was the sole engineer: the Lambda API, the SMS pacing, the quiz gate and the certificate.",
 };
 
@@ -329,7 +329,7 @@ const METRIC_TEXT: Record<string, string> = {
   "AI tools shipped": "The AI for Impact program has shipped twenty-six AI tools for government and civic partners.",
   "Engineers mentored": "I have mentored more than fifty student engineers, from prototype to production.",
   "Place, AWS x Riot Games hackathon": "Second place at the AWS and Riot Games hackathon, among more than three thousand two hundred participants.",
-  "NASPO awards in 2025": "Two NASPO awards in twenty twenty-five, for the ABE and One-L procurement AI.",
+  "NASPO awards for ABE and One-L": "Two NASPO awards in twenty twenty-five went to ABE and One-L, before I joined either.",
   "Lower model spend": "A self-reported forty percent lower model spend, because Smart Model picks a model for each request.",
 };
 

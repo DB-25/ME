@@ -8,8 +8,8 @@
     ]
   },
   {
-    "id": "d9ca711cc3",
-    "text": "A-IEP: more than one thousand families read a special-education plan in plain language.",
+    "id": "5e00e24087",
+    "text": "A-IEP: more than three hundred seventy-five special-education plans, read in plain language.",
     "tags": [
       "tour",
       "founder",
@@ -89,8 +89,8 @@
     ]
   },
   {
-    "id": "bc274dbf29",
-    "text": "I lead A-IEP's engineering: more than one thousand families, and over half of the commits are mine.",
+    "id": "3dbeec6447",
+    "text": "I lead A-IEP's engineering: over half of the commits are mine.",
     "tags": [
       "tour",
       "recruiter",
@@ -108,8 +108,8 @@
     ]
   },
   {
-    "id": "b10b57e6dd",
-    "text": "ABE and One-L: I built ABE's quality monitoring and alarms, and the pair won two NASPO awards.",
+    "id": "27db813933",
+    "text": "ABE and One-L won NASPO awards before I joined. I lead ABE's monitoring and One-L's direction.",
     "tags": [
       "tour",
       "recruiter",
@@ -262,8 +262,8 @@
     ]
   },
   {
-    "id": "d35d79228f",
-    "text": "A teammate wrote most of the code, so technical lead is the honest word.",
+    "id": "031341f536",
+    "text": "Student engineers built it. I directed and reviewed the work.",
     "tags": [
       "tour",
       "engineer",
@@ -830,8 +830,8 @@
     ]
   },
   {
-    "id": "e7afef91a7",
-    "text": "It has one runtime dependency and no build step.",
+    "id": "3689cca6de",
+    "text": "It has two runtime dependencies and no build step.",
     "tags": [
       "detail",
       "engineer",
@@ -975,8 +975,8 @@
     ]
   },
   {
-    "id": "cd7dc3e0df",
-    "text": "ABE and One-L. Two AI agents for state procurement. They won a national award.",
+    "id": "d551ea5433",
+    "text": "ABE and One-L. Two AI agents for state procurement, recognized by NASPO in twenty twenty-five.",
     "tags": [
       "project-intro",
       "project:abe-one-l"
@@ -1007,8 +1007,8 @@
     ]
   },
   {
-    "id": "76ac49c4d9",
-    "text": "knowledge-agent-for-impact. The shared RAG stack behind many AI for Impact chatbots.",
+    "id": "7f3f8fbc75",
+    "text": "knowledge-agent-for-impact. The shared RAG stack behind AI for Impact chatbots. Technical direction and review; student engineers built it.",
     "tags": [
       "project-intro",
       "project:knowledge-agent-for-impact"
@@ -1063,8 +1063,8 @@
     ]
   },
   {
-    "id": "14b66efeef",
-    "text": "I was top committer on a team build, and wrote Smart Model, the router that picks a model per request.",
+    "id": "91e308138b",
+    "text": "Top committer on the Burnes team's build, I wrote Smart Model, the router that picks a model per request.",
     "tags": [
       "owned",
       "project:genie"
@@ -1079,8 +1079,8 @@
     ]
   },
   {
-    "id": "26a8f40fab",
-    "text": "I built ABE's quality monitoring and alarms, and I set the direction on One-L.",
+    "id": "699fdc02a4",
+    "text": "I joined ABE and One-L after their NASPO awards. I built ABE's monitoring and alarms, and direct One-L.",
     "tags": [
       "owned",
       "project:abe-one-l"
@@ -1095,8 +1095,8 @@
     ]
   },
   {
-    "id": "f1abb6a9f6",
-    "text": "I set the technical direction and built the prototype it grew from. Two teammates wrote most of the production code.",
+    "id": "0d017258bd",
+    "text": "I set the technical direction and built the prototype it grew from. Two teammates built most of the production code.",
     "tags": [
       "owned",
       "project:public-voice"
@@ -1111,8 +1111,8 @@
     ]
   },
   {
-    "id": "10c3796764",
-    "text": "More than one thousand families use A-IEP.",
+    "id": "6f499d7305",
+    "text": "More than three hundred seventy-five plans read in plain language.",
     "tags": [
       "metric",
       "project:a-iep"
@@ -1157,8 +1157,8 @@
     ]
   },
   {
-    "id": "e60a6858c2",
-    "text": "Two NASPO awards in twenty twenty-five, for the ABE and One-L procurement AI.",
+    "id": "94c0d6ffb3",
+    "text": "Two NASPO awards in twenty twenty-five went to ABE and One-L, before I joined either.",
     "tags": [
       "metric",
       "project:abe-one-l"

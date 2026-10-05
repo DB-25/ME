@@ -24,11 +24,14 @@ export const CHAPTER_LOOK: Record<ChapterId, ChapterLook> = {
   systems: { brightness: 0.45, x: 0.28, y: 0, z: 0, scale: 1, rightDim: 0 },
   work: { brightness: 0.22, x: 0, y: 0, z: -5, scale: 1.25, rightDim: 0 },
   impact: { brightness: 0.42, x: 0, y: -0.32, z: 0, scale: 1, rightDim: 0 },
-  proof: { brightness: 0.45, x: 0.22, y: 0.14, z: 0, scale: 0.8, rightDim: 0 },
+  proof: { brightness: 0.55, x: 0.22, y: 0.14, z: 0, scale: 1, rightDim: 0 },
   director: { brightness: 0.26, x: 0, y: 0, z: -1, scale: 1.1, rightDim: 0 },
   human: { brightness: 0.9, x: 0.2, y: 0, z: 0, scale: 0.7, rightDim: 0 },
-  contact: { brightness: 1, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
+  contact: { brightness: 1.8, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
 };
+
+/** Phones: where the dense chapters pin their formation, as a screen fraction above centre: the middle of the top 38% of the viewport. */
+const PIN_Y = 0.31;
 
 /**
  * Phones (portrait, narrow): everything stays centered but smaller and calmer, nudged vertically
@@ -36,14 +39,14 @@ export const CHAPTER_LOOK: Record<ChapterId, ChapterLook> = {
  */
 export const CHAPTER_LOOK_MOBILE: Record<ChapterId, ChapterLook> = {
   hero: { brightness: 0.85, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
-  origin: { brightness: 0.52, x: 0, y: 0.36, z: 0, scale: 0.62, rightDim: 0 },
-  systems: { brightness: 0.3, x: 0, y: -0.28, z: 0, scale: 0.6, rightDim: 0 },
+  origin: { brightness: 0.95, x: 0, y: PIN_Y, z: 0, scale: 0.5, rightDim: 0 },
+  systems: { brightness: 1.6, x: 0, y: PIN_Y, z: 0, scale: 1, rightDim: 0 },
   work: { brightness: 0.3, x: 0, y: 0, z: -3, scale: 1, rightDim: 0 },
-  impact: { brightness: 0.4, x: 0, y: -0.2, z: 0, scale: 0.75, rightDim: 0 },
-  proof: { brightness: 0.3, x: 0, y: 0.3, z: 0, scale: 0.7, rightDim: 0 },
+  impact: { brightness: 1.1, x: 0, y: 0.2, z: 0, scale: 0.9, rightDim: 0 },
+  proof: { brightness: 0.55, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
   director: { brightness: 0.3, x: 0, y: 0, z: -1, scale: 0.75, rightDim: 0 },
-  human: { brightness: 0.5, x: 0, y: 0.3, z: 0, scale: 0.55, rightDim: 0 },
-  contact: { brightness: 1, x: 0, y: 0.22, z: 0, scale: 0.6, rightDim: 0 },
+  human: { brightness: 1.1, x: 0, y: PIN_Y, z: 0, scale: 0.42, rightDim: 0 },
+  contact: { brightness: 1, x: 0, y: 0, z: 0, scale: 1, rightDim: 0 },
 };
 
 /** Shown when the route has no chapters (case studies): a dim, calm drift. */
@@ -64,10 +67,20 @@ export const FORMATION_LOOK: Record<FormationId, FormationSprite> = {
   singularity: { size: 0.75, alpha: 0.08, fog: 0.09, fit: 1.1, density: 1, spark: 0.5 },
 };
 
+/**
+ * The Contact frame around the address: fine, bright sprites on a thinned band (density), crisp rather than glowing.
+ * fit 1.0 keeps the camera at its base distance, where one world unit is a known number of pixels, so the band lines
+ * up with the DOM letters (see emailFormation.ts).
+ */
+export const EMAIL_SPRITE: FormationSprite = { size: 0.62, alpha: 1, fog: 0.02, fit: 1, density: 0.5, spark: 0.12 };
+
+/** Phones: the address is about 30px tall, so the band is thinner and every sprite smaller and dimmer. */
+export const EMAIL_SPRITE_PHONE: FormationSprite = { size: 0.3, alpha: 0.8, fog: 0.02, fit: 1, density: 0.3, spark: 0.1 };
+
 export const OVERRIDE_LOOK = { size: 0.38, alpha: 0.3, brightness: 0.95, fit: 2.6, fog: 0.09, density: 1, spark: 0.3 };
 
 /** Bloom multiplier per chapter: hairlines (signal field, crosshair) stay crisp, glows keep the full bloom. */
-export const CHAPTER_BLOOM: Partial<Record<ChapterId, number>> = { hero: 0.4, impact: 0.7, systems: 0.6, proof: 0.65, director: 0.6, origin: 0.6, human: 0.3 };
+export const CHAPTER_BLOOM: Partial<Record<ChapterId, number>> = { hero: 0.4, impact: 0.7, systems: 0.6, proof: 0.65, director: 0.6, origin: 0.6, human: 0.3, contact: 0.4 };
 export const DEFAULT_BLOOM = 1;
 
 /** Bloom multiplier while a Director drawing is held: line art must stay crisp, not glow. */

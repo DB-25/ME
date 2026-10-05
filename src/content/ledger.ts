@@ -67,14 +67,15 @@ export function sourceOf(source: string): LedgerSource {
     const url = new URL(source);
     const host = url.hostname.replace(/^www\./, "");
     const repo = host === GITHUB ? url.pathname.split("/").filter(Boolean)[1] : undefined;
-    return { label: repo ? `${repo} on GitHub` : host, href: source, isPrivate: false };
+    const label = repo ? (url.pathname.includes("/commits/") ? `${repo} commit history` : `${repo} on GitHub`) : host;
+    return { label, href: source, isPrivate: false };
   }
   if (source.endsWith(".tex")) return { label: "Résumé", href: profile.resumeHref, isPrivate: false };
   const i = source.indexOf(PUBLIC_MARK);
   if (i >= 0) return { label: source.includes("acharya-users") ? "Store analytics screenshot" : "Document scan", href: `/${source.slice(i + PUBLIC_MARK.length)}`, isPrivate: false };
   if (source.endsWith(".csv")) return { label: "My notes (not linked)", isPrivate: true };
-  if (source.startsWith("git log")) return { label: "Git history (not linked)", isPrivate: true };
-  return { label: "Project docs (not linked)", isPrivate: true };
+  if (source.startsWith("git log")) return { label: "Private repo, git history", isPrivate: true };
+  return { label: "Private repo", isPrivate: true };
 }
 
 const slugify = (s: string) =>
@@ -141,7 +142,7 @@ function figureRows(): LedgerRow[] {
       appears: shown,
       basis: basisOf(m),
       source: sourceOf(m.source),
-      asOf: dateIn(`${m.label} ${m.context}`) ?? (m.source.startsWith("git log") || /^https:\/\/github\.com/.test(m.source) ? REPO_READ : UNDATED),
+      asOf: dateIn(`${m.label} ${m.context} ${m.asOf ?? ""}`) ?? (m.source.startsWith("git log") || /^https:\/\/github\.com/.test(m.source) ? REPO_READ : UNDATED),
       projects: slug ? [slug] : [],
     });
   }
@@ -165,7 +166,7 @@ function noteRows(): LedgerRow[] {
         definition: note.text,
         appears: [{ label: `${p.name}, production notes`, href: `/work/${p.slug}/#sec-notes` }],
         basis,
-        source: link ? { label: link.label, href: link.href, isPrivate: false } : { label: "Private repo, not linked", isPrivate: true },
+        source: link ? { label: link.label, href: link.href, isPrivate: false } : { label: "Private repo", isPrivate: true },
         asOf: REPO_READ,
         projects: [p.slug],
       });
@@ -192,6 +193,12 @@ function recognitionBasis(r: Recognition): Basis {
   return r.image?.src.includes("governors-citation") ? "third-party" : "self";
 }
 
+/** A date in the note counts only when it falls in the recognition's own year: a note may mention when I joined, which is not when it was won. */
+function recognitionDate(r: Recognition): LedgerDate {
+  const inNote = dateIn(r.note ?? "");
+  return inNote && inNote.sort.startsWith(r.year) ? inNote : { label: r.year, sort: `${r.year}-00-00` };
+}
+
 function recognitionRows(): LedgerRow[] {
   return recognition.map((r) => ({
     id: slugify(`recognition-${r.title}`),
@@ -201,7 +208,7 @@ function recognitionRows(): LedgerRow[] {
     appears: [HOME("Proof", "proof")],
     basis: recognitionBasis(r),
     source: r.href ? sourceOf(r.href) : r.image ? { label: "Document scan", href: r.image.src, isPrivate: false } : { label: "Private", isPrivate: true },
-    asOf: dateIn(r.note ?? "") ?? { label: r.year, sort: `${r.year}-00-00` },
+    asOf: recognitionDate(r),
     projects: projectsFor(r),
   }));
 }

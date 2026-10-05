@@ -39,6 +39,18 @@ export const SAMPLE: Seg[][] = [
 const flat = SAMPLE.flat();
 export const ID_COUNT = flat.filter((s) => typeof s !== "string" && s.k === "id").length;
 export const DATE_COUNT = flat.filter((s) => typeof s !== "string" && s.k === "keep" && s.why === "date").length;
+export const DX_COUNT = flat.filter((s) => typeof s !== "string" && s.k === "keep" && s.why === "dx").length;
+
+/**
+ * The tally in each stage's page header, per stage. Exact on purpose: what is replaced, what is kept by design, and
+ * the school name, which the page shows unflagged because whether Comprehend flags one is unconfirmed.
+ */
+export const TALLY = [
+  `${ID_COUNT} identifiers, ${DATE_COUNT} dates, ${DX_COUNT} diagnosis and a school name, all readable`,
+  `${ID_COUNT} replaced. Kept by design: ${DATE_COUNT} dates, ${DX_COUNT} diagnosis. School name: unconfirmed`,
+  `Still readable: ${DATE_COUNT} dates (a date of birth among them), ${DX_COUNT} diagnosis, the school name`,
+  "",
+] as const;
 
 /** A piece of the summary the model writes back: text, the child's placeholder, or a diagnosis kept by design. */
 export type SumPart = string | { tok: true } | { keep: string };
@@ -87,7 +99,7 @@ export const STAGES: Stage[] = [
     vendor: "Amazon Comprehend",
     where: "Inside our AWS account",
     sees: "The OCR text. It replaces every identifier it finds except dates.",
-    announce: "Amazon Comprehend replaces seven identifiers with tokens and keeps the dates.",
+    announce: "Amazon Comprehend replaces seven identifiers with tokens. It keeps the dates and the diagnosis by design, and it is unconfirmed whether it flags the school name.",
     rows: [
       { k: "Strict match", v: "Each identifier becomes its type in brackets, like [ADDRESS] or [PHONE]. Only a full name that matches the child's profile becomes {{S}}; every other name, and a bare first name like the one on line 8, becomes [NAME]." },
       { k: "Fails closed", v: "An error stops the run instead of passing text on. Step Functions retries, and a lasting failure purges unredacted artifacts." },
@@ -99,12 +111,12 @@ export const STAGES: Stage[] = [
     who: "OpenAI",
     vendor: "OpenAI",
     where: "Writes and translates",
-    sees: "Redacted text only.",
-    announce: "OpenAI sees redacted text only, and writes the summary and translations around the placeholder.",
+    sees: "The redacted text. Dates, the diagnosis and the school name are still readable in it.",
+    announce: "OpenAI reads the redacted text and writes the summary and translations around the placeholder. Dates, the diagnosis and the school name are still readable in it.",
     rows: [
       { k: "Writes", v: "A plain-language summary, then one translation per language. People are named by role, and [NAME] is never printed." },
       { k: "Placeholder", v: "{{S}} is copied through verbatim in every language. A translation run that drops it fails." },
-      { k: "Kept by design", v: "Diagnoses stay in the summary, and so do dates." },
+      { k: "Kept by design", v: "Dates, a date of birth included, and diagnoses stay: an IEP is a calendar of dates, and the summary has to say when meetings happen. The school name is not flagged here, and whether Comprehend flags one is unconfirmed." },
     ],
   },
   {

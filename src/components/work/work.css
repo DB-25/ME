@@ -1,7 +1,7 @@
 /* Work index (home chapter 03). Default layout (phones, tablets, touch): a horizontal scroll-snap carousel of project cards.
    From 1100px up with a mouse: a list of projects (name, one line, the proof number) beside one large sticky preview stage
    that shows the pointed-at project's still and plays its film uncropped. A "Live" chip opens the running product. */
-.wk { --wk-ease: cubic-bezier(0.16, 1, 0.3, 1); --pa: var(--color-accent); --wk-ink: rgb(238 234 246 / 0.78); --wk-card: min(82vw, 340px); --wk-rail: 7rem; }
+.wk { --wk-ease: cubic-bezier(0.16, 1, 0.3, 1); --pa: var(--color-accent); --wk-ink: rgb(238 234 246 / 0.78); --wk-card: min(82vw, 340px); --wk-rail: 3.25rem; --wk-gap: clamp(56px, 8vw, 120px); }
 @media (min-width: 640px) { .wk { --wk-card: min(44vw, 400px); } }
 /* Mono micro-type over the particle field: 12px at ~70% ink, with a soft void halo so it never dissolves into the dots. */
 .wk .label { font-size: 12px; color: rgb(238 234 246 / 0.7); text-shadow: 0 0 10px rgb(6 5 9 / 1), 0 0 22px rgb(6 5 9 / 0.85); }
@@ -51,6 +51,8 @@
   font-family: var(--font-serif); font-style: italic; font-size: clamp(2rem, 10vw, 3rem); color: var(--color-accent-hot);
 }
 
+/* Ownership chip: the top-left corner of the still on cards (the "Live" chip takes the right), the rail under the index in rows. */
+.wk-link > .wk-ob { position: absolute; z-index: 2; top: 20px; left: 20px; }
 .wk-idx { grid-column: 1; grid-row: 2; margin-top: 12px; color: var(--color-dim); transition: color 0.4s; }
 .wk-row[data-active] .wk-idx { color: var(--pa); }
 .wk-meta { grid-column: 2; grid-row: 2; margin-top: 12px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 12px; }
@@ -124,10 +126,13 @@
 
 /* STAGE (wide screen with a mouse): list on the left, one large sticky preview on the right. */
 @media (min-width: 1100px) and (hover: hover) and (pointer: fine) {
-  .wk-split { --wk-col: calc((min(100vw, var(--maxw)) - 4 * var(--gutter)) / 2.28 - 2.75rem); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.28fr); column-gap: calc(var(--gutter) * 2); align-items: start; }
+  .wk-split { --wk-col: calc((min(100vw, var(--maxw)) - 4 * var(--gutter)) / 2.28 - var(--wk-rail));
+    /* The stage's own size, so it can sit centred in the viewport instead of hugging the top: 16:9 frame plus a two-line caption. */
+    --wk-stage-w: calc((min(100vw, var(--maxw)) - 4 * var(--gutter)) * 1.28 / 2.28);
+    --wk-stage-h: calc(var(--wk-stage-w) * 9 / 16 + 8.5rem); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.28fr); column-gap: calc(var(--gutter) * 2); align-items: start; }
   .wk-ctl { display: none; }
-  /* The bottom margin lets the sticky stage ride alongside the last rows instead of leaving the screen with them. */
-  .wk-list { grid-column: 1; grid-row: 1; display: block; margin: 0 0 clamp(120px, 12vw, 170px); padding: 0; overflow: visible; scroll-snap-type: none; border-bottom: 1px solid var(--color-hairline); }
+  /* No bottom margin: the stage is released exactly as the last row ends, so it never floats beside empty space. */
+  .wk-list { grid-column: 1; grid-row: 1; display: block; margin: 0; padding: 0; overflow: visible; scroll-snap-type: none; border-bottom: 1px solid var(--color-hairline); }
   .wk-row { display: block; border: 0; border-top: 1px solid var(--color-hairline); background: none; }
   .wk-row::before { inset: -1px 0 auto 0; height: 1px; }
   .wk-row::after {
@@ -141,7 +146,7 @@
 
   /* Row: index and name share a baseline; then the one line, then the proof number. Year, category and what I owned live in the stage caption. */
   .wk-link {
-    display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); grid-template-rows: auto auto auto; column-gap: 0; align-items: baseline;
+    display: grid; grid-template-columns: var(--wk-rail) minmax(0, 1fr); grid-template-rows: auto auto auto; column-gap: 0; align-items: baseline;
     padding: clamp(16px, 1.5vw, 22px) 0; transition: opacity 0.5s var(--wk-ease);
   }
   /* A soft void behind the copy so the drifting particles never sit under it. Feathered on every side. */
@@ -157,6 +162,7 @@
   .wk-link:hover, .wk-link:focus-visible { opacity: 1 !important; }
 
   .wk-idx { grid-column: 1; grid-row: 1; margin: 0; }
+  .wk-link > .wk-ob { position: static; grid-column: 1; grid-row: 2; margin: 10px 0 0; }
   .wk-meta, .wk-media, .wk-own, .wk-go { display: none; }
   .wk-name { grid-column: 2; grid-row: 1; margin: 0; font-size: min(3.25rem, 3.4vw, calc(var(--wk-col) / var(--n-max) * 1.9)); }
   .wk-tag { grid-column: 2; grid-row: 2; margin: 10px 0 0; font-size: clamp(1rem, 1.2vw, 1.1875rem); text-wrap: balance; }
@@ -168,7 +174,7 @@
   .wk-live, .wk .wk-live { top: auto; right: 0; bottom: clamp(14px, 1.3vw, 20px); min-height: 36px; padding: 0 12px; background: rgb(6 5 9 / 0.72); }
 
   /* THE STAGE: sticky, 16:9, never taller than the list. The film is 16:9 too, so nothing is ever cropped. */
-  .wk-stage { grid-column: 2; grid-row: 1; display: block; position: sticky; top: 88px; }
+  .wk-stage { grid-column: 2; grid-row: 1; display: block; position: sticky; top: max(88px, calc((100svh - var(--wk-stage-h)) / 2)); }
   .wk-stage-link { display: block; color: inherit; text-decoration: none; }
   .wk-frame {
     position: relative; aspect-ratio: 16 / 9; overflow: hidden; isolation: isolate; background: var(--color-void-2);
@@ -191,13 +197,14 @@
   .wk .wk-cap .wk-badge { display: inline-flex; }
   .wk .wk-cap-go { color: var(--color-accent-hot); }
   .wk-cap-own { margin: 10px 0 0; max-width: 62ch; color: var(--color-ink); font-size: clamp(0.9375rem, 1.1vw, 1.0625rem); line-height: 1.5; text-wrap: pretty; }
-  .wk-cap-own .label { display: block; margin-bottom: 4px; }
+  .wk-cap-own-k { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .wk-still, .wk-still[data-on] { transform: none; transition: opacity 0.3s; }
 }
 
-/* THE LAB. Filters are a single swipeable row on phones. */
+/* THE LAB. One gap token between the featured list and the lab, whatever the layout. Filters are a single swipeable row on phones. */
+.wk-lab-wrap { margin-top: var(--wk-gap); }
 .wk-lab-filters {
   display: flex; flex-wrap: nowrap; gap: 0 14px; margin: 0 calc(var(--gutter) * -1) 6px; padding-inline: calc(var(--gutter) - 6px);
   overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;
@@ -238,7 +245,7 @@ a.wk-lab-name::after { content: ""; position: absolute; inset: 0; }
 .wk-lab-row:hover a.wk-lab-name { transform: translateX(10px); color: var(--color-accent-hot); }
 .wk-lab-row:has(a.wk-lab-name) { cursor: pointer; }
 .wk-lab-what { color: var(--wk-ink); font-size: 1rem; line-height: 1.45; text-wrap: pretty; text-shadow: 0 0 14px rgb(6 5 9 / 1), 0 0 30px rgb(6 5 9 / 0.9); }
-.wk .wk-lab-cat { display: block; margin-top: 6px; color: rgb(238 234 246 / 0.6); }
+.wk .wk-lab-cat { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 6px; color: rgb(238 234 246 / 0.6); }
 .wk-lab-year { white-space: nowrap; }
 .wk .wk-lab-link { justify-self: start; color: var(--color-ink); text-decoration: none; }
 .wk-lab-link i { display: inline-block; width: 6px; height: 6px; margin-right: 8px; vertical-align: 1px; background: var(--pa); animation: wk-pulse 1.8s ease-in-out infinite; }
@@ -259,7 +266,7 @@ a.wk-lab-name::after { content: ""; position: absolute; inset: 0; }
 }
 /* Same rail as the featured rows, so both lists share one left edge for their names. */
 @media (min-width: 1100px) {
-  .wk-lab-row { grid-template-columns: var(--wk-rail) minmax(0, 1.2fr) minmax(0, 1.1fr) 8rem minmax(0, 1fr); }
+  .wk-lab-row { grid-template-columns: calc(var(--wk-rail) - var(--gutter)) minmax(0, 1.2fr) minmax(0, 1.1fr) 8rem minmax(0, 1fr); }
   .wk-lab-row > .wk-lab-idx { grid-column: 1; }
   .wk-lab-row > .wk-lab-name { grid-column: 2; }
   .wk-lab-row > .wk-lab-what { grid-column: 3; }

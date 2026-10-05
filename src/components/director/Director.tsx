@@ -19,15 +19,28 @@ const TOURS = [...PERSONA_TOURS.map((t) => t.request), "Surprise me", "Draw me a
 
 const FOCUS_DELAY_MS = 900;
 
+/** On screen and rendered: focusing anything else would scroll the page back or land on something about to hide. */
+const canRestoreFocusTo = (el: HTMLElement | null): el is HTMLElement => {
+  if (!el?.isConnected || el.hasAttribute("disabled")) return false;
+  const r = el.getBoundingClientRect();
+  return r.bottom > 0 && r.top < window.innerHeight && el.checkVisibility({ visibilityProperty: true });
+};
+
+const focusedElement = () => (document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null);
+
 export function Director() {
   const { state, run, cut, dismiss } = useDirectorRun();
   const [value, setValue] = useState("");
   const [inView, setInView] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
-  const wasRunning = useRef(false);
+  const wasActive = useRef(false);
+  /** What had focus when the take started (a tour card or a hero chip), so focus can go back to it afterwards. */
+  const opener = useRef<HTMLElement | null>(null);
   const live = isDirectorConfigured();
   const running = state.phase === "running" || state.phase === "outro";
+  /** The HUD is up: running, or finished and waiting to be closed ("Again" holds focus until then). */
+  const active = state.phase !== "idle";
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -41,6 +54,7 @@ export function Director() {
   // loaded is waiting in the bus; later ones arrive as an event, still inside the visitor's gesture.
   useEffect(() => {
     const start = (prompt: string) => {
+      opener.current = focusedElement();
       lineAudio.prime();
       void run(prompt);
     };
@@ -54,17 +68,23 @@ export function Director() {
     return () => window.removeEventListener(TOUR_EVENT, onTour);
   }, [run]);
 
-  // Focus returns to the input after a take, if the visitor can see it.
+  // When the HUD closes, focus goes back to the input if the visitor can see it, else to what started the take.
   useEffect(() => {
     // Not on a phone: focusing the input there would raise the keyboard over the tour cards.
-    if (wasRunning.current && !running && inView && !isCoarsePointer()) inputRef.current?.focus({ preventScroll: true });
-    wasRunning.current = running;
-  }, [running, inView]);
+    if (wasActive.current && !active) {
+      const back = opener.current;
+      if (inView && !isCoarsePointer()) inputRef.current?.focus({ preventScroll: true });
+      else if (canRestoreFocusTo(back)) back.focus({ preventScroll: true });
+      opener.current = null;
+    }
+    wasActive.current = active;
+  }, [active, inView]);
 
   const submit = (text: string) => {
     const prompt = text.trim();
     if (!prompt || running) return;
     setValue("");
+    opener.current = focusedElement();
     inputRef.current?.blur();
     // Still inside the visitor's gesture: unlock audio playback before the first line.
     lineAudio.prime();

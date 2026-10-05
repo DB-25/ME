@@ -11,7 +11,7 @@ export function NextProject({ next, index, total }: { next: Project; index: numb
   return (
     <section id="sec-next" className="cs-next" data-cs="next" data-cs-label="Up next" aria-labelledby="cs-next-h">
       <div className="shell">
-        <Link href={caseHref(next.slug)} className="cs-next-link" data-cursor="open">
+        <Link href={caseHref(next.slug)} prefetch={false} className="cs-next-link" data-cursor="open">
           <div className="cs-next-top">
             <p id="cs-next-h" className="label">
               Up next

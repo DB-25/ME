@@ -4,7 +4,7 @@
 // Three runs, median.
 const mobile = process.env.LH_FORM_FACTOR !== "desktop";
 const base = (process.env.LH_BASE_URL ?? "http://localhost:4173").replace(/\/$/, "");
-const routes = ["/", "/work/", "/work/genie/", "/work/a-iep/"];
+const routes = ["/", "/work/", "/work/genie/", "/work/a-iep/", "/receipts/"];
 
 const budget = mobile ? { home: 0.7, other: 0.65 } : { home: 0.9, other: 0.85 };
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
@@ -25,7 +25,7 @@ module.exports = {
           },
         },
         {
-          matchingUrlPattern: "/work/",
+          matchingUrlPattern: "/(work|receipts)/",
           assertions: {
             "categories:performance": ["error", { minScore: budget.other, aggregationMethod: "median" }],
           },

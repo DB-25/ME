@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Project } from "@/content";
 import { assetUrl, caseHref } from "./asset";
 import { CATEGORY_LABEL, previewImage } from "./meta";
+import { OwnershipBadge } from "./OwnershipBadge";
 import { useStageFilm } from "./useStageFilm";
 
 /** The pointer must rest this long on a row before the stage swaps, so sweeping down the list does not strobe. */
@@ -92,7 +93,10 @@ export function WorkStage({ projects, slug, spot, intent, films }: Props) {
               </p>
               {p.owned ? (
                 <p className="wk-cap-own">
-                  <span className="label">I owned</span>
+                  <span className="wk-cap-own-k">
+                    <span className="label">I owned</span>
+                    <OwnershipBadge ownership={p.ownership} />
+                  </span>
                   {p.owned}
                 </p>
               ) : null}

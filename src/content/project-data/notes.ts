@@ -20,7 +20,7 @@ export const PRODUCTION_NOTES: Record<string, ProductionNote[]> = {
     {
       label: "Cost",
       status: "Projected",
-      text: "Judge-based scoring is projected at about $0.25 to $0.55 per document, or $25 to $110 a month at 100 to 200 documents. Those are planning estimates from my cost study, not a bill. The pipeline’s own tests record summarizing at about 29 seconds and translating at about 24.",
+      text: "Judge-based scoring is projected at about $0.25 to $0.55 per document, or $25 to $110 a month at 100 to 200 documents. Those are planning estimates from my cost study, not a bill. A comment in the pipeline’s tests records the median of 100 production and staging runs: 29 seconds to summarize and 24 to translate.",
       links: [{ label: "Pipeline tests", href: REPO.aiepStateMachineTests }],
     },
     {
@@ -32,11 +32,11 @@ export const PRODUCTION_NOTES: Record<string, ProductionNote[]> = {
         },
         {
           lead: "Comprehend",
-          text: "The OCR text, inside our AWS account. It replaces every identifier it finds except dates, and fails closed: an error stops the run instead of passing text on. How many identifiers it misses is not measured yet.",
+          text: "The OCR text, inside our AWS account. It replaces every identifier it finds except dates (names included since the September 2026 change; production release 9 Oct 2026), and fails closed: an error stops the run instead of passing text on. How many identifiers it misses is not measured yet.",
         },
         {
           lead: "OpenAI",
-          text: "Redacted text only, to write and translate the summary. The student’s name is a placeholder that the app swaps in when a parent opens the page. Diagnoses stay in the summary by design.",
+          text: "The redacted text, to write and translate the summary. Dates (a date of birth included) and diagnoses stay in it by design, and a school name is not specifically handled. The student’s name is a placeholder that the app swaps in when a parent opens the page.",
         },
       ],
       links: [
@@ -53,6 +53,8 @@ export const PRODUCTION_NOTES: Record<string, ProductionNote[]> = {
         },
       ],
       links: [
+        { label: "Name redaction change", href: REPO.aiepNameFix },
+        { label: "Redaction plan", href: REPO.aiepRedactionPlan },
         { label: "Sign-up fix", href: REPO.aiepOtpFix },
         { label: "Testing plan", href: REPO.aiepTestingPlan },
       ],
@@ -89,7 +91,7 @@ export const PRODUCTION_NOTES: Record<string, ProductionNote[]> = {
     {
       label: "Evaluation",
       status: "Not measured",
-      text: "The repo has no tests and no routing evaluation. I can explain how it routes, but I cannot show that routing kept answers as good as always using one model.",
+      text: "The repo has no tests and no routing evaluation, so nothing shows that routing kept answers as good as always using one model.",
     },
     {
       label: "Evidence",
@@ -167,7 +169,7 @@ export const PRODUCTION_NOTES: Record<string, ProductionNote[]> = {
     },
     {
       label: "What broke",
-      text: "A page script that threw was reported as ok: true, so a four-step batch in which nothing happened looked fully successful. An agent that drove the running server found it on 31 August 2026. Version 0.3.0 validates every argument and marks failures isError.",
+      text: "A page script that threw was reported as ok: true, so a four-step batch in which nothing happened looked fully successful. An agent that drove the running server found it on 31 August 2026, in the 0.1.x builds I had been running. npm has only ever carried 0.3.0, which validates every argument and marks failures isError. The public git history starts at that release, so the fix is recorded in the changelog and the review rather than the commit log.",
       links: [
         { label: "Agent review", href: REPO.arcReview },
         { label: "Changelog", href: REPO.arcChangelog },
@@ -239,7 +241,63 @@ export const PRODUCTION_NOTES: Record<string, ProductionNote[]> = {
     {
       label: "Evidence",
       status: "Private repo",
-      text: "The repo is private. I was technical lead; most of the code is my teammates’.",
+      text: "The repo is private. I was technical lead; teammates wrote most of the code.",
+    },
+  ],
+
+  "course-delivery": [
+    {
+      label: "Mechanism",
+      text: "A learner signs up with a mobile number or an email, confirms a six-digit code and watches one lesson a day. The question after a lesson unlocks only when about 90 percent of the video’s seconds were actually seen, kept as a per-second watch map, so dragging the scrubber to the end changes nothing. A one-question quiz, graded on the server, gates the next lesson, and a personalized PDF certificate follows lesson eight. An admin console shows progress by lesson.",
+    },
+    {
+      label: "Reminders",
+      text: "A reminder goes out after 24 hours of inactivity, at most one a day, only in the first 8 days, and never more than two unanswered in a row. An hourly scheduler claims each learner’s day before it sends, so a retried run cannot text twice.",
+    },
+    {
+      label: "Guardrails",
+      lines: [
+        { lead: "Quiet hours.", text: "Texts go out only between 9 am and 8 pm in the learner’s time zone." },
+        {
+          lead: "Opt-outs.",
+          text: "STOP, START and HELP are handled. A learner who replied STOP is told how to turn texts back on instead of seeing an error.",
+        },
+        {
+          lead: "Carrier rules.",
+          text: "Every text starts with the program name, and reminders carry the opt-out line and fit one segment. Links point only to the course’s own domain, never a shortener, because carriers filter texts with links. Message text uses plain characters, because one accented or curly character cuts a segment from 160 characters to 70.",
+        },
+        {
+          lead: "Failed sends.",
+          text: "They are sorted into spam filtering, carrier block, unreachable, invalid number and spend limit. Logs mask phone numbers and never keep message text.",
+        },
+      ],
+    },
+    {
+      label: "What broke",
+      lines: [
+        {
+          lead: "A blank video box.",
+          text: "When the video host failed to load, the lesson page showed an empty box. It now shows a Try again button and a link to the video, and a lesson already passed keeps its player.",
+        },
+        {
+          lead: "Admin numbers undercounted.",
+          text: "The per-lesson funnel counted from the event log, so learners whose progress predated the log, or whose video an admin marked as watched, were missing. It now counts from progress records.",
+        },
+        {
+          lead: "A wrong claim in my own notes.",
+          text: "The first deploy notes said a settings change reaches running servers within about 15 minutes. They cache settings for hours, so I corrected the note and added a deploy option that replaces the containers.",
+        },
+      ],
+    },
+    {
+      label: "Evaluation",
+      status: "Tested",
+      text: "29 server test files cover the reminder rules, the watch-coverage check, text wording and length, STOP handling, sign-in limits and the admin API. The course is pre-launch, so there are no usage numbers.",
+    },
+    {
+      label: "Evidence",
+      status: "Private repo",
+      text: "The repo is private, so nothing here is linked. Status: pre-launch.",
     },
   ],
 
@@ -251,7 +309,7 @@ export const PRODUCTION_NOTES: Record<string, ProductionNote[]> = {
     {
       label: "Evidence",
       status: "Private repo",
-      text: "The repo is private. Rudra Sett wrote most of the code; my part was technical direction across the program and security fixes.",
+      text: "The repo is private. Student engineers wrote most of the code; my part was technical direction across the program and security fixes.",
     },
   ],
 };

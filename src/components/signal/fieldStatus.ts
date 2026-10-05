@@ -49,5 +49,18 @@ export function patchFieldStatus(patch: Partial<FieldStatus>) {
   const changed = (Object.keys(patch) as Array<keyof FieldStatus>).some((k) => status[k] !== patch[k]);
   if (!changed) return;
   status = { ...status, ...patch };
+  syncDocumentFlag();
   listeners.forEach((l) => l());
+}
+
+/**
+ * `<html data-field-light>` while the page is on a still or on software GL: the compositor is already the bottleneck
+ * there, so chrome that blurs or blends what is behind it (the nav bar) falls back to an opaque fill. See Nav.tsx.
+ */
+function syncDocumentFlag() {
+  if (typeof document === "undefined") return;
+  const light = status.mode === "poster" || status.software;
+  const root = document.documentElement;
+  if (light) root.setAttribute("data-field-light", "");
+  else root.removeAttribute("data-field-light");
 }

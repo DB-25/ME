@@ -8,6 +8,7 @@ const BURNES = "The Burnes Center for Social Change";
 export const flagshipProjects: Project[] = [
   {
     slug: "a-iep",
+    ownership: "lead",
     headlines: { problem: "Parents were signing plans they couldn’t read.", built: "A pipeline that reads the plan, so parents don’t have to decode it.", flows: "Upload in, plain language out, the original deleted.", outcomes: "Hundreds of plans, four languages." },
     film: {
       src: "/films/a-iep.mp4",
@@ -31,7 +32,7 @@ export const flagshipProjects: Project[] = [
       "An Individualized Education Program is the legal document that decides a child’s support. It is dense, full of jargon and usually in English. Parents often sign it without being able to read it.",
     approach: [
       "I took the AI-EP prototype from the 2023 to 2024 co-op team and rebuilt it as a production, open source platform.",
-      "A Step Functions pipeline runs OCR, redacts personal information with Comprehend (every name included, dates kept), deletes the original upload, writes a plain-language summary in nine sections, then translates it. OCR is the one step that sees the original page; the models that summarize and translate only ever see redacted text.",
+      "A Step Functions pipeline runs OCR, redacts personal information with Comprehend (every name included since the September 2026 change, which reaches production on 9 Oct 2026; dates kept), deletes the original upload, writes a plain-language summary in nine sections, then translates it. OCR is the one step that sees the original page; the models that summarize and translate only ever see redacted text.",
       "Privacy comes first: every stage catches into a failure handler that purges unredacted artifacts, every durable store is protected from deletion, and infrastructure tests check both.",
       "Parents helped design it. We showed them the prompts and let their feedback reshape the output. Jargon words open a tap-to-define drawer, and each section points back to the original page.",
       "Quality is next. In July 2026 I audited the pipeline and found its only automated check on output was a schema check. The evaluation design is written up in the repo: atomic-fact checks, a cross-family judge and a translation judge, projected at about $0.25 to $0.55 per document. The synthetic benchmark behind it is still being built, and no accuracy results are published yet.",
@@ -52,6 +53,15 @@ export const flagshipProjects: Project[] = [
     },
     outcomes: [
       {
+        value: "4",
+        numeric: 4,
+        label: "Languages in production",
+        context: "English, Spanish, Vietnamese and Chinese are enabled in production. Arabic, with a right-to-left layout, is built and enabled on dev and staging only.",
+        source: REPO.aiepLanguages,
+        asOf: "5 Oct 2026",
+        projectSlug: "a-iep",
+      },
+      {
         value: "375+",
         numeric: 375,
         suffix: "+",
@@ -70,19 +80,11 @@ export const flagshipProjects: Project[] = [
         projectSlug: "a-iep",
       },
       {
-        value: "4",
-        numeric: 4,
-        label: "Languages in production",
-        context: "English, Spanish, Vietnamese and Chinese. Arabic with a right-to-left layout is built and running in staging.",
-        source: SRC.aiepClaude,
-        projectSlug: "a-iep",
-      },
-      {
         value: "712",
         numeric: 712,
         label: "Commits by me",
-        context: "Of 1,266 on the public main branch, from February 2025 to October 2026.",
-        source: "git log, The-Burnes-Center/a-iep main",
+        context: "Of 1,266 on the public main branch, from February 2025 to October 2026, counted 5 Oct 2026. The link filters the public log by my GitHub account; 71 of the 712 carry a second author name, Dhruv Kamalesh Kumar, on the same email.",
+        source: REPO.aiepMyCommits,
         projectSlug: "a-iep",
       },
       {
@@ -149,6 +151,7 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "genie",
+    ownership: "core",
     headlines: { problem: "State employees wanted AI. The state wanted it safe.", built: "One sandbox, many models, and a router that picks for you.", flows: "Every request finds the right model.", outcomes: "Forty-four thousand people with access." },
     film: {
       src: "/films/genie.mp4",
@@ -163,7 +166,7 @@ export const flagshipProjects: Project[] = [
     tagline: "A safe place for state employees to try generative AI.",
     year: "2024",
     role: "Co‑op engineer, author of Smart Model",
-    owned: "Top committer on a team build (171 of 803 commits), and the author of Smart Model, the router that picks a model for each request.",
+    owned: "Top committer on the Burnes team’s build (171 of its 300 commits on main, after the fork from the open source AWS chatbot), and the author of Smart Model, the router that picks a model for each request.",
     org: BURNES,
     featured: true,
     category: "gov-ai",
@@ -216,6 +219,14 @@ export const flagshipProjects: Project[] = [
         source: SRC.citation,
         projectSlug: "genie",
       },
+      {
+        value: "171",
+        numeric: 171,
+        label: "Commits by me on the team build",
+        context: "Of the 300 commits the Burnes team made on main after forking the open source AWS GenAI chatbot. The other 503 of the repo’s 803 are that upstream history. Two authors made the 300: me (171) and a teammate (129). Private repo, counted 5 Oct 2026.",
+        source: SRC.genieGit,
+        projectSlug: "genie",
+      },
     ],
     stack: [
       "AWS Bedrock",
@@ -264,7 +275,8 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "abe-one-l",
-    headlines: { problem: "Procurement runs on rules nobody can keep in their head.", built: "Two agents: one answers buyers, one redlines contracts.", flows: "Questions get citations. Contracts get redlines.", outcomes: "A national award, and lawyers who start from a draft." },
+    ownership: "lead",
+    headlines: { problem: "Procurement runs on rules nobody can keep in their head.", built: "Two agents: one answers buyers, one redlines contracts.", flows: "Questions get citations. Contracts get redlines.", outcomes: "Two NASPO awards, and lawyers who start from a draft." },
     film: {
       src: "/films/abe-one-l.mp4",
       poster: "/films/abe-one-l.jpg",
@@ -275,10 +287,10 @@ export const flagshipProjects: Project[] = [
       transcript: FILM_TRANSCRIPTS["abe-one-l"],
     },
     name: "ABE and One-L",
-    tagline: "Two AI agents for state procurement. They won a national award.",
+    tagline: "Two AI agents for state procurement, recognized by NASPO in 2025.",
     year: "2025 to 2026",
     role: "Technical lead, ABE evaluation and observability",
-    owned: "Technical lead: top committer on ABE (270 of 678 commits on main), where I built the quality monitoring, the thumbs-up-to-test-case pipeline and the alarms; on One‑L I set the direction and wrote 97 of 576 commits, with four co-op students on the build.",
+    owned: "Joined One‑L in November 2025 and ABE in February 2026, after the 2025 NASPO awards. Top committer on ABE since (270 of 678 commits on main), where I built the quality monitoring, the thumbs-up-to-test-case pipeline and the alarms; on One‑L I set the direction (98 of 576 commits on main).",
     org: BURNES,
     featured: true,
     category: "gov-ai",
@@ -288,9 +300,9 @@ export const flagshipProjects: Project[] = [
     approach: [
       "ABE, the Assistive Buyer Engine, is an agentic RAG chatbot. Claude on Bedrock calls four tools in a loop (knowledge base search, full-document retrieval, metadata and structured spreadsheet queries) and answers with citations.",
       "One‑L takes a vendor contract through an 11-stage Step Functions workflow. It splits the document, retrieves state requirements, has Claude 4 Sonnet flag conflicts, merges the results and writes a redlined file. A human reviews every redline.",
-      "I own ABE’s quality loop today. A teammate, Ritik Bompilwar, wrote the first RAGAS pipeline in 2025. From February 2026 I built the quality-monitoring platform around it, added the path that turns thumbs-up answers into test cases, and built the CloudWatch alarms.",
+      "Both agents won NASPO awards in 2025, before I joined: I picked up One‑L in November 2025 and ABE in February 2026. I own ABE’s quality loop today. A teammate, Ritik Bompilwar, wrote the first RAGAS pipeline in 2025. From February 2026 I built the quality-monitoring platform around it, added the path that turns thumbs-up answers into test cases, and built the CloudWatch alarms.",
       "ABE is now a white-label template. One config file sets the brand, so another agency can rebrand and deploy it from a single file.",
-      "I set the technical direction for One‑L, and four Northeastern co-op students built it with me.",
+      "I have set the technical direction for One‑L since November 2025, working with the four Northeastern co-op students on the team.",
     ],
     architecture: {
       nodes: [
@@ -332,8 +344,8 @@ export const flagshipProjects: Project[] = [
       {
         value: "2",
         numeric: 2,
-        label: "NASPO awards, 2025",
-        context: "Cronin Gold and Academic Collaboration, won by Massachusetts OSD with the Burnes Center. I was on the team that built ABE and One‑L.",
+        label: "NASPO awards for ABE and One‑L, 2025",
+        context: "Cronin Gold and Academic Collaboration, won by Massachusetts OSD with the Burnes Center before I joined either project. I now lead ABE’s quality monitoring and One‑L’s direction.",
         source: SRC.naspo,
         projectSlug: "abe-one-l",
       },
@@ -347,12 +359,28 @@ export const flagshipProjects: Project[] = [
         projectSlug: "abe-one-l",
       },
       {
-        value: "40+",
-        numeric: 40,
-        suffix: "+",
+        value: "43",
+        numeric: 43,
         label: "CloudWatch alarms on ABE",
-        context: "Alongside a web application firewall and X-Ray tracing.",
-        source: SRC.abeReadme,
+        context: "Operations alarms: errors and throttles on ten Lambdas, read and write throttles on nine tables, and five more (chat latency, HTTP 4xx and 5xx, no WebSocket connections, evaluation workflow failures). None watches answer quality. A web application firewall and X-Ray tracing sit alongside.",
+        source: REPO.abeReadme,
+        asOf: "5 Oct 2026",
+        projectSlug: "abe-one-l",
+      },
+      {
+        value: "270",
+        numeric: 270,
+        label: "Commits by me on ABE",
+        context: "Of 678 on the public main branch, from my first commit on 10 Feb 2026, counted 5 Oct 2026. Two of the 270 carry a second author name, Dhruv Kamalesh Kumar, on the same email.",
+        source: REPO.abeMyCommits,
+        projectSlug: "abe-one-l",
+      },
+      {
+        value: "98",
+        numeric: 98,
+        label: "Commits by me on One‑L",
+        context: "Of 576 on main, from my first commit on 29 Nov 2025, counted 5 Oct 2026. The repo is private, so this count cannot be checked from here.",
+        source: SRC.oneLGit,
         projectSlug: "abe-one-l",
       },
     ],
@@ -408,6 +436,7 @@ export const flagshipProjects: Project[] = [
   },
   {
     slug: "vct-scout",
+    ownership: "core",
     headlines: { problem: "Scouting a pro roster means drowning in match data.", built: "An agent that turns one sentence into a five-player roster.", flows: "Plain English in, tool calls out, a roster back.", outcomes: "Second out of 3,200+ participants." },
     film: {
       src: "/films/vct-scout.mp4",
@@ -465,6 +494,7 @@ export const flagshipProjects: Project[] = [
         label: "Best Cross‑Regional Team Submission",
         context: "A separate award the team also won.",
         source: SRC.amazonVct,
+        asOf: "Dec 2024",
         projectSlug: "vct-scout",
       },
       {
@@ -474,6 +504,7 @@ export const flagshipProjects: Project[] = [
         label: "Match files queried",
         context: "The size of the data the team restructured so Athena could answer in time, not a measure of accuracy.",
         source: SRC.devpost,
+        asOf: "2024",
         projectSlug: "vct-scout",
       },
     ],

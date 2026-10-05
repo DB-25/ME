@@ -92,7 +92,7 @@ export function CaseNav({ name, nextSlug, nextName, stops }: { name: string; nex
         <div ref={fill} />
       </div>
       <div className="cs-nav-in">
-        <Link href="/#work" className="cs-nav-back label link">
+        <Link href="/#work" prefetch={false} className="cs-nav-back label link">
           <span aria-hidden>&larr; </span>All work
         </Link>
         <div ref={wrap} className="cs-nav-where">
@@ -129,7 +129,7 @@ export function CaseNav({ name, nextSlug, nextName, stops }: { name: string; nex
             ))}
           </ul>
         </div>
-        <Link href={caseHref(nextSlug)} className="cs-nav-next label link" aria-label={`Next project: ${nextName}`}>
+        <Link href={caseHref(nextSlug)} prefetch={false} className="cs-nav-next label link" aria-label={`Next project: ${nextName}`}>
           Next<span className="cs-nav-next-name">: {nextName}</span>
           <span aria-hidden> &rarr;</span>
         </Link>

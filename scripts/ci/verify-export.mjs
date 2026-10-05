@@ -1,5 +1,7 @@
 // Checks the built export (out/) for the things that break quietly: a sitemap that lists URLs which do not exist,
-// a robots.txt that points at the wrong sitemap, a missing 404 page, missing structured data or canonical.
+// a robots.txt that points at the wrong sitemap, a missing 404 page, missing structured data or canonical, and share
+// metadata that falls back to the home page's card (every route needs its own og:url equal to its canonical, an og:image
+// and matching twitter title; the 404 needs exactly one robots tag).
 // Usage: BASE_PATH=/ME SITE_URL=https://db-25.github.io/ME node scripts/ci/verify-export.mjs [outDir]
 import fs from "node:fs";
 import path from "node:path";
@@ -28,6 +30,20 @@ check(Boolean(sitemapLine) && locs[0].startsWith(sitemapLine.replace(/sitemap\.x
 
 check(fs.existsSync(path.join(out, "404.html")), "404.html is missing");
 check(/Nothing at this/.test(read("404.html")), "404.html is not the designed not-found page");
+
+const metaContent = (html, attr, name) => html.match(new RegExp(`<meta ${attr}="${name}" content="([^"]*)"`))?.[1];
+check((read("404.html").match(/<meta name="robots"/g) ?? []).length === 1, "404.html must carry exactly one robots meta tag");
+for (const loc of locs) {
+  const rel = new URL(loc).pathname.slice(basePath.length).replace(/^\/+/, "");
+  const file = path.join(rel, "index.html");
+  if (!fs.existsSync(path.join(out, file))) continue; // already reported above
+  const page = read(file);
+  const label = rel || "home";
+  check(metaContent(page, "property", "og:url") === loc, `${label}: og:url is ${metaContent(page, "property", "og:url")}, expected the canonical ${loc}`);
+  check(Boolean(metaContent(page, "property", "og:image")), `${label}: no og:image`);
+  check(Boolean(metaContent(page, "name", "twitter:image")), `${label}: no twitter:image`);
+  check(metaContent(page, "property", "og:title") === metaContent(page, "name", "twitter:title"), `${label}: twitter:title differs from og:title`);
+}
 
 const home = read("index.html");
 check(/<link rel="canonical" href="[^"]+"/.test(home), "home has no canonical link");

@@ -6,6 +6,7 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { Scrim } from "../Scrim";
 import { EmailLink } from "./EmailLink";
+import { mailtoHref } from "./mailto";
 import { SiteFooter } from "./SiteFooter";
 import { useCopy } from "./useCopy";
 import { useEasterEgg } from "./useEasterEgg";
@@ -21,7 +22,12 @@ const LINKS = [
   ),
 ];
 
-const WORKING_STYLE = "I work fast, in small teams, and I ship things I can measure.";
+const WORKING_STYLE = "I work fast, in small teams, and I ship things people use.";
+/** The ask, made concrete: the same three prompts the email draft opens with (see mailto.ts). */
+const THE_ASK = "Tell me what you are building, what stage it is at, and what you need help with first.";
+
+/** An optional line about timing (a start date, a notice period). Rendered only when the profile carries one. */
+const AVAILABILITY = profile.availability;
 
 export function Contact() {
   const { state, copy, count } = useCopy(profile.email);
@@ -30,7 +36,7 @@ export function Contact() {
 
   return (
     <section id="contact" data-chapter="contact" aria-labelledby="contact-title" className="sx-in relative flex min-h-[min(100svh,820px)] flex-col">
-      <div className="sx-out shell flex flex-1 flex-col justify-between gap-12 pt-[clamp(72px,11vh,120px)]">
+      <div className="sx-out shell flex flex-1 flex-col justify-between gap-[clamp(32px,4vh,48px)] pt-[clamp(64px,8vh,104px)]">
         <div className="relative">
           <Scrim shape="band" strength={0.82} inset="-12% -4% -12% -24px" className="md:hidden" />
           <Scrim shape="hold" strength={0.7} inset="-12% -4% -12% -24px" className="hidden md:block" />
@@ -43,6 +49,14 @@ export function Contact() {
           <Reveal as="p" mode="fade" delay={0.2} className="lede mt-6 max-w-[34ch] [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">
             {WORKING_STYLE}
           </Reveal>
+          <Reveal as="p" mode="fade" delay={0.28} className="mt-3 max-w-[64ch] text-[0.9375rem] leading-[1.5] text-muted [text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]">
+            {THE_ASK}
+          </Reveal>
+          {AVAILABILITY ? (
+            <Reveal as="p" mode="fade" delay={0.34} className="label mt-3 !text-[12px] !text-accent-hot">
+              {AVAILABILITY}
+            </Reveal>
+          ) : null}
         </div>
 
         <div className="relative">
@@ -54,12 +68,13 @@ export function Contact() {
             </p>
           </div>
 
-          <EmailLink email={profile.email} onActivate={copy} sweep={count} />
+          <EmailLink email={profile.email} href={mailtoHref(profile.email)} onActivate={copy} sweep={count} />
 
           <Reveal mode="fade" delay={0.35} className="mt-8 flex flex-col gap-6 md:mt-10 md:flex-row md:items-center md:justify-between">
             <button
               type="button"
               onClick={copy}
+              data-copy-email
               aria-label={`Copy ${profile.email} to clipboard`}
               className="label inline-flex min-h-11 w-fit min-w-[9.5rem] items-center justify-center border border-hairline-strong px-5 py-3 !text-[12px] !text-ink transition-colors duration-300 hover:border-accent hover:!text-accent-hot"
             >

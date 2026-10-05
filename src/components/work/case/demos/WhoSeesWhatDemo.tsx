@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Ent } from "./Ent";
-import { DATE_COUNT, DOC_CAPTION, ID_COUNT, PROFILE_NAME, SAMPLE, STAGES, STUDENT_TOKEN, SUMMARY, type Seg, type SumPart } from "./data";
+import { DOC_CAPTION, PROFILE_NAME, SAMPLE, STAGES, STUDENT_TOKEN, SUMMARY, TALLY, type Seg, type SumPart } from "./data";
 
 /** Delay before the parent's screen swaps `{{S}}` for the profile name, so the swap reads as its own beat. */
 const SWAP_MS = 1100;
@@ -98,7 +98,7 @@ export function WhoSeesWhatDemo() {
     return <span key={key} className="wss-miss">{s.text}</span>;
   };
 
-  const tally = [`${ID_COUNT} identifiers readable`, `${ID_COUNT} replaced, ${DATE_COUNT} dates kept`, "0 identifiers readable", ""][stage];
+  const tally = TALLY[stage];
   const current = STAGES[stage];
   const next = STAGES[stage + 1];
   const panelId = `${uid}-panel`;

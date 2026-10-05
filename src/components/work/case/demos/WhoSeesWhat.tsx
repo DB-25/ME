@@ -34,7 +34,7 @@ export function WhoSeesWhat({ n }: { n: string }) {
         <DemoLoader />
 
         <p className="wss-cap">
-          Fictional sample, not a real student. The replacements apply the redactor&rsquo;s rules by hand, and how many identifiers it misses is not measured yet.
+          Fictional sample, not a real student. The replacements apply the redactor&rsquo;s rules by hand, and how many identifiers it misses is not measured yet. The sample includes a date of birth, a diagnosis and a school name on purpose, to show what the redactor keeps or may miss.
         </p>
         <p className="wss-src">
           {SOURCES.map((l) => (

@@ -3,14 +3,15 @@ import Link from "next/link";
 import { projects } from "@/content";
 import { Emph } from "@/components/ui/Emph";
 import { hasCase, pad } from "@/components/work/meta";
+import { pageMetadata } from "../page-metadata";
 
 const cases = projects.filter(hasCase);
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Work",
   description: "Every project with a case study, with the problem, the build and the outcomes.",
-  alternates: { canonical: "/work/" },
-};
+  path: "/work/",
+});
 
 /** /work/ resolves to a plain index of the case studies, so trimming a case URL back one level never lands on a 404. */
 export default function WorkPage() {
@@ -24,7 +25,7 @@ export default function WorkPage() {
       <ol className="mt-16 border-t border-hairline">
         {cases.map((p, i) => (
           <li key={p.slug} className="border-b border-hairline">
-            <Link href={`/work/${p.slug}/`} className="group grid min-h-11 grid-cols-12 items-baseline gap-x-6 gap-y-1 py-6">
+            <Link href={`/work/${p.slug}/`} prefetch={false} className="group grid min-h-11 grid-cols-12 items-baseline gap-x-6 gap-y-1 py-6">
               <span className="label col-span-2 md:col-span-1">{pad(i + 1)}</span>
               <span className="col-span-10 text-[clamp(1.5rem,2.6vw,2.25rem)] font-medium leading-tight tracking-[-0.03em] transition-colors duration-300 group-hover:text-accent-hot md:col-span-4">
                 {p.name}
@@ -35,7 +36,7 @@ export default function WorkPage() {
           </li>
         ))}
       </ol>
-      <Link href="/#work" className="link label mt-10 inline-flex min-h-11 items-center" style={{ color: "var(--color-ink)" }}>
+      <Link href="/#work" prefetch={false} className="link label mt-10 inline-flex min-h-11 items-center" style={{ color: "var(--color-ink)" }}>
         See the full selection
       </Link>
     </section>

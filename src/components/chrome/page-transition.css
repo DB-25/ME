@@ -1,0 +1,72 @@
+/* Route transitions between the home page and case studies (see PageTransitions.tsx).
+   These rules replace the ones in globals.css (the extra :root raises their specificity; that block can be deleted).
+
+   One travelling group: the project title, and the picture (view-transition-name: case-media) grow from the list
+   (or from the "Up next" card) into the case hero together. Everything else is one symmetric crossfade
+   (plus-lighter, same easing both ways), so brightness never dips mid-transition. The old row subtitle gets its own
+   short exit instead of lingering under the morphing title.
+
+   data-page-vt: "shared" (title and picture travel) or "plain" (dissolve only). data-page-vt-from="next" marks a move
+   that starts at the bottom of a case: the same travel, slower and in-out, so it reads as a hand-off. */
+:root {
+  --pt-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --pt-fade-ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes pt-out { to { opacity: 0; } }
+@keyframes pt-in { from { opacity: 0; } }
+
+html[data-page-vt]:root::view-transition-group(root) { animation-duration: 0.9s; }
+html[data-page-vt]:root::view-transition-old(root) {
+  animation: pt-out 0.5s var(--pt-fade-ease) both;
+  mix-blend-mode: plus-lighter;
+}
+html[data-page-vt]:root::view-transition-new(root) {
+  animation: pt-in 0.5s var(--pt-fade-ease) both;
+  mix-blend-mode: plus-lighter;
+}
+html[data-page-vt="plain"]:root::view-transition-old(root),
+html[data-page-vt="plain"]:root::view-transition-new(root) { animation-duration: 0.6s; }
+
+/* Title and picture: one group each, geometry on expo.out. The old and new snapshots cross-fade inside it with the
+   same easing both ways, over the first half of the move, so the glyphs never show a stretched double. */
+html[data-page-vt]:root::view-transition-group(case-title),
+html[data-page-vt]:root::view-transition-group(case-media) {
+  animation-duration: 0.95s;
+  animation-timing-function: var(--pt-ease);
+}
+html[data-page-vt][data-page-vt-from="next"]:root::view-transition-group(case-title),
+html[data-page-vt][data-page-vt-from="next"]:root::view-transition-group(case-media) {
+  animation-duration: 1.1s;
+  animation-timing-function: cubic-bezier(0.7, 0, 0.15, 1);
+}
+html[data-page-vt]:root::view-transition-old(case-title),
+html[data-page-vt]:root::view-transition-new(case-title) {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left top;
+  mix-blend-mode: plus-lighter;
+}
+html[data-page-vt]:root::view-transition-old(case-media),
+html[data-page-vt]:root::view-transition-new(case-media) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  mix-blend-mode: plus-lighter;
+}
+html[data-page-vt]:root::view-transition-old(case-title),
+html[data-page-vt]:root::view-transition-old(case-media) { animation: pt-out 0.55s var(--pt-fade-ease) both; }
+html[data-page-vt]:root::view-transition-new(case-title),
+html[data-page-vt]:root::view-transition-new(case-media) { animation: pt-in 0.55s var(--pt-fade-ease) both; }
+
+/* The row's subtitle only leaves: it is the same sentence as the case hero's tagline, so it must not ghost under the title. */
+html[data-page-vt]:root::view-transition-group(case-tag-out) { animation: none; }
+html[data-page-vt]:root::view-transition-old(case-tag-out) { animation: pt-out 0.16s ease-out both; }
+html[data-page-vt]:root::view-transition-new(case-tag-out) { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-page-vt]:root::view-transition-group(*),
+  html[data-page-vt]:root::view-transition-old(*),
+  html[data-page-vt]:root::view-transition-new(*) { animation-duration: 0.01ms !important; }
+}

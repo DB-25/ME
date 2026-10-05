@@ -1,5 +1,5 @@
 import type { Project } from "../types";
-import { SRC } from "../sources";
+import { REPO, SRC } from "../sources";
 import { FILM_TRANSCRIPTS } from "../transcripts";
 
 const BURNES = "The Burnes Center for Social Change";
@@ -8,10 +8,12 @@ const BURNES = "The Burnes Center for Social Change";
 export const moreProjects: Project[] = [
   {
     slug: "knowledge-agent-for-impact",
+    compact: true,
+    ownership: "advisor",
     name: "knowledge-agent-for-impact",
-    tagline: "The shared RAG stack behind many AI for Impact chatbots.",
+    tagline: "The shared RAG stack behind AI for Impact chatbots. Technical direction and review; student engineers built it.",
     year: "2024 to 2026",
-    role: "Technical lead for the platform",
+    role: "Technical direction for the platform",
     org: BURNES,
     featured: false,
     category: "platform",
@@ -26,17 +28,7 @@ export const moreProjects: Project[] = [
       nodes: ["React app", "Cognito", "WebSocket API", "Chat Lambda", "Amazon Kendra", "Bedrock", "DynamoDB"],
       flow: "Documents land in S3 and sync into a Kendra index. A chat Lambda retrieves passages over a WebSocket, prompts the model and streams the answer, and Cognito gates every call.",
     },
-    outcomes: [
-      {
-        value: "10+",
-        numeric: 10,
-        suffix: "+",
-        label: "Production deployments",
-        context: "Deployed across AI for Impact projects. I was technical lead for the platform, alongside the engineers who built it.",
-        source: SRC.resume,
-        projectSlug: "knowledge-agent-for-impact",
-      },
-    ],
+    outcomes: [],
     stack: ["AWS CDK", "TypeScript", "Python", "Amazon Kendra", "Lambda", "DynamoDB", "Cognito"],
     links: [{ label: "AI for Impact program", href: SRC.aiForImpact, kind: "doc" }],
     media: [
@@ -52,6 +44,7 @@ export const moreProjects: Project[] = [
   },
   {
     slug: "coaching-tool",
+    ownership: "lead",
     name: "Public Engagement Coach",
     tagline: "A coach that turns a rough idea into a public engagement plan.",
     year: "2026",
@@ -77,6 +70,7 @@ export const moreProjects: Project[] = [
         label: "Framework questions",
         context: "The GovLab nine-question framework the coach is built around.",
         source: SRC.coachReadme,
+        asOf: "12 Jun 2026",
         projectSlug: "coaching-tool",
       },
     ],
@@ -111,6 +105,7 @@ export const moreProjects: Project[] = [
   },
   {
     slug: "course-delivery",
+    ownership: "sole",
     headlines: {
       problem: "A free course only works if people come back.",
       built: "An 8‑day course that texts you the way back.",
@@ -143,7 +138,7 @@ export const moreProjects: Project[] = [
       "Skipping ahead does not count. The player reports which seconds were actually seen, and the question unlocks at about 90 percent coverage, so dragging the scrubber to the end changes nothing.",
       "Reminders follow strict rules: 24 hours of inactivity, at most one a day, 9 am to 8 pm in the learner's time zone, only in the first 8 days, and never more than two unanswered in a row. Each text starts with \"InnovateUS:\", fits one segment, and carries a short link on the course's own domain that drops the learner back where they stopped.",
       "Texts leave from the course's own 10DLC number through AWS End User Messaging. STOP, START and HELP are handled and delivery failures are classified. Email sign-ups get the same limits through SES, with a suppression list, one-click unsubscribe and a service-wide send cap.",
-      "Around the learner flow: an admin console and API, a Turnstile bot check on sign-in, a WAF rate limit on admin sign-in, two CDK stacks (dev and prod) with alarms and a manual CI deploy, and five docs (SMS, email, runbook, admin API, copy deck). The repo shows no public URL yet, so this is pre-launch.",
+      "Around the learner flow: an admin console and API, a Turnstile bot check on sign-in, a WAF rate limit on admin sign-in, two CDK stacks (dev and prod) with alarms and a manual CI deploy, and five docs (SMS, email, runbook, admin API, copy deck). It is pre-launch: there is no public URL yet.",
     ],
     architecture: {
       nodes: [
@@ -177,14 +172,15 @@ export const moreProjects: Project[] = [
         value: "8",
         numeric: 8,
         label: "Lessons, one question each",
-        context: "The real chapters of the InnovateUS Civic AI course, about 34 minutes of video in all. The answer key still awaits author sign-off.",
+        context: "The real chapters of the InnovateUS Civic AI course, about 34 minutes of video in all. Answers are checked on the server; the answer key is pending author sign-off before launch.",
         source: SRC.courseReadme,
+        asOf: "1 Oct 2026",
         projectSlug: "course-delivery",
       },
       {
         value: "Pre-launch",
         label: "Status as of 3 Oct 2026",
-        context: "No public URL or launch date in the repo. Dev and prod stacks, alarms, CI deploy and a runbook are in place, and the 10DLC campaign wording is drafted for carrier re-registration.",
+        context: "Not public yet, and the repo records no launch date. Dev and prod stacks, alarms, a CI deploy and a runbook are in place. Still open before launch: re-file the carrier campaign with the current wording, confirm the monthly spend limit and get the answer key signed off.",
         source: SRC.courseReadme,
         projectSlug: "course-delivery",
       },
@@ -220,6 +216,7 @@ export const moreProjects: Project[] = [
   },
   {
     slug: "arc-control-mcp",
+    ownership: "sole",
     headlines: {
       problem: "The Chrome MCP server can’t be pointed at Arc.",
       built: "26 tools that let an agent use the browser I’m already signed in to.",
@@ -248,7 +245,7 @@ export const moreProjects: Project[] = [
     approach: [
       "26 tools in six modules read pages, click, fill forms and run JavaScript over Apple Events, using the browser I am already signed in to.",
       "The server keeps its own tabs separate from mine, refuses to touch the tab I am looking at, and reports which permissions are missing instead of failing silently.",
-      "One runtime dependency, no build step, CI, and a changelog and security policy.",
+      "Two runtime dependencies (the MCP SDK and Zod), no build step, CI, and a changelog and security policy.",
     ],
     architecture: {
       nodes: ["AI agent", "MCP client", "arc-control-mcp", "JXA over Apple Events", "Arc", "Agent space tab"],
@@ -260,19 +257,28 @@ export const moreProjects: Project[] = [
         numeric: 26,
         label: "Tools",
         context: "In six modules.",
-        source: SRC.arcReadme,
+        source: REPO.arcReadme,
+        asOf: "5 Oct 2026",
+        projectSlug: "arc-control-mcp",
+      },
+      {
+        value: "16",
+        numeric: 16,
+        label: "Test files",
+        context: "Cover the tool schemas, argument validation, timeouts, batch limits and an integration run. There is no benchmark of agent task completion.",
+        source: REPO.arcTests,
         projectSlug: "arc-control-mcp",
       },
       {
         value: "100",
         numeric: 100,
         label: "npm downloads, last month",
-        context: "Month ending October 1, 2026.",
+        context: "Month ending October 1, 2026. Registry counts include automated installs.",
         source: SRC.arcNpm,
         projectSlug: "arc-control-mcp",
       },
     ],
-    stack: ["Node.js", "MCP SDK", "JXA", "Apple Events", "GitHub Actions"],
+    stack: ["Node.js", "MCP SDK", "Zod", "JXA", "Apple Events", "GitHub Actions"],
     links: [
       { label: "GitHub", href: "https://github.com/DB-25/arc-control-mcp", kind: "code" },
       { label: "npm", href: "https://www.npmjs.com/package/arc-control-mcp", kind: "code" },
@@ -415,6 +421,7 @@ export const moreProjects: Project[] = [
         label: "Accuracy",
         context: "At 103 ms latency.",
         source: SRC.resume,
+        asOf: "Sep 2022",
         projectSlug: "wesource-fraud-detection",
       },
     ],

@@ -41,7 +41,7 @@ export const TRANSCRIPT: TranscriptEntry[] = [
     title: "03 ABE + One-L",
     lowerThird: "ABE + One-L. 2 NASPO awards in 2025.",
     onScreen:
-      "ABE, Assistive Buyer Engine. Answers a buyer's question, with citations. Quality, measured. One-L. Flags contract conflicts and writes the redline. 83% less legal review time, self-reported, illustrative recording.",
+      "ABE, Assistive Buyer Engine. Answers a buyer's question, with citations. Quality, instrumented. SAMPLE DATA, not published results. One-L. Flags contract conflicts and writes the redline. 83% less legal review time, self-reported, illustrative recording.",
     visual:
       "A cited answer in the ABE chat, the quality monitoring results, then the One-L contract review where a clause is struck and replaced with a redline.",
   },

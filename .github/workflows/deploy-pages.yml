@@ -44,6 +44,9 @@ jobs:
       - run: node scripts/ci/verify-export.mjs out
         env:
           BASE_PATH: ${{ vars.BASE_PATH }}
+      # First-load JS per route (gzipped) must stay within 15% of the committed baseline, scripts/ci/js-budget.json.
+      # An intended increase: node scripts/ci/check-js-budget.mjs out --update, and commit the baseline.
+      - run: node scripts/ci/check-js-budget.mjs out
       - uses: actions/upload-artifact@v4
         with:
           name: site-out
@@ -81,6 +84,10 @@ jobs:
           for i in $(seq 1 30); do curl -sf "http://localhost:$PORT$BASE_PATH/" >/dev/null && break; sleep 1; done
       - name: CLS with late fonts and long-task budget
         run: node scripts/ci/check-vitals.mjs
+        env:
+          BASE_URL: http://localhost:4173${{ vars.BASE_PATH }}
+      - name: Interaction checks (scroll across routes, Pause motion, ids, anchors, tour focus)
+        run: node scripts/ci/check-interactions.mjs
         env:
           BASE_URL: http://localhost:4173${{ vars.BASE_PATH }}
       - name: Lighthouse CI (mobile)

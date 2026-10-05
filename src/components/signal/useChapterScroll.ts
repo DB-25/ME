@@ -6,7 +6,9 @@ import type { ChapterId } from "@/lib/director/protocol";
 import { ScrollTrigger } from "@/lib/motion";
 import { signalStore } from "@/lib/signal-store";
 import { chapterPresence } from "./chapterPresence";
+import { measureDocks } from "./docks";
 import { clamp01 } from "./ease";
+import { refreshEmail } from "./emailFormation";
 import { afterPaint } from "./schedule";
 
 /** A section's top travels from 85% to 25% of the viewport while its formation arrives. */
@@ -32,6 +34,9 @@ function collectSections(): Section[] {
 function measure(sections: Section[]) {
   const y = window.scrollY;
   for (const s of sections) s.top = s.el.getBoundingClientRect().top + y;
+  // Docked formations (the Proof header, the Contact address) track boxes in the page: re-read them with the sections.
+  measureDocks();
+  refreshEmail();
 }
 
 function touchesChapter(records: MutationRecord[]): boolean {
@@ -132,8 +137,14 @@ function startChapterScroll(): () => void {
 
   rescan();
   const settle = window.setTimeout(schedule, SETTLE_MS);
+  // Letterforms move when the webfont lands: the address frame is measured from them.
+  let fontsDone = false;
+  void document.fonts?.ready.then(() => {
+    if (!fontsDone) schedule();
+  });
 
   return () => {
+    fontsDone = true;
     cancelAnimationFrame(raf);
     window.clearTimeout(settle);
     mo.disconnect();

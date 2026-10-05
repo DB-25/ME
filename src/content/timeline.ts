@@ -92,9 +92,9 @@ export const timeline: TimelineEntry[] = [
   {
     year: "2025",
     place: "Boston, MA",
-    title: "Procurement AI wins at NASPO",
+    title: "ABE and One‑L win at NASPO",
     org: "NASPO",
-    body: "The ABE and One‑L tools won the Cronin Gold Award and the Academic Collaboration Award for Massachusetts OSD and the Burnes Center. I was part of the team behind them.",
+    body: "The procurement agents won the Cronin Gold Award and the Academic Collaboration Award for Massachusetts OSD and the Burnes Center. I joined One‑L that November and ABE in February 2026, and now lead ABE’s quality monitoring and One‑L’s direction.",
     kind: "milestone",
   },
   {
@@ -109,7 +109,7 @@ export const timeline: TimelineEntry[] = [
     year: "2026",
     place: "Boston, MA",
     title: "arc-control-mcp ships",
-    body: "Published an MCP server on npm so agents can drive the Arc browser I actually use. 26 tools, one dependency.",
+    body: "Published an MCP server on npm so agents can drive the Arc browser I actually use. 26 tools, two dependencies.",
     kind: "milestone",
   },
   {

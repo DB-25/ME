@@ -13,6 +13,7 @@ import { Outcomes } from "./Outcomes";
 import { ProductionNotes } from "./ProductionNotes";
 import { ProblemSection } from "./ProblemSection";
 import { StackList } from "./StackList";
+import { TimeTravel } from "./demos/course/TimeTravel";
 import { WhoSeesWhat } from "./demos/WhoSeesWhat";
 
 /** Featured projects hand off to the next featured one, lab projects to the next lab one. */
@@ -28,8 +29,9 @@ export function CaseStudy({ project }: { project: Project }) {
 
   // Section numbers follow what actually renders, so a project without media still reads 01, 02, 03.
   const hasArchitecture = Boolean(project.architecture?.nodes.length || project.architecture?.lanes?.length);
-  // The interactive data-boundary demo belongs to A-IEP only.
-  const hasDemo = project.slug === "a-iep";
+  // Each interactive demo belongs to one case: A-IEP's data-boundary stepper, Course Delivery's reminder-rules sandbox.
+  const demo = project.slug === "a-iep" ? "whosees" : project.slug === "course-delivery" ? "timetravel" : null;
+  const hasDemo = demo !== null;
   const present = [
     true,
     true,
@@ -51,7 +53,8 @@ export function CaseStudy({ project }: { project: Project }) {
     { key: "problem", label: "The problem", n: num[0] },
     { key: "build", label: "What I built", n: num[1] },
     ...(hasArchitecture ? [{ key: "architecture", label: "Architecture", n: num[2] }] : []),
-    ...(hasDemo ? [{ key: "whosees", label: "Who sees what", n: num[3] }] : []),
+    ...(demo === "whosees" ? [{ key: "whosees", label: "Who sees what", n: num[3] }] : []),
+    ...(demo === "timetravel" ? [{ key: "timetravel", label: "Try the rules", n: num[3] }] : []),
     ...(present[4] ? [{ key: "outcomes", label: "Outcomes", n: num[4] }] : []),
     ...(present[5] ? [{ key: "notes", label: "Production notes", n: num[5] }] : []),
     ...(present[6] ? [{ key: "stack", label: "Stack", n: num[6] }] : []),
@@ -67,7 +70,8 @@ export function CaseStudy({ project }: { project: Project }) {
       <ProblemSection project={project} n={num[0]} />
       <BuildSection project={project} n={num[1]} />
       <ArchitectureDiagram project={project} n={num[2]} />
-      {hasDemo ? <WhoSeesWhat n={num[3]} /> : null}
+      {demo === "whosees" ? <WhoSeesWhat n={num[3]} /> : null}
+      {demo === "timetravel" ? <TimeTravel n={num[3]} /> : null}
       <Outcomes project={project} n={num[4]} />
       <ProductionNotes project={project} n={num[5]} />
       <StackList project={project} n={num[6]} />

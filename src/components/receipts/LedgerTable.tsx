@@ -69,7 +69,7 @@ function Row({ row }: { row: LedgerRow }) {
         <ul className="rc-where">
           {row.appears.map((a) => (
             <li key={a.href}>
-              <Link href={a.href} className="rc-link label" data-cursor="open">
+              <Link href={a.href} prefetch={false} className="rc-link label" data-cursor="open">
                 <span className="rc-underline">{a.label}</span>
               </Link>
             </li>

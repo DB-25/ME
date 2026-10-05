@@ -30,7 +30,27 @@
 .cs-title[data-solo] { font-size: clamp(2.25rem, calc(100cqw / (var(--chars) * 0.46)), 17rem); }
 .cs-tagline { margin: clamp(16px, 2vw, 28px) 0 0; font-size: clamp(1.25rem, 2vw, 1.85rem); max-width: 26ch; color: var(--color-ink); opacity: 0.85; text-wrap: balance; }
 .cs-owned { display: grid; gap: clamp(18px, 2vw, 28px); align-content: end; }
-.cs-owned-k { color: var(--pa); }
+.cs-owned-k { color: var(--pa); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cs-hero-side { display: grid; gap: clamp(20px, 2.2vw, 32px); align-content: end; min-width: 0; }
+/* The picture: the film's key art, 16:9, framed by a hairline in the project accent. A row click carries the Work
+   stage's still into this frame (view-transition-name: case-media, set by PageTransitions). */
+.cs-hero-media { position: relative; display: block; margin: 0; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--color-hairline-strong); background: var(--color-void-2); color: inherit; text-decoration: none; transition: border-color 0.4s var(--cs-ease); }
+.cs-hero-media img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s var(--cs-ease); }
+a.cs-hero-media:hover, a.cs-hero-media:focus-visible { border-color: var(--pa); }
+a.cs-hero-media:hover img, a.cs-hero-media:focus-visible img { transform: scale(1.025); }
+a.cs-hero-media:focus-visible { outline: 2px solid var(--color-accent-hot); outline-offset: 3px; }
+.cs-hero-media-cue { position: absolute; left: 0; bottom: 0; display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px 9px 10px; background: rgb(6 5 9 / 0.82); color: var(--color-ink); border-top: 1px solid var(--color-hairline-strong); border-right: 1px solid var(--color-hairline-strong); }
+.cs-hero-media-cue i { width: 0; height: 0; border-style: solid; border-width: 4px 0 4px 7px; border-color: transparent transparent transparent var(--pa); }
+.cs-hero-media-dn { display: inline-block; margin-left: 2px; transition: transform 0.5s var(--cs-ease); }
+a.cs-hero-media:hover .cs-hero-media-dn { transform: translateY(3px); }
+/* Try it live: a hairline button in the project accent (never filled), with the address beside it. */
+.cs-hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; margin-top: clamp(20px, 2.4vw, 32px); }
+.cs-live { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 0 22px; border: 1px solid var(--pa); color: var(--color-ink) !important; text-decoration: none; transition: background-color 0.35s var(--cs-ease), color 0.35s, border-color 0.35s; }
+.cs-live:hover { background: color-mix(in oklab, var(--pa) 16%, transparent); color: var(--color-accent-hot) !important; }
+.cs-live:focus-visible { outline: 2px solid var(--color-accent-hot); outline-offset: 3px; }
+.cs-live-arrow { display: inline-block; font-size: 1.15em; line-height: 1; transition: transform 0.5s var(--cs-ease); }
+.cs-live:hover .cs-live-arrow { transform: translate(3px, -3px); }
+.cs-live-url { color: var(--color-muted); overflow-wrap: anywhere; }
 .cs-owned-v { margin: 10px 0 0; font-size: clamp(1.1rem, 1.45vw, 1.4rem); line-height: 1.38; letter-spacing: -0.015em; color: var(--color-ink); text-wrap: pretty; }
 .cs-owned section { border-top: 1px solid var(--pa); padding-top: 14px; }
 .cs-lead { margin: 0; padding-top: 16px; border-top: 1px solid var(--color-hairline-strong); display: flex; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; }
@@ -44,7 +64,16 @@
   .cs-hero-body { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); }
   .cs-hero-main { grid-column: 1 / 9; }
   .cs-title { font-size: clamp(2.5rem, min(21vw, calc(118vw / var(--len))), 17rem); }
-  .cs-owned { grid-column: 9 / 13; }
+  .cs-hero-side { grid-column: 9 / 13; }
+  /* With a picture the column on the right is wider (5 of 12), so the title gives up a column. */
+  .cs-hero-body[data-media] .cs-hero-main { grid-column: 1 / 8; }
+  .cs-hero-body[data-media] .cs-hero-side { grid-column: 8 / 13; }
+  .cs-hero-body[data-media] .cs-title { font-size: clamp(2.5rem, min(19vw, calc(104vw / var(--len))), 17rem); }
+  .cs-hero-body[data-media] .cs-title[data-solo] { font-size: clamp(2.25rem, calc(100cqw / (var(--chars) * 0.46)), 17rem); }
+  .cs-hero-body[data-media] .cs-owned-v { font-size: clamp(1rem, 1.2vw, 1.2rem); margin-top: 8px; }
+  .cs-hero-body[data-media] .cs-lead-v { font-size: clamp(2.25rem, 3.2vw, 3.25rem); }
+  .cs-hero-body[data-media] .cs-owned { gap: 14px; }
+  .cs-hero-body[data-media] { padding-block: clamp(16px, 2vw, 28px); }
 }
 .cs-rule { height: 1px; background: var(--color-hairline-strong); }
 .cs-rule-accent { background: var(--pa); }

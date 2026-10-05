@@ -52,7 +52,7 @@ const CSS = `
  * Each letter reads CSS variables (--k wave, --in entrance, --i index) so every effect costs one style write per
  * letter and the easing lives in CSS.
  */
-export function EmailLink({ email, onActivate, sweep = 0 }: { email: string; onActivate: () => void; sweep?: number }) {
+export function EmailLink({ email, href, onActivate, sweep = 0 }: { email: string; href?: string; onActivate: () => void; sweep?: number }) {
   const link = useRef<HTMLAnchorElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const text = useRef<HTMLSpanElement>(null);
@@ -155,7 +155,7 @@ export function EmailLink({ email, onActivate, sweep = 0 }: { email: string; onA
       <style>{CSS}</style>
       <a
         ref={link}
-        href={`mailto:${email}`}
+        href={href ?? `mailto:${email}`}
         onClick={onActivate}
         onPointerMove={onMove}
         onPointerLeave={() => setWave(null)}

@@ -95,6 +95,9 @@ uniform float uSpark;   // 0..1 saffron spark rate multiplier
 uniform float uSpread;
 uniform vec2 uPointer;
 uniform float uPointerStrength;
+uniform float uPointerRadius; // NDC reach of the cursor's push
+uniform float uBurst;         // 0..1 envelope of the copy burst
+uniform vec2 uBurstPos;       // burst origin, NDC
 uniform float uAspect;
 uniform float uScale;
 uniform float uSize;
@@ -253,13 +256,24 @@ void main(){
     vec2 ndc = clip.xy / clip.w;
     vec2 d = (ndc - uPointer) * vec2(uAspect, 1.);
     float dist = length(d);
-    float f = 1. - smoothstep(0., 0.42, dist);
+    float f = 1. - smoothstep(0., uPointerRadius, dist);
     near = f;
     vec2 dir = d / max(dist, 0.0001);
     float strength = uPointerStrength * (1. - 0.45 * sigW);
     vec2 push = dir * f * f * strength;
     push.y += sigW * f * f * sin(dist * 24. - uTime * 3.2) * uPointerStrength * 0.1;
     clip.xy += vec2(push.x / uAspect, push.y) * clip.w;
+  }
+  // Burst: everything is thrown outward from the origin (with a little swirl) and falls back as the envelope decays.
+  if (uBurst > 0.001) {
+    vec2 bd = (clip.xy / clip.w - uBurstPos) * vec2(uAspect, 1.);
+    float bdist = length(bd);
+    vec2 bdir = bd / max(bdist, 0.0001);
+    float falloff = exp(-bdist * 1.3);
+    vec2 swirl = vec2(-bdir.y, bdir.x) * (aRand.w - 0.5) * 0.9;
+    vec2 kick = (bdir + swirl) * uBurst * (0.3 + 0.7 * aRand.x) * (0.12 + 0.5 * falloff);
+    clip.xy += vec2(kick.x / uAspect, kick.y) * clip.w;
+    near = max(near, uBurst * (0.35 + 0.65 * falloff));
   }
   gl_Position = clip;
 #ifdef LEAN

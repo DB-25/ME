@@ -66,7 +66,7 @@ function stepRig(rig: Rig, camera: PerspectiveCamera, delta: number, reducedMoti
   // The orbit clock slows with the field, so reading is never against a drifting camera.
   rig.orbit += dt * fieldMotion.timeScale;
   const t = rig.orbit;
-  const calm = 1 - MOTION_READING_CUT * fieldMotion.reading;
+  const calm = (1 - MOTION_READING_CUT * fieldMotion.reading) * (1 - fieldMotion.hold);
   const dist = camera.position.z;
   const k = Math.min(1, dt * 3);
   rig.sx += (rig.px - rig.sx) * k;

@@ -125,7 +125,8 @@ export default function ColophonPanel({ open, onClose }: PanelProps) {
   const vitals = useStore(subscribeVitals, getVitals, getVitals());
   const prefs = useMotionPrefs();
   const [delivery, setDelivery] = useState<ScriptDelivery | null>(null);
-  const [systemReduced] = useState(prefersReducedMotion);
+  // The system setting only (not the visitor's own pause, which prefersReducedMotion() may also report): it locks the switch.
+  const [systemReduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const frames = useFrameTimes(state !== "closed", chart);
 
   const finish = useCallback(() => {
@@ -298,7 +299,7 @@ export default function ColophonPanel({ open, onClose }: PanelProps) {
                 description={
                   systemReduced
                     ? "Your system already asks for reduced motion, so this is on."
-                    : "The field stops moving and only crossfades between sections. Smooth scrolling turns off. Saved on this device."
+                    : "The field and every looping animation stop, and smooth scrolling turns off. Saved on this device."
                 }
                 checked={pausedOn}
                 disabled={systemReduced}

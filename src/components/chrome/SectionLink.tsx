@@ -25,7 +25,7 @@ export function SectionLink({ id, className, children, onNavigate, delayMs = 0, 
   const isHome = usePathname() === "/";
   if (!isHome) {
     return (
-      <Link href={`/#${id}`} className={className} onClick={onNavigate} {...rest}>
+      <Link href={`/#${id}`} prefetch={false} className={className} onClick={onNavigate} {...rest}>
         {children}
       </Link>
     );

@@ -5,7 +5,8 @@ import { useEffect, useRef } from "react";
 import { projects } from "@/content";
 import { chapterById } from "@/lib/chapters";
 import { gsap, prefersReducedMotion } from "@/lib/motion";
-import { PAGE_VT_ATTR, SHARED_TITLE } from "./page-transition";
+import "./page-transition.css";
+import { OLD_TAG, PAGE_VT_ATTR, SHARED_MEDIA, SHARED_TITLE } from "./page-transition";
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 /** Internal routes that take part. Anything else (files, other origins) keeps the browser's own behaviour. */
@@ -16,6 +17,12 @@ const ROUTE_TIMEOUT_MS = 1400;
 const SETTLE_MS = 60;
 /** Names that are rows, not links: the old title to morph from. */
 const TITLE_SOURCES = ".wk-name, .cs-next-name, .wk-lab-name";
+/** The row's subtitle, which the case hero repeats as its tagline. */
+const TAG_SOURCES = ".wk-tag, .cs-next-tag";
+/** The new hero picture gets this long to decode before the new snapshot is taken (it is usually cached already). */
+const MEDIA_WAIT_MS = 700;
+/** Set next to PAGE_VT_ATTR when the move starts at the bottom of a case ("Up next"), for its slower in-out timing. */
+const FROM_ATTR = "data-page-vt-from";
 
 type Wipe = { root: HTMLDivElement; label: HTMLDivElement; kicker: HTMLSpanElement; name: HTMLSpanElement };
 
@@ -43,6 +50,23 @@ function visibleTitle(el: Element | null): HTMLElement | null {
   const r = el.getBoundingClientRect();
   if (r.width < 4 || r.height < 4 || r.bottom < 0 || r.top > window.innerHeight) return null;
   return el;
+}
+
+const sameRoute = (href: string, path: string) => stripBase(new URL(href, location.href).pathname)?.replace(/\/$/, "") === path.replace(/\/$/, "");
+
+/**
+ * The picture that travels with the title: the "Up next" still, else the Work stage frame when it is showing this
+ * very project (a keyboard click can land on a row the stage is not showing), else the row's own inline picture (phones).
+ */
+function pickMedia(anchor: HTMLAnchorElement, path: string): HTMLElement | null {
+  const next = anchor.closest(".cs-next-link");
+  if (next) return visibleTitle(next.querySelector(".cs-next-thumb"));
+  const stage = document.querySelector<HTMLAnchorElement>(".wk-stage-link");
+  if (stage && sameRoute(stage.href, path)) {
+    const frame = visibleTitle(stage.querySelector(".wk-frame"));
+    if (frame) return frame;
+  }
+  return visibleTitle(anchor.closest(".wk-row")?.querySelector(".wk-inline") ?? null);
 }
 
 /**
@@ -157,6 +181,7 @@ export function PageTransitions() {
       const finish = () => {
         busy.current = false;
         html.removeAttribute(PAGE_VT_ATTR);
+        html.removeAttribute(FROM_ATTR);
         document.querySelectorAll<HTMLElement>(`[data-vt-name]`).forEach((n) => {
           n.style.viewTransitionName = "";
           n.removeAttribute("data-vt-name");
@@ -164,25 +189,44 @@ export function PageTransitions() {
       };
 
       if (supportsVT()) {
-        // Title to morph from: only when it is on screen and the destination is a case page.
+        const mark = (el: HTMLElement, name: string) => {
+          el.style.viewTransitionName = name;
+          el.setAttribute("data-vt-name", "");
+        };
+        // Title and picture to carry: only when they are on screen and the destination is a case page.
         let shared = false;
+        let media = false;
         if (path.startsWith("/work/")) {
           const src = visibleTitle(anchor.matches(TITLE_SOURCES) ? anchor : anchor.querySelector(TITLE_SOURCES));
           if (src) {
-            src.style.viewTransitionName = SHARED_TITLE;
-            src.setAttribute("data-vt-name", "");
+            mark(src, SHARED_TITLE);
             shared = true;
+            const origin = src.closest(".cs-next-link, .wk-row, .wk-lab-row") ?? anchor;
+            const tag = visibleTitle(origin.querySelector(TAG_SOURCES));
+            if (tag) mark(tag, OLD_TAG);
+            const pic = pickMedia(anchor, path);
+            if (pic) {
+              mark(pic, SHARED_MEDIA);
+              media = true;
+            }
+            if (src.closest(".cs-next-link")) html.setAttribute(FROM_ATTR, "next");
           }
         }
+        // "shared" is also what Reveal reads to skip a second reveal of the heading, so the hand-off uses a second attribute.
         html.setAttribute(PAGE_VT_ATTR, shared ? "shared" : "plain");
         const vt = document.startViewTransition(async () => {
           router.push(href);
           const ok = await routeLanded(path);
           if (!ok) return;
-          const title = path.startsWith("/work/") ? document.querySelector<HTMLElement>(".cs-title") : null;
-          if (title && shared) {
-            title.style.viewTransitionName = SHARED_TITLE;
-            title.setAttribute("data-vt-name", "");
+          const onCase = path.startsWith("/work/");
+          const title = onCase ? document.querySelector<HTMLElement>(".cs-title") : null;
+          if (title && shared) mark(title, SHARED_TITLE);
+          const heroMedia = onCase && media ? document.querySelector<HTMLElement>(".cs-hero-media") : null;
+          if (heroMedia) {
+            mark(heroMedia, SHARED_MEDIA);
+            // The picture must be painted when the new snapshot is taken, or it grows out of an empty frame.
+            const img = heroMedia.querySelector("img");
+            if (img && !img.complete) await Promise.race([img.decode().catch(() => undefined), settle(MEDIA_WAIT_MS)]);
           }
           await settle(SETTLE_MS);
         });

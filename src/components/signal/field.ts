@@ -3,6 +3,7 @@ import { CHAPTERS, chapterById } from "@/lib/chapters";
 import type { FormationId } from "@/lib/director/protocol";
 import { signalStore, type SignalOverride, type SignalState } from "@/lib/signal-store";
 import { adaptQuality } from "./adaptive";
+import { mix } from "./ease";
 import { chapterPresence } from "./chapterPresence";
 import { devFlag, recordFrame } from "./devtools";
 import { patchFieldStatus } from "./fieldStatus";
@@ -29,6 +30,10 @@ import type { FieldQuality, FrameInfo } from "./fieldTypes";
 import { createGlobeRig, stepGlobe, type GlobeRig } from "./globeRig";
 import { onGlobeStory } from "./globeStory";
 import { createReading, fieldMotion, stepReading, timeScaleFor, type ReadingState } from "./readingMode";
+import { BURST_TOTAL_S, burstEnvelope, installBurst, type BurstOrigin } from "./burst";
+import { DOCK_EXTENT, getDock } from "./docks";
+import { buildEmailPoints, emailVersion, onEmailMoved, refreshEmail } from "./emailFormation";
+import { BASE_CAMERA_Z, CAMERA_FOV, HALF_TAN_FOV } from "./view";
 import { FRAME_H } from "./fromSvg";
 import { getFormation, prepareCustomPoints, warmFormations } from "./formations";
 
@@ -37,10 +42,7 @@ const OVERRIDE_MS_REDUCED = 400;
 const MAX_DT = 0.25;
 /** First frame after an idle stretch (on-demand rendering): treat it as one 60 Hz step, not the whole gap. */
 const RESUME_DT = 1 / 60;
-const CAMERA_FOV = 38;
-const BASE_CAMERA_Z = 7;
 const MAX_PULLBACK = 2.8;
-const HALF_TAN_FOV = Math.tan((CAMERA_FOV * Math.PI) / 360);
 /** Mid-morph turbulence ceiling (the shader's burst is already short); reading mode and case pages lower it. */
 const TURBULENCE = 0.5;
 const TURBULENCE_READING_SHARE = 0.5;
@@ -48,6 +50,16 @@ const TURBULENCE_STILL = 0.12;
 const POINTER_STRENGTH = 0.2;
 const POINTER_FOLLOW_RATE = 9;
 const POINTER_FADE_RATE = 5;
+/** Reach of the cursor's push in NDC; the Contact frame uses a tighter, crisper part, and a finger a gentler one. */
+const POINTER_RADIUS = 0.42;
+const POINTER_RADIUS_EMAIL = 0.2;
+const POINTER_STRENGTH_EMAIL = 0.17;
+const TOUCH_STRENGTH = 0.1;
+const TOUCH_RADIUS = 0.3;
+/** How often the address is re-measured while it is near. */
+const EMAIL_RECHECK_MS = 500;
+/** Chapters from which the email frame is built, so it exists before the visitor reaches it. */
+const EMAIL_WARM_CHAPTERS: ReadonlyArray<SignalState["chapter"]> = ["human", "contact"];
 /** Shader time is frozen under reduced motion so a settled scene is a still image. */
 const REDUCED_SHADER_TIME = 3;
 /** Formations generated ahead of the visitor: the current chapter's and the next two. */
@@ -86,12 +98,16 @@ type Rig = {
   scene: Scene;
   smooth: Smooth;
   adapt: ReturnType<typeof createAdapt>;
-  fromId: FormationId;
-  toId: FormationId;
+  fromId: string;
+  toId: string;
   spreadNow: number;
   /** Eased override and slot mix, written each frame. */
   ov: { value: number; mix: number };
   globe: GlobeRig;
+  /** Copy burst: start time (ms, performance clock) or -1, and its origin in NDC. */
+  burst: { start: number; x: number; y: number };
+  /** Email frame buffer, the version of the DOM measure it was built from, and the viewport height it assumed. */
+  email: { attr: BufferAttribute | null; version: number; height: number; checked: number };
 };
 
 /** Writes every uniform the shader reads this frame, plus camera distance and sprite scale. */
@@ -102,6 +118,7 @@ function writeUniforms(
   r: Rig,
   opts: { reduced: boolean; sizeBoost: number; reading: number; still: boolean },
 ) {
+  const w = size.width;
   const { scene, smooth, ov } = r;
   u.uSigA.value = scene.fromId === "signal" ? 1 : 0;
   u.uSigB.value = scene.toId === "signal" ? 1 : 0;
@@ -124,27 +141,63 @@ function writeUniforms(
   const z = Math.min(BASE_CAMERA_Z * MAX_PULLBACK, Math.max(BASE_CAMERA_Z, smooth.fit / (HALF_TAN_FOV * aspect)));
   camera.position.z = z;
   const visibleH = 2 * z * HALF_TAN_FOV;
+  const dock = dockPlacement(scene, w, size.height, visibleH, 1 - ov.value);
   // Director drawing: shrink to fit the height budget and lift clear of the caption lane, eased with the override.
   const fit = Math.min(1, (DRAWING_MAX_HEIGHT * visibleH) / FRAME_H);
   const heightShare = (FRAME_H * fit) / visibleH;
   const lift = Math.max(0, heightShare / 2 - (0.5 - DRAWING_BOTTOM_LIMIT)) + DRAWING_LIFT_MARGIN;
   const drawing = r.override.points ? ov.value : 0;
-  u.uSpread.value = scene.spread * smooth.lscale * (1 + (fit - 1) * drawing);
-  (u.uOffset.value as Vector3).set(smooth.lx * visibleH * aspect, (smooth.ly + lift * drawing) * visibleH, smooth.lz);
+  u.uSpread.value = scene.spread * smooth.lscale * dock.scale * (1 + (fit - 1) * drawing);
+  (u.uOffset.value as Vector3).set(smooth.lx * visibleH * aspect + dock.x, (smooth.ly + lift * drawing) * visibleH + dock.y, smooth.lz);
   u.uScale.value = (size.height / (2 * HALF_TAN_FOV)) * smooth.sizeMul;
   u.uSize.value = BASE_PARTICLE_SIZE * opts.sizeBoost * Math.pow(z / BASE_CAMERA_Z, 0.85);
 }
 
+const dockOut = { x: 0, y: 0, scale: 1 };
+
+/**
+ * Where docked chapters put the formation this frame, in world units: the previous and current chapter's boxes
+ * (page positions, minus the live scroll) blended by the same eased morph as the look, so a formation docked to a
+ * header leaves with it. `calm` fades docks out while the Director's drawing owns the field. Allocation-free.
+ */
+function dockPlacement(scene: Scene, width: number, height: number, visibleH: number, calm: number) {
+  const ppw = height / visibleH;
+  const sx = window.scrollX;
+  const sy = window.scrollY;
+  let x = 0;
+  let y = 0;
+  let scale = 1;
+  const add = (id: Scene["curId"], weight: number) => {
+    const d = getDock(id);
+    if (!d || weight <= 0) return 1;
+    x += ((d.cx - sx - width / 2) / ppw) * weight;
+    y -= ((d.cy - sy - height / 2) / ppw) * weight;
+    const ext = DOCK_EXTENT[id];
+    // Fixed docks (the email frame) are authored in px at the base distance: only the camera pull-back rescales them.
+    if (!ext) return visibleH / (2 * BASE_CAMERA_Z * HALF_TAN_FOV);
+    return Math.min(d.rx / (ext.rx * ppw), d.ry / (ext.ry * ppw));
+  };
+  const sPrev = add(scene.prevId, (1 - scene.eb) * calm);
+  const sCur = add(scene.curId, scene.eb * calm);
+  scale = mix(sPrev, sCur, scene.eb);
+  dockOut.x = x;
+  dockOut.y = y;
+  dockOut.scale = mix(1, scale, calm);
+  return dockOut;
+}
+
 /** Pointer is smoothed (spring back is the lag) and fades in only while it is over the page. */
-function stepPointer(u: ShaderMaterial["uniforms"], p: Rig["pointer"], enabled: boolean, dt: number) {
+function stepPointer(u: ShaderMaterial["uniforms"], p: Rig["pointer"], enabled: boolean, dt: number, email: number, finger: boolean) {
   if (enabled) {
     const follow = Math.min(1, dt * POINTER_FOLLOW_RATE);
     p.x += (p.tx - p.x) * follow;
     p.y += (p.ty - p.y) * follow;
     (u.uPointer.value as Vector2).set(p.x, p.y);
   }
-  const strength = enabled && p.active ? POINTER_STRENGTH : 0;
+  const base = finger ? TOUCH_STRENGTH : mix(POINTER_STRENGTH, POINTER_STRENGTH_EMAIL, email);
+  const strength = enabled && p.active ? base : 0;
   u.uPointerStrength.value += (strength - u.uPointerStrength.value) * Math.min(1, dt * POINTER_FADE_RATE);
+  u.uPointerRadius.value = finger ? TOUCH_RADIUS : mix(POINTER_RADIUS, POINTER_RADIUS_EMAIL, email);
 }
 
 
@@ -189,6 +242,8 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
     spreadNow: INTRO_SPREAD,
     ov: { value: 0, mix: 0 },
     globe: createGlobeRig(),
+    burst: { start: -1, x: 0, y: 0 },
+    email: { attr: null, version: -1, height: 0, checked: 0 },
   };
   // Dev flags fold to `false` in production builds, string literals included.
   const noAdapt = process.env.NODE_ENV !== "production" && devFlag("noadapt");
@@ -236,6 +291,60 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
       document.documentElement.removeEventListener("pointerleave", leave);
     });
   }
+  // A finger is a gentle repulsor: it parts the field while it is down or dragging, and lets go when it lifts.
+  if (!reducedMotion && coarse) {
+    const p = r.pointer;
+    const touch = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      p.tx = (t.clientX / window.innerWidth) * 2 - 1;
+      p.ty = -((t.clientY / window.innerHeight) * 2 - 1);
+      // First contact: appear under the finger instead of gliding in from wherever the last touch ended.
+      if (!p.active) {
+        p.x = p.tx;
+        p.y = p.ty;
+      }
+      p.active = 1;
+    };
+    const lift = () => {
+      p.active = 0;
+    };
+    window.addEventListener("touchstart", touch, { passive: true });
+    window.addEventListener("touchmove", touch, { passive: true });
+    window.addEventListener("touchend", lift, { passive: true });
+    window.addEventListener("touchcancel", lift, { passive: true });
+    detach.push(() => {
+      window.removeEventListener("touchstart", touch);
+      window.removeEventListener("touchmove", touch);
+      window.removeEventListener("touchend", lift);
+      window.removeEventListener("touchcancel", lift);
+    });
+  }
+  // The address frame follows the DOM: re-measure when the contact section changes size (copy above it reflows).
+  detach.push(onEmailMoved(invalidate));
+  const contactSection = document.getElementById("contact");
+  if (contactSection) {
+    const ro = new ResizeObserver(() => refreshEmail());
+    ro.observe(contactSection);
+    // The address rescales itself to its row once fonts land (no change to the section's own size).
+    const link = contactSection.querySelector("a[href^='mailto:']");
+    if (link) ro.observe(link);
+    detach.push(() => ro.disconnect());
+  }
+  // The copy burst (see burst.ts). Not under reduced motion: the frame stays a still.
+  if (!reducedMotion) {
+    detach.push(
+      installBurst((origin: BurstOrigin) => {
+        const dock = getDock("contact");
+        const cx = origin?.x ?? (dock ? dock.cx - window.scrollX : window.innerWidth / 2);
+        const cy = origin?.y ?? (dock ? dock.cy - window.scrollY : window.innerHeight / 2);
+        r.burst.x = (cx / window.innerWidth) * 2 - 1;
+        r.burst.y = -((cy / window.innerHeight) * 2 - 1);
+        r.burst.start = performance.now();
+        invalidate();
+      }),
+    );
+  }
   // Reduced motion renders on demand: any store change (scroll, Director) wakes the loop.
   if (reducedMotion) {
     detach.push(signalStore.subscribe(() => invalidate()));
@@ -243,15 +352,45 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
   }
 
   /** Swap position/aB buffers only when formation ids change. */
-  const bindFormations = (scene: Scene) => {
+  const bindFormations = (scene: Scene, emailAttr: BufferAttribute | null) => {
     if (scene.fromId !== r.fromId) {
       geometry.setAttribute("position", formationAttr(scene.fromId));
       r.fromId = scene.fromId;
     }
-    if (scene.toId !== r.toId) {
-      geometry.setAttribute("aB", formationAttr(scene.toId));
-      r.toId = scene.toId;
+    const toKey = scene.email && emailAttr ? "email" : scene.toId;
+    if (toKey !== r.toId) {
+      geometry.setAttribute("aB", toKey === "email" && emailAttr ? emailAttr : formationAttr(scene.toId));
+      r.toId = toKey;
     }
+  };
+
+  /** The frame around the address, rebuilt whenever the DOM measure or the viewport height changed. Null until the page has an address to frame. */
+  const syncEmail = (chapter: SignalState["chapter"]): BufferAttribute | null => {
+    const e = r.email;
+    if (!EMAIL_WARM_CHAPTERS.includes(chapter)) return e.attr;
+    // Cheap safety net: offset geometry only, twice a second, so a late reflow never leaves the frame off its letters.
+    const t = performance.now();
+    if (t - e.checked > EMAIL_RECHECK_MS) {
+      e.checked = t;
+      refreshEmail();
+    }
+    if (e.version === emailVersion && e.height === height) return e.attr;
+    e.version = emailVersion;
+    e.height = height;
+    const pts = buildEmailPoints(count, height);
+    if (!pts) {
+      e.attr = null;
+      return null;
+    }
+    if (e.attr) {
+      e.attr.set(pts);
+      e.attr.needsUpdate = true;
+    } else {
+      e.attr = new BufferAttribute(pts, 3);
+    }
+    // The old buffer was bound by key: force a re-bind next frame.
+    r.toId = "";
+    return e.attr;
   };
 
   /** Director override: ping-pong between slots C and D. Writes the eased override and slot mix into `out`. */
@@ -318,7 +457,8 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
         }
       }
 
-      resolveScroll(scene, s, aspect, chapterPresence.present);
+      const emailAttr = syncEmail(s.chapter);
+      resolveScroll(scene, s, aspect, chapterPresence.present, emailAttr !== null);
       stepIntro(r.intro, scene, now, {
         ready: s.ready,
         reduced: reducedMotion,
@@ -330,14 +470,21 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
       r.spreadNow = scene.spread;
       const reducedGap = reducedMotion && r.intro.phase === "done" ? settleReduced(smooth, scene, dt) : 0;
 
-      bindFormations(scene);
+      bindFormations(scene, emailAttr);
       stepOverride(r.override, s, now, r.ov);
       blendLook(scene, smooth, r.ov.value, reducedMotion, reading);
       const lookGap = smoothLook(smooth, scene, s.energy, dt);
 
       const hasHue = !!s.hue && parseHex(s.hue, u.uHueColor.value as Color);
       const hueGap = stepHue(smooth, hasHue, dt);
-      stepPointer(u, r.pointer, !reducedMotion && !coarse, dt);
+      // The camera holds still while the address is framed, so the band stays registered to the DOM letters.
+      const emailW = scene.email ? scene.eb : 0;
+      fieldMotion.hold = emailW * (1 - r.ov.value);
+      stepPointer(u, r.pointer, !reducedMotion, dt, emailW, coarse);
+      const burstT = r.burst.start < 0 ? -1 : (now - r.burst.start) / 1000;
+      if (burstT > BURST_TOTAL_S) r.burst.start = -1;
+      u.uBurst.value = burstT < 0 ? 0 : burstEnvelope(burstT);
+      (u.uBurstPos.value as Vector2).set(r.burst.x, r.burst.y);
       u.uGlobeA.value = scene.fromId === "globe" ? 1 : 0;
       u.uGlobeB.value = scene.toId === "globe" ? 1 : 0;
       u.uOvGlobe.value = s.override?.kind === "formation" && s.override.id === "globe" ? 1 : 0;

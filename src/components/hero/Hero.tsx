@@ -41,11 +41,20 @@ const CSS = `
   #hero .hero-loc { display: none; }
   #hero .hero-first { font-size: 19vw; }
   #hero .hero-last { font-size: 13vw; }
-  /* The tour chips need a row: drop the eyebrow, and fold the reel into the links row (LinkedIn and GitHub live in the menu and the contact bar). */
-  #hero .hero-eyebrow, #hero .hero-q-extra { display: none; }
-  #hero .hero-quiet { display: flex; justify-content: space-between; }
+  /* The tour chips need a row: drop the eyebrow, and tighten the stack so the link row clears the bottom edge. */
+  #hero .hero-eyebrow { display: none; }
+  #hero .hero-shell { padding-top: 64px; }
+  #hero .hero-stack { gap: 8px; }
+  #hero .hero-proof { padding-top: 8px; }
+  #hero .hero-proof .num { font-size: 1.5rem; }
+  #hero .hero-actions { gap: 4px; }
+  #hero .hero-tour { margin-top: 2px; }
+  #hero .hero-cta { min-height: 34px; }
 }
 #hero .hero-last { font-size: 15.5vw; }
+/* The role is the first thing a reader needs after the name: sans, medium, ink, well above the mono labels around it. */
+#hero .hero-role { margin: 0; font-size: 1.625rem; font-weight: 500; line-height: 1; letter-spacing: -0.035em; color: var(--color-ink); }
+@media (min-width: 768px) { #hero .hero-role { font-size: clamp(1.75rem, 2.7vw, 2.75rem); } }
 #hero [data-out] { text-shadow: 0 0 14px rgb(6 5 9 / 0.9), 0 0 4px rgb(6 5 9 / 0.8); }
 @media (min-width: 768px) {
   #hero .hero-first { font-size: clamp(4.5rem, 12.5vw, 14rem); }
@@ -77,6 +86,7 @@ const CSS = `
 #hero .hero-cta:hover .hero-cta-text { text-decoration-color: var(--color-accent-hot); }
 #hero .hero-cta-arrow { color: var(--color-accent-hot); transition: transform 0.35s var(--ease-out-expo); }
 #hero .hero-cta:hover .hero-cta-arrow { transform: translate(2px, -2px); }
+@media (max-width: 400px) { #hero .hero-btn { padding-inline: 14px; gap: 0.4em; font-size: 13.5px; } }
 @media (min-width: 768px) { #hero .hero-cta { min-height: 32px; font-size: 14px; } #hero .hero-btn { min-height: 40px; } }
 /* Scroll cue: a vertical label and a hairline with a bead that runs down it, in the left gutter (mirror of the chapter rail). */
 #hero .hero-cue { position: absolute; left: 6px; top: 36%; z-index: 1; display: none; width: 12px; flex-direction: column; align-items: center; gap: 10px; }
@@ -122,7 +132,7 @@ export function Hero() {
           {profile.name}, {profile.title}
         </h1>
 
-        <div className="shell relative flex h-full flex-col justify-start gap-4 pb-[max(var(--gutter),env(safe-area-inset-bottom))] pt-[72px] md:justify-between md:gap-0 md:pb-8 md:pt-[76px]">
+        <div className="hero-shell shell relative flex h-full flex-col justify-start gap-4 pb-[max(var(--gutter),env(safe-area-inset-bottom))] pt-[72px] md:justify-between md:gap-0 md:pb-8 md:pt-[76px]">
           {/* Registration marks frame the stage, the way a title card is framed. */}
           {(["left-[var(--gutter)] top-[68px]", "right-[var(--gutter)] top-[68px]", "left-[var(--gutter)] bottom-3", "right-[var(--gutter)] bottom-3"] as const).map((pos) => (
             <span key={pos} aria-hidden className={`absolute hidden h-[9px] w-[9px] md:block ${pos}`}>
@@ -142,8 +152,8 @@ export function Hero() {
               <Chars text={FIRST} />
             </div>
             <div data-out className="order-1 md:order-2 md:pt-3 md:text-right">
-              <p className="label !text-[12px] !text-ink">{profile.title}</p>
-              <p className="label mt-1">
+              <p className="hero-role">{profile.title}</p>
+              <p className="label mt-2.5">
                 {EMPLOYER.map((line) => (
                   <span key={line} className="block">
                     {line}
@@ -159,7 +169,7 @@ export function Hero() {
             <div data-out className="hero-stack order-2 flex w-full max-w-[30rem] flex-col gap-4 lg:order-1 lg:w-[32vw] lg:gap-5">
               <div className="flex flex-col gap-2">
                 <HeroEyebrow />
-                <p className="text-[1.0625rem] leading-[1.35] text-ink md:text-[1.25rem]">
+                <p className="text-[1.125rem] leading-[1.3] text-ink md:text-[clamp(1.25rem,2vw,1.5rem)] md:leading-[1.25]">
                   <Lede text={profile.oneLiner} />
                 </p>
               </div>

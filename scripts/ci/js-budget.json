@@ -1,0 +1,19 @@
+{
+  "unit": "gzipped bytes of first-load scripts",
+  "tolerance": 0.15,
+  "routes": {
+    "/404": 257627,
+    "/": 310310,
+    "/receipts/": 261307,
+    "/work/a-iep/": 267460,
+    "/work/abe-one-l/": 267460,
+    "/work/acharya-erp/": 267460,
+    "/work/arc-control-mcp/": 267460,
+    "/work/coaching-tool/": 267460,
+    "/work/course-delivery/": 267460,
+    "/work/genie/": 267460,
+    "/work/": 257627,
+    "/work/public-voice/": 267460,
+    "/work/vct-scout/": 267460
+  }
+}

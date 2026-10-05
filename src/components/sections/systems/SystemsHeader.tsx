@@ -10,9 +10,12 @@ export function SystemsHeader() {
       <div className="relative col-span-12 md:col-span-7">
         <Scrim shape="left" strength={0.82} inset="-14% -4% -14% -24px" />
         <SectionLabel chapter="systems" text="How I build" />
-        <Reveal as="h2" className="headline mt-5 !text-[clamp(2.25rem,4.9vw,4.75rem)]">
-          <span id="systems-title">Built so people can rely on it</span>
-        </Reveal>
+        {/* The id sits on the heading, outside Reveal: SplitText clones any id inside it onto every line. */}
+        <h2 id="systems-title" className="headline mt-5 !text-[clamp(2.25rem,4.9vw,4.75rem)]">
+          <Reveal as="span" className="block">
+            Built so people can rely on it
+          </Reveal>
+        </h2>
         {/* Under the headline, on the left: the network owns the right half, so nothing readable sits there. */}
         <FadeIn delay={0.15} className="mt-6 max-w-[26rem]">
           <p className="label !text-[12px] !text-ink/75">

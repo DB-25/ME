@@ -1,6 +1,8 @@
 import type { Project } from "@/content";
 import { Reveal } from "@/components/ui/Reveal";
-import { CATEGORY_LABEL, pad, tie, titleLen } from "../meta";
+import { assetUrl } from "../asset";
+import { CATEGORY_LABEL, liveLink, pad, previewImage, tie, titleLen } from "../meta";
+import { OwnershipBadge } from "../OwnershipBadge";
 import { CaseLabel } from "./CaseLabel";
 import { DrawRule } from "./DrawRule";
 
@@ -47,7 +49,11 @@ const SOLO_MIN_CHARS = 13;
 const SOLO_MAX_CHARS = 16;
 const isSolo = (name: string) => !name.includes(" ") && name.includes("-") && name.length >= SOLO_MIN_CHARS && name.length <= SOLO_MAX_CHARS;
 
-/** Title sequence: giant name, tagline, what I owned, hairline in the project accent, mono meta row. */
+/**
+ * Title sequence: giant name, tagline, the way in (try it live), the project's picture (the film's key art, the same
+ * still the Work stage shows, so a row click carries it into the hero), what I owned, hairline in the project accent,
+ * mono meta row.
+ */
 export function CaseHero({ project, index, total }: { project: Project; index: number; total: number }) {
   const meta = [
     { k: "Year", v: project.year },
@@ -56,6 +62,14 @@ export function CaseHero({ project, index, total }: { project: Project; index: n
     { k: "Category", v: CATEGORY_LABEL[project.category] },
   ];
   const lead = project.outcomes[0];
+  const media = previewImage(project);
+  const live = liveLink(project);
+  // The stage shows the title-free 4:3 art cropped to 16:9; the hero uses the same file so the picture is the same one.
+  const mediaSrc = media ? assetUrl(media.src43 ?? media.src) : null;
+  const mediaImg = mediaSrc ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={mediaSrc} alt="" width={media?.src43 ? 1200 : 1600} height={media?.src43 ? 900 : 600} fetchPriority="high" decoding="async" />
+  ) : null;
   return (
     <header className="cs-hero shell" id="top">
       <div className="cs-hero-top">
@@ -66,7 +80,7 @@ export function CaseHero({ project, index, total }: { project: Project; index: n
         </p>
       </div>
 
-      <div className="cs-hero-body">
+      <div className="cs-hero-body" data-media={mediaImg ? "" : undefined}>
         <div className="cs-hero-main">
           <h1
             className="cs-title"
@@ -80,27 +94,64 @@ export function CaseHero({ project, index, total }: { project: Project; index: n
           <Reveal as="p" mode="fade" immediate delay={0.4} className="lede cs-tagline">
             {tie(project.tagline)}
           </Reveal>
-        </div>
-        {(project.owned || lead) && (
-          <Reveal mode="fade" immediate delay={0.55} className="cs-owned">
-            {project.owned && (
-              <section aria-labelledby="cs-owned-k">
-                <p id="cs-owned-k" className="label cs-owned-k">
-                  What I owned
-                </p>
-                <p className="cs-owned-v">{tie(project.owned)}</p>
-              </section>
-            )}
-            {lead && (
-              <p className="cs-lead">
-                <span className="cs-lead-v num" data-one={lead.value.startsWith("1") ? "" : undefined}>
-                  {lead.value}
+          {live && (
+            <Reveal mode="fade" immediate delay={0.5} className="cs-hero-actions">
+              <a
+                href={assetUrl(live.href)}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cursor="open"
+                className="cs-live label"
+                aria-label={`Try ${project.name} live, at ${live.label} (opens in a new tab)`}
+              >
+                Try it live
+                <span aria-hidden className="cs-live-arrow">
+                  &#8599;
                 </span>
-                <span className="cs-lead-l label">{tie(lead.label)}</span>
-              </p>
-            )}
-          </Reveal>
-        )}
+              </a>
+              <span className="label cs-live-url" aria-hidden>
+                {live.label}
+              </span>
+            </Reveal>
+          )}
+        </div>
+        <div className="cs-hero-side">
+          {mediaImg &&
+            (project.film ? (
+              <a href="#sec-film" className="cs-hero-media" aria-label={`Watch the ${project.name} launch film, below`}>
+                {mediaImg}
+                <span className="cs-hero-media-cue label" aria-hidden>
+                  <i /> Launch film
+                  <span className="cs-hero-media-dn">&darr;</span>
+                </span>
+              </a>
+            ) : (
+              <figure className="cs-hero-media" aria-hidden>
+                {mediaImg}
+              </figure>
+            ))}
+          {(project.owned || lead) && (
+            <Reveal mode="fade" immediate delay={0.55} className="cs-owned">
+              {project.owned && (
+                <section aria-labelledby="cs-owned-k">
+                  <p id="cs-owned-k" className="label cs-owned-k">
+                    <span>What I owned</span>
+                    <OwnershipBadge ownership={project.ownership} />
+                  </p>
+                  <p className="cs-owned-v">{tie(project.owned)}</p>
+                </section>
+              )}
+              {lead && (
+                <p className="cs-lead">
+                  <span className="cs-lead-v num" data-one={lead.value.startsWith("1") ? "" : undefined}>
+                    {lead.value}
+                  </span>
+                  <span className="cs-lead-l label">{tie(lead.label)}</span>
+                </p>
+              )}
+            </Reveal>
+          )}
+        </div>
       </div>
 
       <DrawRule accent immediate delay={0.7} />

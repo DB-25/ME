@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Emph } from "@/components/ui/Emph";
 
+// No `robots` here: Next already emits noindex for the not-found page, and a second tag would conflict with it.
+// openGraph and twitter are restated without a url or image so the 404 never borrows the home page's card.
 export const metadata: Metadata = {
   title: "Page not found",
-  robots: { index: false, follow: true },
   alternates: { canonical: null },
+  openGraph: { title: "Page not found", type: "website" },
+  twitter: { card: "summary", title: "Page not found" },
 };
 
 const LINK_CLASS = "link label inline-flex min-h-11 items-center";

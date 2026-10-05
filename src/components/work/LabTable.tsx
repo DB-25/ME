@@ -6,6 +6,7 @@ import type { Project } from "@/content";
 import { gsap, EASE_OUT, prefersReducedMotion } from "@/lib/motion";
 import { caseHref } from "./asset";
 import { CATEGORY_LABEL, KIND_LABEL, hasCase, pad, primaryLink } from "./meta";
+import { OwnershipBadge } from "./OwnershipBadge";
 import { assetUrl } from "@/lib/asset";
 
 /** Three scannable groups, not one per category: government work, and everything else. */
@@ -107,7 +108,10 @@ export function LabTable({ projects, offset, spotlight }: { projects: Project[];
               <span className="wk-lab-year label num">{p.year}</span>
               <span className="wk-lab-what">
                 {p.tagline}
-                <span className="wk-lab-cat label">{CATEGORY_LABEL[p.category]}</span>
+                <span className="wk-lab-cat label">
+                  <span>{CATEGORY_LABEL[p.category]}</span>
+                  <OwnershipBadge ownership={p.ownership} />
+                </span>
               </span>
               {ext ? (
                 <a className="wk-lab-link label link" href={assetUrl(ext.href)} target="_blank" rel="noopener noreferrer">

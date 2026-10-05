@@ -44,7 +44,7 @@ export function ScrollProgress() {
     () => true,
     () => false,
   );
-  // Portalled to the end of <body> so its 9 tab stops come after the page content, not before the hero.
+  // Portalled to the end of <body>; its dots are pointer-only (tabIndex -1), the nav already covers the keyboard.
   return usePathname() === "/" && isClient ? createPortal(<Rail />, document.body) : null;
 }
 
@@ -106,6 +106,7 @@ function Rail() {
           <a
             key={c.id}
             href={`#${c.id}`}
+            tabIndex={-1}
             aria-label={`Go to ${plainLabel(c.id, c.label)}`}
             aria-current={active ? "location" : undefined}
             onClick={(e) => {

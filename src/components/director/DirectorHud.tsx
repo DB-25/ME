@@ -25,11 +25,23 @@ export function DirectorHud({ state, onCut, onAnotherTake }: Props) {
   const [on, setOn] = useState(false);
   const [still, setStill] = useState(false);
   const againRef = useRef<HTMLButtonElement>(null);
+  const stopRef = useRef<HTMLButtonElement>(null);
+  const focusedStop = useRef(false);
 
   // When the take ends the focus moves to "Again", so the keyboard has somewhere sensible to be.
   useEffect(() => {
     if (finished) againRef.current?.focus({ preventScroll: true });
   }, [finished]);
+
+  // The tour takes over the page (the Director section goes inert), so the control that ends it is where focus goes
+  // when it starts: otherwise it falls to <body> and the next Tab starts again at the skip link.
+  useEffect(() => {
+    if (!running) focusedStop.current = false;
+    else if (mounted && !finished && !focusedStop.current) {
+      focusedStop.current = true;
+      stopRef.current?.focus({ preventScroll: true });
+    }
+  }, [running, mounted, finished]);
 
   // Mount the overlay, then slide the bars in on the next frame; reverse on exit.
   useEffect(() => {
@@ -85,6 +97,7 @@ export function DirectorHud({ state, onCut, onAnotherTake }: Props) {
                 <VoiceToggle />
               )}
               <button
+                ref={stopRef}
                 type="button"
                 onClick={onCut}
                 className="label inline-flex items-center border border-hairline-strong px-3 py-2 text-ink transition-colors duration-300 hover:border-accent hover:text-accent-hot pointer-coarse:min-h-11 pointer-coarse:px-4"

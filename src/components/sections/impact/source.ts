@@ -22,5 +22,5 @@ export function sourceRef(source: string): SourceRef {
   }
   if (source.endsWith(".csv")) return { label: "source: my notes", external: false };
   if (source.startsWith("git log")) return { label: "source: git history", external: false };
-  return { label: "source: project docs", external: false };
+  return { label: "source: private repo", external: false };
 }

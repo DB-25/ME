@@ -19,6 +19,7 @@ export const metrics: Metric[] = [
     label: "Daily users on Acharya ERP",
     context: "Students and staff opening the app each day. Where I learned that when an app breaks, a real person has a bad day.",
     source: SRC.resume,
+    asOf: "Aug 2023",
     projectSlug: "acharya-erp",
   },
   {
@@ -28,6 +29,7 @@ export const metrics: Metric[] = [
     label: "State employees with access",
     context: "A sanctioned place to try AI is where a government starts using it. This counts access, not daily use. I co-built the sandbox behind the number.",
     source: SRC.burnesBio,
+    asOf: "5 Oct 2026",
     projectSlug: "genie",
   },
   {
@@ -36,6 +38,7 @@ export const metrics: Metric[] = [
     label: "AI tools shipped",
     context: "A program total, not mine alone: the AI for Impact program has built 26 tools for government and civic partners. I help lead its technical side.",
     source: SRC.aiForImpact,
+    asOf: "5 Oct 2026",
   },
   {
     value: "50+",
@@ -52,13 +55,14 @@ export const metrics: Metric[] = [
     label: "Place, AWS x Riot Games hackathon",
     context: "VCT Scout also won Best Cross-Regional Team Submission, built in a hackathon sprint with three teammates.",
     source: SRC.amazonVct,
+    asOf: "Dec 2024",
     projectSlug: "vct-scout",
   },
   {
     value: "2",
     numeric: 2,
-    label: "NASPO awards in 2025",
-    context: "Recognition for state procurement AI: the Cronin Gold Award and the Academic Collaboration Award.",
+    label: "NASPO awards for ABE and One-L",
+    context: "The Cronin Gold Award and the Academic Collaboration Award, won in 2025 by Massachusetts OSD with the Burnes Center, before I joined either project. I now lead ABE's quality monitoring and One-L's direction.",
     source: SRC.naspo,
     projectSlug: "abe-one-l",
   },

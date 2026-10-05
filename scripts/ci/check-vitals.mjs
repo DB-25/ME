@@ -54,7 +54,7 @@ for (const [width, height, mobile] of [[390, 844, true], [1440, 900, false]]) {
   if (cls >= CLS_BUDGET) failures.push(`CLS ${cls.toFixed(3)} at ${width}px with a late font swap`);
 }
 
-for (const path of ["/", "/work/genie/", "/work/a-iep/"]) {
+for (const path of ["/", "/work/genie/", "/work/a-iep/", "/receipts/"]) {
   const { longest } = await visit(path, { width: 390, height: 844, mobile: true, cpu: CPU_SLOWDOWN });
   console.log(`longest task at ${CPU_SLOWDOWN}x CPU, ${path}: ${Math.round(longest)} ms (budget ${LONG_TASK_BUDGET_MS})`);
   if (longest > LONG_TASK_BUDGET_MS) failures.push(`long task ${Math.round(longest)} ms on ${path} at ${CPU_SLOWDOWN}x CPU`);

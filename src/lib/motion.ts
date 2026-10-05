@@ -15,8 +15,10 @@ export const EASE_MORPH = "power2.inOut";
 export const DUR_REVEAL = 1.1;
 export const STAGGER = 0.06;
 
+/** The system setting, or the visitor's own "Pause motion" switch (html[data-motion="paused"], set from the Colophon). */
 export function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return false;
+  if (document.documentElement.getAttribute("data-motion") === "paused") return true;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 

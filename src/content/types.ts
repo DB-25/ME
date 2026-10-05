@@ -12,6 +12,8 @@ export type Metric = {
   source: string;
   /** Overrides the basis that would be read from `source` (see provenance.ts). */
   basis?: Basis;
+  /** The date the figure holds for, when the source gives one that the text does not: "Dec 2024", "5 Oct 2026". Otherwise the ledger says Undated. */
+  asOf?: string;
   projectSlug?: string;
 };
 
@@ -89,6 +91,8 @@ export type Project = {
   notes?: ProductionNote[];
   /** Launch film shown at the top of the case study and as the work-list preview. */
   film?: Film;
+  /** My share of the build, shown as a badge: sole author, lead, core contributor, or technical advisor. */
+  ownership?: "sole" | "lead" | "core" | "advisor";
   /** Designed preview stills for a project without a film (16:9 with title, 4:3 without), from scripts/thumbs. */
   cover?: { thumb: string; thumb43: string };
   stack: string[];
@@ -120,6 +124,8 @@ export type Recognition = {
 export type StackGroup = { name: string; items: string[] };
 
 export type Profile = {
+  /** Optional one-line availability shown under the Contact ask (e.g. "Open to founding AI engineer roles from January"). */
+  availability?: string;
   name: string;
   shortName: string;
   handle: string;
