@@ -70,3 +70,13 @@ Rate limit: 15 requests per 10 minutes per IP (in memory, per Worker instance). 
 ## f) Voice
 
 The Director speaks only lines DB recorded (`public/voice/<id>.mp3`), chosen by the model through the `speak` tool. `npm run knowledge` in `worker/` regenerates `worker/src/voice.ts` from `src/lib/director/voice-library.ts`, so re-run it and redeploy whenever lines change. Runtime cloned-voice TTS (`POST /tts`) is off by default; see `docs/voice-plan.md` for the design, enable steps and cost. Worker tests: `cd worker && npm test`.
+
+## g) Visitors globe (hidden easter egg)
+
+`POST /visit` counts a visitor once per UTC day into a 5 degree cell, `GET /visits` returns the map (see `worker/src/visits.ts`). The site reuses `NEXT_PUBLIC_DIRECTOR_URL`; there is no other setting. Until `/visits` answers, the egg and its footer hint stay hidden, so nothing needs removing if you skip this.
+
+1. `cd worker && npx wrangler kv namespace create VISITS_KV`, paste the printed id into the `VISITS_KV` block at the bottom of `wrangler.toml` and uncomment it.
+2. `npx wrangler secret put VISIT_SALT` with any long random string (keep it secret: it salts the per-day visitor hash).
+3. `npx wrangler deploy`. Check `curl https://<worker>/visits` (an empty map is `{"cells":[],"total":0,...}`).
+
+Open it with `v`, a click on the About globe, or the "visitors" line in the footer. Local development only: `?visits=demo` loads clearly labelled sample data. KV free tier allows 1,000 writes a day (two per new visitor), so about 500 new visitors a day; counter updates are not atomic, which is fine at this scale.

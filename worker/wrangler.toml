@@ -56,3 +56,13 @@ simple = { limit = 20, period = 60 }
 # Secrets (never put in this file):
 #   npx wrangler secret put ELEVENLABS_API_KEY
 #   npx wrangler secret put ELEVENLABS_VOICE_ID
+
+# Visitors globe (the hidden easter egg, see src/visits.ts). POST /visit counts a visitor once per UTC day into a
+# 5 degree cell; GET /visits returns the map. Both answer 503 {"error":"visits_offline"} until this is bound, and the
+# site hides the egg entirely while /visits is unreachable. To turn it on:
+#   npx wrangler kv namespace create VISITS_KV      then paste the printed id below and uncomment.
+#   npx wrangler secret put VISIT_SALT              any long random string; it salts the per-day visitor hash. Keep it secret.
+# KV free tier: 1,000 writes a day (each new visitor is 2), about 500 new visitors a day. Counter updates are not atomic.
+# [[kv_namespaces]]
+# binding = "VISITS_KV"
+# id = "<namespace id>"

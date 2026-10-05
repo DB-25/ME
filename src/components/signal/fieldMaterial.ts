@@ -1,4 +1,5 @@
 import { AdditiveBlending, BufferAttribute, BufferGeometry, Color, Matrix3, ShaderMaterial, Sphere, Vector2, Vector3, Vector4 } from "three";
+import { MAX_GLOW_CELLS } from "./visitsGlow";
 import { getFormation, signalAttributes, signalLayout, signalRotation } from "./formations";
 import { particleSeeds } from "./formations/seeds";
 import { FRAGMENT, VERTEX } from "./shaders";
@@ -77,6 +78,11 @@ export function createFieldBuffers(count: number, lean: boolean): FieldBuffers {
       uOvGlobe: { value: 0 },
       uArc: { value: 1 },
       uMark: { value: new Vector2(1, 1) },
+      uVisit: { value: 0 },
+      uVisitPulse: { value: 0 },
+      uVisitRot: { value: new Matrix3() },
+      uCells: { value: new Float32Array(MAX_GLOW_CELLS * 4) },
+      uYou: { value: new Vector4(0, 0, 1, -1) },
     },
   });
   return { geometry, material, attrs: new Map([["f:noise", noiseAttr]]) };

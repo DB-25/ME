@@ -3,6 +3,7 @@ import { CHAPTERS, chapterById } from "@/lib/chapters";
 import type { FormationId } from "@/lib/director/protocol";
 import { signalStore, type SignalOverride, type SignalState } from "@/lib/signal-store";
 import { adaptQuality } from "./adaptive";
+import { VISITS_LOOK } from "./look";
 import { mix } from "./ease";
 import { chapterPresence } from "./chapterPresence";
 import { devFlag, recordFrame } from "./devtools";
@@ -29,6 +30,9 @@ import { BASE_PARTICLE_SIZE, createFieldBuffers } from "./fieldMaterial";
 import type { FieldQuality, FrameInfo } from "./fieldTypes";
 import { createGlobeRig, stepGlobe, type GlobeRig } from "./globeRig";
 import { onGlobeStory } from "./globeStory";
+import { globeHit } from "./globeHit";
+import { createVisitsRig, onVisitsGlow, stepVisits, type VisitsRig } from "./visitsGlow";
+import { GLOBE_R } from "./formations/globeView";
 import { createReading, fieldMotion, stepReading, timeScaleFor, type ReadingState } from "./readingMode";
 import { BURST_TOTAL_S, burstEnvelope, installBurst, type BurstOrigin } from "./burst";
 import { DOCK_EXTENT, getDock } from "./docks";
@@ -104,6 +108,8 @@ type Rig = {
   /** Eased override and slot mix, written each frame. */
   ov: { value: number; mix: number };
   globe: GlobeRig;
+  /** The hidden visitors globe: hot spots, the viewer's flare and the turn. */
+  visits: VisitsRig;
   /** Copy burst: start time (ms, performance clock) or -1, and its origin in NDC. */
   burst: { start: number; x: number; y: number };
   /** Email frame buffer, the version of the DOM measure it was built from, and the viewport height it assumed. */
@@ -151,6 +157,22 @@ function writeUniforms(
   (u.uOffset.value as Vector3).set(smooth.lx * visibleH * aspect + dock.x, (smooth.ly + lift * drawing) * visibleH + dock.y, smooth.lz);
   u.uScale.value = (size.height / (2 * HALF_TAN_FOV)) * smooth.sizeMul;
   u.uSize.value = BASE_PARTICLE_SIZE * opts.sizeBoost * Math.pow(z / BASE_CAMERA_Z, 0.85);
+}
+
+/**
+ * Publishes where the About chapter's globe sits on screen (see globeHit.ts), so a click on it can open the hidden
+ * visitors globe. Only while that globe is settled in view: not mid-morph, not under a Director override, not before the intro.
+ */
+function writeGlobeHit(u: ShaderMaterial["uniforms"], camera: PerspectiveCamera, size: { width: number; height: number }, r: Rig) {
+  const { scene, ov } = r;
+  const shown = r.intro.phase === "done" && scene.curId === "origin" && scene.toId === "globe" && scene.eb > 0.98 && scene.m > 0.98 && ov.value < 0.02;
+  globeHit.active = shown;
+  if (!shown) return;
+  const pxPerWorld = size.height / (2 * camera.position.z * HALF_TAN_FOV);
+  const off = u.uOffset.value as Vector3;
+  globeHit.x = size.width / 2 + off.x * pxPerWorld;
+  globeHit.y = size.height / 2 - off.y * pxPerWorld;
+  globeHit.r = GLOBE_R * (u.uSpread.value as number) * pxPerWorld;
 }
 
 const dockOut = { x: 0, y: 0, scale: 1 };
@@ -242,6 +264,7 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
     spreadNow: INTRO_SPREAD,
     ov: { value: 0, mix: 0 },
     globe: createGlobeRig(),
+    visits: createVisitsRig(),
     burst: { start: -1, x: 0, y: 0 },
     email: { attr: null, version: -1, height: 0, checked: 0 },
   };
@@ -349,6 +372,7 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
   if (reducedMotion) {
     detach.push(signalStore.subscribe(() => invalidate()));
     detach.push(onGlobeStory(invalidate));
+    detach.push(onVisitsGlow(invalidate));
   }
 
   /** Swap position/aB buffers only when formation ids change. */
@@ -473,6 +497,12 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
       bindFormations(scene, emailAttr);
       stepOverride(r.override, s, now, r.ov);
       blendLook(scene, smooth, r.ov.value, reducedMotion, reading);
+      // The visitors globe reads as a map: lift the sprite size and alpha the held override would otherwise dim.
+      const visitsMix = r.visits.mix.value;
+      if (visitsMix > 0) {
+        scene.sizeMul = mix(scene.sizeMul, VISITS_LOOK.size, visitsMix);
+        scene.alpha = mix(scene.alpha, VISITS_LOOK.alpha, visitsMix);
+      }
       const lookGap = smoothLook(smooth, scene, s.energy, dt);
 
       const hasHue = !!s.hue && parseHex(s.hue, u.uHueColor.value as Color);
@@ -488,8 +518,9 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
       u.uGlobeA.value = scene.fromId === "globe" ? 1 : 0;
       u.uGlobeB.value = scene.toId === "globe" ? 1 : 0;
       u.uOvGlobe.value = s.override?.kind === "formation" && s.override.id === "globe" ? 1 : 0;
-      const globeMoving = stepGlobe(r.globe, u, now, reducedMotion);
+      const globeMoving = stepGlobe(r.globe, u, now, reducedMotion) || stepVisits(r.visits, u, now, reducedMotion);
       writeUniforms(u, camera, { width, height }, r, { reduced: reducedMotion, sizeBoost, reading, still });
+      writeGlobeHit(u, camera, { width, height }, r);
 
       // Frame loop is on demand: keep it going while anything moves, and always when motion is allowed.
       const keepGoing = !reducedMotion || globeMoving || isSettling({ look: lookGap, reducedMorph: reducedGap, hue: hueGap }, r.intro, r.override);

@@ -10,6 +10,7 @@ import { MOTION_ATTR_SCRIPT } from "@/components/providers/motion-attr";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { SignalMount } from "@/components/signal/SignalMount";
 import { Chrome } from "@/components/chrome/Chrome";
+import { VisitsEgg } from "@/components/visits/VisitsEgg";
 import "./globals.css";
 
 /*
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <MotionState />
         <SignalMount />
         <Chrome />
+        <VisitsEgg />
         <main id="main" className="relative z-10">
           {children}
         </main>

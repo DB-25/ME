@@ -3,9 +3,10 @@ export interface RateLimiter {
   limit(options: { key: string }): Promise<{ success: boolean }>;
 }
 
-/** The slice of Workers KV the daily budgets (TTS characters, Director requests) use. */
+/** The slice of Workers KV the daily budgets (TTS characters, Director requests) and the visitor map use. */
 export interface KvStore {
-  get(key: string): Promise<string | null>;
+  /** `cacheTtl` (seconds, 60 at least on Cloudflare) lets the edge serve a read from its own cache. */
+  get(key: string, options?: { cacheTtl?: number }): Promise<string | null>;
   put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
 }
 
@@ -35,4 +36,9 @@ export interface Env {
   /** Optional KV namespace holding the global daily budget counters. Falls back to the Cache API. */
   TTS_KV?: KvStore;
   TTS_LIMITER?: RateLimiter;
+
+  /** The visitors globe (see visits.ts). Both routes answer 503 visits_offline while this is unbound. */
+  VISITS_KV?: KvStore;
+  /** Secret salt for the per-day visitor hash. Without it POST /visit answers 503 visits_offline (an unsalted IP hash is reversible). */
+  VISIT_SALT?: string;
 }

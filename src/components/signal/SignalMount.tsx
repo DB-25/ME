@@ -10,6 +10,7 @@ import { devFlag, installDevHooks } from "./devtools";
 import { patchFieldStatus } from "./fieldStatus";
 import type { FieldQuality } from "./fieldTypes";
 import { getMotionPrefs, subscribeMotionPrefs, syncSmoothScroll } from "./motionPrefs";
+import { useVisitsGlobe } from "@/components/visits/useVisits";
 import { afterPaint, onIdle } from "./schedule";
 import { useChapterScroll } from "./useChapterScroll";
 
@@ -25,6 +26,8 @@ const SIZE_BOOST_LOW = 1.55;
 const SMALL_VIEWPORT = 768;
 /** Phones that never touch the page still get the field, but well after any load measurement window. */
 const IDLE_PHONE_FALLBACK_MS = 8000;
+/** While the hidden visitors globe is open the field is lifted above the page (below the cursor ring, which sits at 120). */
+const Z_VISITS_GLOBE = 109;
 const FADE_IN = "opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1)";
 const INTERACTION_EVENTS = ["scroll", "wheel", "touchstart", "pointerdown", "keydown"] as const;
 
@@ -214,6 +217,7 @@ export function SignalMount() {
   /** Phones always get the poster before the field; desktops only once the field has been ruled out. */
   const [unavailable, setUnavailable] = useState(noFieldUpFront);
   const [still, setStill] = useState(() => getMotionPrefs().still);
+  const visitsGlobe = useVisitsGlobe();
 
   // The Colophon panel's switches: "still" stops or restarts the field, "pause" restarts it on the reduced-motion path.
   useEffect(() => {
@@ -251,7 +255,7 @@ export function SignalMount() {
   }, [still]);
 
   return (
-    <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", background: "#060509" }}>
+    <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: visitsGlobe ? Z_VISITS_GLOBE : 0, pointerEvents: "none", background: "#060509" }}>
       <Fallback />
       <Poster wanted={unavailable} gone={visible && !lost} isHome={isHome} />
       {glOk && quality && (

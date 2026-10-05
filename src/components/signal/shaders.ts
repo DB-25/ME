@@ -1,5 +1,6 @@
 /** GLSL for the SIGNAL field. One draw call, everything on the GPU. */
 import { ARC_SHARE, BACKSIDE_KEEP, CITY_SHARE, GLOBE_R } from "./formations/globeView";
+import { MAX_GLOW_CELLS } from "./visitsGlow";
 
 const glslFloat = (n: number) => n.toFixed(5);
 /** Globe roles by seed (see formations/globe.ts), and the radius the far-side test is measured against. */
@@ -10,6 +11,17 @@ const float CITY_SHARE = ${glslFloat(CITY_SHARE)};
 const float BACKSIDE_KEEP = ${glslFloat(BACKSIDE_KEEP)};
 const float ARC_FEATHER = 0.05; // how far past the head the reveal feathers
 const float ARC_TIP = 0.16;     // how far behind the head the bright tip trails
+`;
+
+/**
+ * The hidden visitors globe: hot spots (xyz baked unit vector, w weight) a particle is compared with before the
+ * globe turns. SPOT_SIGMA is the glow's reach in radians at weight 0 plus its growth with weight (a 5 degree cell is 0.087).
+ */
+const VISIT_CONSTS = /* glsl */ `
+const int MAX_GLOW = ${MAX_GLOW_CELLS};
+const float SPOT_SIGMA = 0.04;
+const float SPOT_SIGMA_GROW = 0.05;
+const float SPOT_LIFT = 0.09;
 `;
 
 /**
@@ -77,6 +89,7 @@ export const VERTEX = /* glsl */ `
 const float LEAN_SPREAD = ${LEAN_SPREAD};
 const float LEAN_HAIRLINE = ${LEAN_HAIRLINE};
 #endif
+${VISIT_CONSTS}
 attribute vec3 aB;
 attribute vec3 aC;
 attribute vec3 aD;
@@ -118,6 +131,13 @@ uniform float uGlobeB;
 uniform float uOvGlobe;
 uniform float uArc;
 uniform vec2 uMark;
+// VISITS: the hidden visitors globe. uVisit eases the whole effect in; uVisitRot turns the held globe to the viewer;
+// uCells are the hot spots; uYou is the viewer's cell (xyz) and flare progress (w: 0..1 playing, 2 resting beacon, <0 none).
+uniform float uVisit;
+uniform float uVisitPulse;
+uniform mat3 uVisitRot;
+uniform vec4 uCells[MAX_GLOW];
+uniform vec4 uYou;
 
 varying float vHeat;
 varying float vSpark;
@@ -128,6 +148,7 @@ varying float vRight; // 0 on the left of the screen, 1 on the far right
 varying vec4 vSig; // x: signal weight, y: noise->signal (weighted), z: crest (weighted), w: edge fade (weighted)
 varying vec4 vGlobe; // x: city marker weight, y: city (0 Bangalore, 1 Boston), z: arc weight, w: arc position (0 Bangalore, 1 Boston)
 varying float vTip; // bright leading tip of the arc while it draws
+varying vec2 vVisit; // x: visitor heat, y: "you are here" flare
 #ifdef LEAN
 varying float vVig; // phones: the postprocessing vignette, evaluated per particle
 #endif
@@ -193,6 +214,37 @@ void main(){
 
   vec3 base = mix(pa, pb, pm.x);
   vec3 over = mix(aC, aD, pc.x);
+
+  // Visitors globe (a held globe only): heat from the nearby hot spots, the viewer's flare, then a lift and the turn.
+  float visHeat = 0.;
+  float visFlare = 0.;
+  if (uVisit > 0.001 && uOvGlobe > 0.5) {
+    vec3 dir = normalize(over);
+    float wave = 0.;
+    for (int i = 0; i < MAX_GLOW; i++) {
+      vec4 c = uCells[i];
+      if (c.w <= 0.) break;
+      float d = 1. - dot(dir, c.xyz);
+      if (d > 0.05) continue;
+      float sig = SPOT_SIGMA + SPOT_SIGMA_GROW * c.w;
+      float pulse = mix(1., 0.6 + 0.4 * (0.5 + 0.5 * sin(uTime * 2.3 + float(i) * 2.399)), uVisitPulse);
+      visHeat += c.w * exp(-d / (sig * sig)) * pulse;
+    }
+    visHeat = min(visHeat, 1.4);
+    if (uYou.w > -0.5) {
+      float dy = 1. - dot(dir, uYou.xyz);
+      float th = sqrt(max(2. * dy, 0.));
+      float live = step(uYou.w, 1.);
+      float ringR = 0.02 + uYou.w * 0.55;
+      float ring = exp(-pow((th - ringR) / 0.04, 2.)) * (1. - uYou.w) * live;
+      float core = exp(-dy / 0.0012) * (live * (1. - 0.5 * uYou.w) + (1. - live) * (0.3 + 0.15 * uVisitPulse * sin(uTime * 3.1)));
+      visFlare = ring * 1.2 + core * 1.1;
+    }
+    float lift = 1. + SPOT_LIFT * min(visHeat, 1.2) + 0.08 * min(visFlare, 1.);
+    over = mix(over, uVisitRot * (over * lift), uVisit);
+    visHeat *= uVisit;
+    visFlare *= uVisit;
+  }
   vec3 p = mix(base, over, po.x);
 
   // Globe roles: arc and city markers by seed, far side hidden for whatever view the story is in.
@@ -217,6 +269,8 @@ void main(){
     globeShow *= mix(1., drawn, isArc * gBase);
     tip = isArc * gBase * drawn * (1. - smoothstep(head - ARC_TIP, head - 0.02, aRand.w)) * (1. - smoothstep(0.85, 1., uArc));
     cityW = isCity * mix(mix(uMark.x, uMark.y, cityId), 1., uOvGlobe * po.x);
+    // The visitors globe is about the visitors: the Bangalore to Boston arc and its markers step aside.
+    globeShow *= 1. - uVisit * uOvGlobe * role * po.x;
     globeShow = mix(1., globeShow, gw);
   }
 
@@ -229,6 +283,8 @@ void main(){
   // Particles in flight dim a little so converging points do not flash, and density-culled ones fade out.
   float keep = clamp((uDensity - aRand.x) * 8., 0., 1.) * globeShow;
   vFade = keep * (1. - 0.5 * bump);
+  // The rest of the globe steps back a little so the hot spots read as a heat map.
+  vFade *= 1. - 0.3 * uVisit * uOvGlobe * po.x * (1. - clamp(visHeat + visFlare, 0., 1.));
   if (keep <= 0.) {
     gl_Position = vec4(2., 2., 2., 1.);
     gl_PointSize = 0.;
@@ -284,7 +340,7 @@ void main(){
 
   float dist = -mv.z;
   float spark = mix(step(1. - 0.012 * uSpark, aRand.z), step(0.9994, aRand.z), sigW);
-  float px = uSize * aRand.y * (1. + spark * 0.25 + cityW * 0.6 + tip * 0.5) * uPixelRatio * uScale / max(dist, 0.1);
+  float px = uSize * aRand.y * (1. + spark * 0.25 + cityW * 0.6 + tip * 0.5 + visHeat * 0.5 + visFlare * 0.8) * uPixelRatio * uScale / max(dist, 0.1);
 #ifdef LEAN
   // The sprite is LEAN_SPREAD wider than the particle so the fragment shader has room for a bloom skirt.
   px *= LEAN_SPREAD;
@@ -299,6 +355,7 @@ void main(){
   vSig = vec4(sigW, info);
   vGlobe = vec4(cityW * (0.85 + 0.15 * sin(uTime * 1.6 + ph)), cityId, isArc * gw, aRand.w);
   vTip = tip;
+  vVisit = vec2(visHeat, visFlare);
   vDepth = clamp(1.25 - (dist - 5.5) * uFog, 0.1, 1.25);
 }
 `;
@@ -319,6 +376,7 @@ varying float vFade;
 varying vec4 vSig;
 varying vec4 vGlobe;
 varying float vTip;
+varying vec2 vVisit;
 #ifdef LEAN
 varying float vVig;
 uniform float uBloom;
@@ -383,6 +441,14 @@ void main(){
   float mk = clamp(vGlobe.x, 0., 1.);
   col = mix(col, cityCol, mk * 0.95);
   a *= 1. - mk * 0.88;
+
+  // Visitors globe: hot spots glow saffron and burn toward white; the viewer's flare is white.
+  float heatV = clamp(vVisit.x, 0., 1.4);
+  vec3 spotCol = mix(SAFFRON, vec3(1.0, 0.86, 0.6), smoothstep(0.7, 1.4, heatV));
+  col = mix(col, spotCol, clamp(heatV * 1.3, 0., 0.96));
+  a *= 1. + heatV * 0.9;
+  col = mix(col, vec3(1.), clamp(vVisit.y, 0., 1.) * 0.9);
+  a *= 1. + vVisit.y * 1.8;
 
   col = mix(col, SAFFRON, vSpark * (1. - uHueMix));
   vec3 tint = uHueColor * (0.55 + 0.6 * core);

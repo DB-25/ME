@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ColophonTrigger } from "@/components/colophon/ColophonTrigger";
+import { useVisitsReady } from "@/components/visits/useVisits";
+import { openVisits } from "@/components/visits/visitsClient";
 import { scrollToTarget } from "@/lib/motion";
 
 const TICK_MS = 15_000;
@@ -32,6 +34,17 @@ function BostonClock() {
   );
 }
 
+/** The one quiet hint to the visitors globe. It renders only once the Worker has answered with a real map. */
+function VisitsHint() {
+  const ready = useVisitsReady();
+  if (!ready) return null;
+  return (
+    <button type="button" onClick={openVisits} className="label link inline-flex w-fit text-left !text-[12px] !text-ink/70 hover:!text-ink pointer-coarse:min-h-11 pointer-coarse:items-center">
+      visitors
+    </button>
+  );
+}
+
 export function SiteFooter() {
   return (
     <footer className="border-t border-hairline py-6">
@@ -45,7 +58,10 @@ export function SiteFooter() {
       </div>
       <div className="mt-3 flex flex-col gap-1 md:flex-row md:justify-between">
         <p className="label !text-[12px] !text-ink/70">{BUILT_WITH}</p>
-        <p className="label hidden !text-[12px] !text-ink/70 md:block">Try typing my handle.</p>
+        <div className="flex items-baseline gap-6">
+          <VisitsHint />
+          <p className="label hidden !text-[12px] !text-ink/70 md:block">Try typing my handle.</p>
+        </div>
       </div>
     </footer>
   );

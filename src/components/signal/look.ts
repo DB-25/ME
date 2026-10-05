@@ -79,6 +79,9 @@ export const EMAIL_SPRITE_PHONE: FormationSprite = { size: 0.3, alpha: 0.8, fog:
 
 export const OVERRIDE_LOOK = { size: 0.38, alpha: 0.3, brightness: 0.95, fit: 2.6, fog: 0.09, density: 1, spark: 0.3 };
 
+/** The hidden visitors globe: a held globe, but read as a map, so its sprites are larger and brighter than a Director drawing's. */
+export const VISITS_LOOK = { size: 0.6, alpha: 0.3 };
+
 /** Bloom multiplier per chapter: hairlines (signal field, crosshair) stay crisp, glows keep the full bloom. */
 export const CHAPTER_BLOOM: Partial<Record<ChapterId, number>> = { hero: 0.4, impact: 0.7, systems: 0.6, proof: 0.65, director: 0.6, origin: 0.6, human: 0.3, contact: 0.4 };
 export const DEFAULT_BLOOM = 1;

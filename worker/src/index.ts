@@ -4,6 +4,7 @@ import { clientKey, createRateLimiter, json } from "./http";
 import { directorEvents, openUpstream } from "./openai";
 import type { DirectorEvent, DirectorMessage } from "./protocol";
 import { handleTts } from "./tts";
+import { handleVisit, handleVisits } from "./visits";
 
 export type { Env, RateLimiter } from "./env";
 
@@ -173,6 +174,16 @@ export default {
       if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405, { ...cors, allow: "POST, OPTIONS" });
       if (Object.keys(cors).length === 0) return json({ error: "origin_not_allowed" }, 403, {});
       return handleTts(request, env, ctx, cors);
+    }
+    if (url.pathname === "/visit") {
+      if (request.method !== "POST") return json({ error: "method_not_allowed" }, 405, { ...cors, allow: "POST, OPTIONS" });
+      if (Object.keys(cors).length === 0) return json({ error: "origin_not_allowed" }, 403, {});
+      return handleVisit(request, env, cors);
+    }
+    if (url.pathname === "/visits") {
+      // Public, aggregate numbers: a browser needs an allowed Origin to read it (that is the CORS check above), a plain GET does not.
+      if (request.method !== "GET") return json({ error: "method_not_allowed" }, 405, { ...cors, allow: "GET, OPTIONS" });
+      return handleVisits(request, env, cors);
     }
     return json({ error: "not_found" }, 404, cors);
   },
