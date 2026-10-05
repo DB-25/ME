@@ -31,7 +31,7 @@ import type { FieldQuality, FrameInfo } from "./fieldTypes";
 import { createGlobeRig, stepGlobe, type GlobeRig } from "./globeRig";
 import { onGlobeStory } from "./globeStory";
 import { globeHit } from "./globeHit";
-import { createVisitsRig, onVisitsGlow, stepVisits, type VisitsRig } from "./visitsGlow";
+import { createVisitsRig, onVisitsGlow, stepVisits, visitsGlow, type VisitsRig } from "./visitsGlow";
 import { GLOBE_R } from "./formations/globeView";
 import { createReading, fieldMotion, stepReading, timeScaleFor, type ReadingState } from "./readingMode";
 import { BURST_TOTAL_S, burstEnvelope, installBurst, type BurstOrigin } from "./burst";
@@ -518,6 +518,12 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
       u.uGlobeA.value = scene.fromId === "globe" ? 1 : 0;
       u.uGlobeB.value = scene.toId === "globe" ? 1 : 0;
       u.uOvGlobe.value = s.override?.kind === "formation" && s.override.id === "globe" ? 1 : 0;
+      // The visitors shader code is compiled the first time the egg opens, not on every page load: it cost
+      // the phone Lighthouse run its blocking-time budget while almost nobody ever opens it.
+      if (visitsGlow.on && !("VISITS" in material.defines)) {
+        material.defines = { ...material.defines, VISITS: 1 };
+        material.needsUpdate = true;
+      }
       const globeMoving = stepGlobe(r.globe, u, now, reducedMotion) || stepVisits(r.visits, u, now, reducedMotion);
       writeUniforms(u, camera, { width, height }, r, { reduced: reducedMotion, sizeBoost, reading, still });
       writeGlobeHit(u, camera, { width, height }, r);

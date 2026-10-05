@@ -89,7 +89,9 @@ export const VERTEX = /* glsl */ `
 const float LEAN_SPREAD = ${LEAN_SPREAD};
 const float LEAN_HAIRLINE = ${LEAN_HAIRLINE};
 #endif
+#ifdef VISITS
 ${VISIT_CONSTS}
+#endif
 attribute vec3 aB;
 attribute vec3 aC;
 attribute vec3 aD;
@@ -136,8 +138,10 @@ uniform vec2 uMark;
 uniform float uVisit;
 uniform float uVisitPulse;
 uniform mat3 uVisitRot;
+#ifdef VISITS
 uniform vec4 uCells[MAX_GLOW];
 uniform vec4 uYou;
+#endif
 
 varying float vHeat;
 varying float vSpark;
@@ -218,6 +222,8 @@ void main(){
   // Visitors globe (a held globe only): heat from the nearby hot spots, the viewer's flare, then a lift and the turn.
   float visHeat = 0.;
   float visFlare = 0.;
+  // Compiled in only once the egg is first opened (field.ts adds the define), so every other visit pays nothing for it.
+#ifdef VISITS
   if (uVisit > 0.001 && uOvGlobe > 0.5) {
     vec3 dir = normalize(over);
     float wave = 0.;
@@ -245,6 +251,7 @@ void main(){
     visHeat *= uVisit;
     visFlare *= uVisit;
   }
+#endif
   vec3 p = mix(base, over, po.x);
 
   // Globe roles: arc and city markers by seed, far side hidden for whatever view the story is in.
