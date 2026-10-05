@@ -29,7 +29,7 @@ export const SRC = {
   oneLGit: `git log, private repo The-Burnes-Center/one-L main`,
   genieGit: `git log, private repo The-Burnes-Center/gen-ai-sandbox-for-impact main`,
   arcNpm: "https://api.npmjs.org/downloads/point/last-month/arc-control-mcp",
-  /** Play Console installed audience, read 5 Oct 2026 for 1 Sep 2021 and 31 Aug 2023. Private, so self-reported. */
+  /** Play Console statistics (monthly and daily active users, installed audience), read 5 Oct 2026 for my tenure, 1 Sep 2021 to 31 Aug 2023. Private, so self-reported. */
   acharyaPlay: `${ROOT}play-console.stats`,
   acharyaUsers: `${ROOT}/ME/public/photos/acharya-users.jpg`,
   citation: `${ROOT}/ME/public/photos/governors-citation.jpg`,

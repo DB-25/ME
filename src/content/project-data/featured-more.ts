@@ -144,9 +144,18 @@ export const featuredMoreProjects: Project[] = [
     ],
     outcomes: [
       {
-        value: "3.7×",
-        label: "Android installs while I owned it",
-        context: "Android devices with the app installed, from the Play Console: 3,953 when I took it over on 1 Sep 2021, 14,703 when I handed it over on 31 Aug 2023. Every student and staff member across Acharya Institutes used it, plus about 2,000 on iOS.",
+        value: "5.4×",
+        label: "Monthly active users while I owned it",
+        context: "Android, from the Play Console: 2,972 monthly active users on 1 Sep 2021, when I took it over, and 16,148 on 31 Aug 2023, when I handed it over. Every student and staff member across Acharya Institutes used it.",
+        source: SRC.acharyaPlay,
+        asOf: "Aug 2023",
+        projectSlug: "acharya-erp",
+      },
+      {
+        value: "8,307",
+        numeric: 8307,
+        label: "Peak daily active users",
+        context: "Android, 21 Aug 2023. Daily active users averaged about 370 in my first month and about 6,900 in my last.",
         source: SRC.acharyaPlay,
         asOf: "Aug 2023",
         projectSlug: "acharya-erp",

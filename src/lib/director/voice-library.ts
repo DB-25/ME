@@ -90,7 +90,7 @@ const AUTHORED = {
   founderClose: ["Tell me what you are building. The email is the large link.", "tour", "founder", "closer"],
   /* the long founder story, for the live model and keyword composition */
   founderAcharya: [
-    "Before that, a Flutter app every student and staff member used. Installs grew almost four times while I owned it.",
+    "Before that, a Flutter app every student and staff member used. Monthly active users grew more than five times while I owned it.",
     "tour", "founder", "project:acharya-erp",
   ],
   acharyaRating: ["The store rating went from one point two to four point five.", "tour", "metric", "project:acharya-erp"],
@@ -324,7 +324,7 @@ export const OWNED_LINE: Record<string, VoiceLine> = Object.fromEntries(
 /** One sentence per headline number, keyed by its label. A new metric falls back to its value and label. */
 const METRIC_TEXT: Record<string, string> = {
   "IEPs read by A-IEP": "More than three hundred seventy-five plans read in plain language.",
-  "Android installs on Acharya ERP": "Android installs grew from about four thousand to almost fifteen thousand while I owned the app.",
+  "Monthly active users on Acharya ERP": "Monthly active users grew from about three thousand to more than sixteen thousand while I owned the app.",
   "State employees with access": "More than forty-four thousand state employees have access to the sandbox I co-built.",
   "AI tools shipped": "The AI for Impact program has shipped twenty-six AI tools for government and civic partners.",
   "Engineers mentored": "I have mentored more than fifty student engineers, from prototype to production.",
