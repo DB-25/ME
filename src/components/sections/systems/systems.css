@@ -26,14 +26,13 @@
 
 /* Built with agents: a calendar strip, weeks as columns. Cells are decorative (aria-hidden); the sr-only summary carries the data. */
 .ag-wrap { --ag-gap: 3px; }
-.ag-months, .ag-grid { display: grid; grid-template-columns: repeat(var(--ag-weeks), minmax(0, 1fr)); column-gap: var(--ag-gap); }
-.ag-months { height: 1.5rem; align-items: start; }
-.ag-grid { grid-template-rows: repeat(7, auto); grid-auto-flow: column; gap: var(--ag-gap); }
-.ag-cell { aspect-ratio: 1; border-radius: 2px; background: var(--color-hairline); }
-.ag-cell[data-out] { visibility: hidden; }
-.ag-cell[data-l="1"], .ag-swatch[data-l="1"] { background: rgb(139 123 255 / 0.28); }
-.ag-cell[data-l="2"], .ag-swatch[data-l="2"] { background: rgb(139 123 255 / 0.5); }
-.ag-cell[data-l="3"], .ag-swatch[data-l="3"] { background: rgb(139 123 255 / 0.78); }
-.ag-cell[data-l="4"], .ag-swatch[data-l="4"] { background: var(--color-accent-hot); }
+.ag-months { display: grid; grid-template-columns: repeat(var(--ag-weeks), minmax(0, 1fr)); column-gap: var(--ag-gap); height: 1.5rem; align-items: start; }
+/* One SVG, one path per shade: square cells on phones, a little wider than tall from tablet up. */
+.ag-strip { display: block; width: 100%; height: auto; aspect-ratio: calc(var(--ag-weeks) / 7); }
+.ag-level { fill: var(--color-hairline); }
+.ag-level[data-l="1"], .ag-swatch[data-l="1"] { fill: rgb(139 123 255 / 0.28); background: rgb(139 123 255 / 0.28); }
+.ag-level[data-l="2"], .ag-swatch[data-l="2"] { fill: rgb(139 123 255 / 0.5); background: rgb(139 123 255 / 0.5); }
+.ag-level[data-l="3"], .ag-swatch[data-l="3"] { fill: rgb(139 123 255 / 0.78); background: rgb(139 123 255 / 0.78); }
+.ag-level[data-l="4"], .ag-swatch[data-l="4"] { fill: var(--color-accent-hot); background: var(--color-accent-hot); }
 .ag-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--color-hairline); }
-@media (min-width: 768px) { .ag-cell { aspect-ratio: 1.2; } }
+@media (min-width: 768px) { .ag-strip { aspect-ratio: calc(var(--ag-weeks) * 1.2 / 7); } }

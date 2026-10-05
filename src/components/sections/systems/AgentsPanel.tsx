@@ -47,11 +47,9 @@ export function AgentsPanel() {
               </span>
             ))}
           </div>
-          <div className="ag-grid">
-            {heat.cells.map((c) => (
-              <span key={c.key} className="ag-cell" data-l={c.level} {...(c.inRange ? {} : { "data-out": "" })} />
-            ))}
-          </div>
+          <svg className="ag-strip" viewBox={heat.viewBox} preserveAspectRatio="none" focusable="false">
+            {heat.paths.map((d, level) => (d ? <path key={level} className="ag-level" data-l={level} d={d} /> : null))}
+          </svg>
           <p className="label mt-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-1 !text-[12px] !text-dim">
             <span className="flex items-center gap-2">
               Less

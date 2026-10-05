@@ -22,6 +22,26 @@ const fullDate = (t: number) => `${dayMonth(t)} ${new Date(t).getUTCFullYear()}`
 const toTime = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
 
 export type HeatCell = { key: number; level: number; inRange: boolean };
+
+/** SVG geometry for the strip: one column per week, CELL units wide with GAP between, in viewBox units. */
+const PITCH = 10;
+const GAP = 2.5;
+const CELL = PITCH - GAP;
+
+/**
+ * The strip as one SVG path per shade. Twenty months is about 600 days, and as 600 elements it cost a phone
+ * enough style and layout work to push the home page past its blocking-time budget; five paths cost nothing.
+ */
+function stripPaths(cells: HeatCell[]): string[] {
+  const paths = Array.from({ length: LEVELS + 1 }, () => "");
+  cells.forEach((c, i) => {
+    if (!c.inRange) return;
+    const x = Math.floor(i / DAYS_PER_WEEK) * PITCH;
+    const y = (i % DAYS_PER_WEEK) * PITCH;
+    paths[c.level] += `M${x} ${y}h${CELL}v${CELL}h-${CELL}z`;
+  });
+  return paths;
+}
 export type MonthMark = { label: string; column: number };
 
 /** Compact quartile thresholds over the active days, so one runaway day does not wash the rest to the palest step. */
@@ -69,6 +89,8 @@ function build() {
   const sameYear = new Date(from).getUTCFullYear() === new Date(to).getUTCFullYear();
   return {
     cells,
+    paths: stripPaths(cells),
+    viewBox: `0 0 ${weeks * PITCH - GAP} ${DAYS_PER_WEEK * PITCH - GAP}`,
     months,
     weeks,
     spanDays,
