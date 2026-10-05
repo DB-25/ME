@@ -1,15 +1,15 @@
 import type { Metric } from "./types";
-import { SRC } from "./sources";
+import { REPO, SRC } from "./sources";
 
 // Strongest, deduplicated numbers. Conservative figure wherever sources disagree.
 export const metrics: Metric[] = [
   {
-    value: "1,000+",
-    numeric: 1000,
+    value: "375+",
+    numeric: 375,
     suffix: "+",
-    label: "Families using A-IEP",
-    context: "Families that have used A‑IEP to read a child’s plan. A parent who can read the plan can speak up in the meeting. I lead A‑IEP’s engineering.",
-    source: SRC.resume,
+    label: "IEPs read by A-IEP",
+    context: "Plans processed in production since launch, from about 260 family accounts (July 2026). A parent who can read the plan can speak up in the meeting. I lead A‑IEP’s engineering.",
+    source: REPO.aiepResearchLog,
     projectSlug: "a-iep",
   },
   {

@@ -22,7 +22,7 @@ export const TRANSCRIPT: TranscriptEntry[] = [
   {
     time: "0:03 to 0:09",
     title: "01 A-IEP",
-    lowerThird: "A-IEP. 1,000+ families using A-IEP.",
+    lowerThird: "A-IEP. 375+ IEPs read in plain language.",
     onScreen: "Tap any term. Get a plain definition. Read it in your own language.",
     visual:
       "A special-education plan summary. A tapped term opens a glossary drawer with a plain definition of Special Education, then the language menu switches the summary from English to Spanish, Vietnamese and Chinese.",

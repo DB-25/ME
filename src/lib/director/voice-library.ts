@@ -72,7 +72,7 @@ const AUTHORED = {
   /* the scripted tour: founder. A-IEP, Course Delivery, Public Voice, then the ask. */
   founderOpen: ["A founder. Can I ship, and keep it running? Here are three proofs.", "tour", "founder"],
   founderAiep: [
-    "A-IEP: more than one thousand families read a special-education plan in plain language.",
+    "A-IEP: more than three hundred seventy-five special-education plans, read in plain language.",
     "tour", "founder", "project:a-iep",
   ],
   founderAiepOwned: [
@@ -102,7 +102,7 @@ const AUTHORED = {
   /* hiring: ownership and scale */
   hiringOpen: ["Hiring. The short version is what I owned, and how far it reached.", "tour", "recruiter"],
   hiringAiep: [
-    "I lead A-IEP's engineering: more than one thousand families, and over half of the commits are mine.",
+    "I lead A-IEP's engineering: over half of the commits are mine.",
     "tour", "recruiter", "owned", "project:a-iep",
   ],
   accessCaveat: ["That counts access, not daily use.", "tour", "metric", "honest"],
@@ -323,7 +323,7 @@ export const OWNED_LINE: Record<string, VoiceLine> = Object.fromEntries(
 
 /** One sentence per headline number, keyed by its label. A new metric falls back to its value and label. */
 const METRIC_TEXT: Record<string, string> = {
-  "Families using A-IEP": "More than one thousand families use A-IEP.",
+  "IEPs read by A-IEP": "More than three hundred seventy-five plans read in plain language.",
   "Daily users on Acharya ERP": "More than twenty thousand people used the Acharya app every day.",
   "State employees with access": "More than forty-four thousand state employees have access to the sandbox I co-built.",
   "AI tools shipped": "The AI for Impact program has shipped twenty-six AI tools for government and civic partners.",

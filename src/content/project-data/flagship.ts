@@ -8,7 +8,7 @@ const BURNES = "The Burnes Center for Social Change";
 export const flagshipProjects: Project[] = [
   {
     slug: "a-iep",
-    headlines: { problem: "Parents were signing plans they couldn’t read.", built: "A pipeline that reads the plan, so parents don’t have to decode it.", flows: "Upload in, plain language out, the original deleted.", outcomes: "A thousand families, four languages." },
+    headlines: { problem: "Parents were signing plans they couldn’t read.", built: "A pipeline that reads the plan, so parents don’t have to decode it.", flows: "Upload in, plain language out, the original deleted.", outcomes: "Hundreds of plans, four languages." },
     film: {
       src: "/films/a-iep.mp4",
       poster: "/films/a-iep.jpg",
@@ -52,12 +52,12 @@ export const flagshipProjects: Project[] = [
     },
     outcomes: [
       {
-        value: "1,000+",
-        numeric: 1000,
+        value: "375+",
+        numeric: 375,
         suffix: "+",
-        label: "Families served",
-        context: "Parents who used A‑IEP to understand their child’s education plan, in English, Spanish, Vietnamese or Chinese.",
-        source: SRC.resume,
+        label: "IEPs processed",
+        context: "Plans parents uploaded to read in plain language, in English, Spanish, Vietnamese or Chinese, from about 260 family accounts (July 2026 count).",
+        source: REPO.aiepResearchLog,
         projectSlug: "a-iep",
       },
       {
@@ -82,7 +82,7 @@ export const flagshipProjects: Project[] = [
         numeric: 712,
         label: "Commits by me",
         context: "Of 1,266 on the public main branch, from February 2025 to October 2026.",
-        source: "git log in /Users/db/Burnes Center Fulltime/A-IEP/ai-iep",
+        source: "git log, The-Burnes-Center/a-iep main",
         projectSlug: "a-iep",
       },
       {

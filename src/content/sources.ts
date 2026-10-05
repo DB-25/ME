@@ -1,9 +1,11 @@
 // Shared source strings so every metric cites the same thing the same way.
-const ROOT = "/Users/db/Burnes Center Fulltime";
+// Internal references use a neutral "doc:" prefix: these strings ship in the page bundle, so they must never carry a
+// local file path. provenance.ts and ledger.ts classify them by suffix (.tex, .csv) and by the /ME/public/ marker.
+const ROOT = "doc:";
 
 export const SRC = {
-  resume: `${ROOT}/Dhruv_Kamalesh_Kumar_Anthropic_Resume.tex`,
-  interviewNotes: `${ROOT}/ME/ME.csv`,
+  resume: `${ROOT}resume.tex`,
+  interviewNotes: `${ROOT}notes.csv`,
   burnesBio: "https://burnes.northeastern.edu/people/dhruv-kamalesh-kumar-2/",
   aiForImpact: "https://burnes.northeastern.edu/ai-for-impact-coop/",
   amazonVct:
@@ -42,6 +44,7 @@ const VCT = "https://github.com/DB-25/vct-gen-ai";
 
 export const REPO = {
   aiepRepo: AIEP,
+  aiepResearchLog: `${AIEP}/blob/main/docs/RESEARCH_LOG.md`,
   aiepEvalCost: `${AIEP}/blob/main/docs/EVAL_FEASIBILITY_COST.md`,
   aiepEvalResearch: `${AIEP}/blob/main/docs/AI_EVALUATION_RESEARCH.md`,
   aiepRedactionPlan: `${AIEP}/blob/main/docs/STUDENT_NAME_REDACTION_PLAN.md`,
