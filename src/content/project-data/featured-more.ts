@@ -144,11 +144,10 @@ export const featuredMoreProjects: Project[] = [
     ],
     outcomes: [
       {
-        value: "17,000",
-        numeric: 17000,
-        label: "Users",
-        context: "About 15,000 on Android and 2,000 on iOS, from the app’s store analytics: students and staff across Acharya Institutes, for attendance, marks and payments.",
-        source: SRC.acharyaUsers,
+        value: "3.7×",
+        label: "Android installs while I owned it",
+        context: "Android devices with the app installed, from the Play Console: 3,953 when I took it over on 1 Sep 2021, 14,703 when I handed it over on 31 Aug 2023. Every student and staff member across Acharya Institutes used it, plus about 2,000 on iOS.",
+        source: SRC.acharyaPlay,
         asOf: "Aug 2023",
         projectSlug: "acharya-erp",
       },

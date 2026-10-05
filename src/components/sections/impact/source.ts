@@ -20,6 +20,7 @@ export function sourceRef(source: string): SourceRef {
     const label = source.includes("acharya-users") ? "source: store analytics" : "source: document scan";
     return { label, href: `/${source.slice(i + PUBLIC_MARK.length)}`, external: true };
   }
+  if (source.includes("play-console")) return { label: "source: play console", external: false };
   if (source.endsWith(".csv")) return { label: "source: my notes", external: false };
   if (source.startsWith("git log")) return { label: "source: git history", external: false };
   return { label: "source: private repo", external: false };

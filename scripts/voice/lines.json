@@ -54,8 +54,8 @@
     ]
   },
   {
-    "id": "288deff282",
-    "text": "Before that, a Flutter app used by about seventeen thousand students and staff. I owned it from design to deployment.",
+    "id": "a0b344fd45",
+    "text": "Before that, a Flutter app every student and staff member used. Installs grew almost four times while I owned it.",
     "tags": [
       "tour",
       "founder",
@@ -1119,8 +1119,8 @@
     ]
   },
   {
-    "id": "01db7392c9",
-    "text": "About seventeen thousand students and staff used the Acharya app.",
+    "id": "d5f4c0c37e",
+    "text": "Android installs grew from about four thousand to almost fifteen thousand while I owned the app.",
     "tags": [
       "metric",
       "project:acharya-erp"
