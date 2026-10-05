@@ -4,7 +4,7 @@ Owner: lead (Claude). Every builder reads this before writing a line.
 
 ## The idea
 
-DB turns noise into signal. His whole career is taking messy, high-stakes text (special-ed plans, procurement contracts, state policy) and turning it into answers real people can act on: 500K+ of them, across 20+ agencies.
+DB turns noise into signal. His whole career is taking messy, high-stakes text (special-ed plans, procurement contracts, state policy) and turning it into answers real people can act on.
 
 So the site is one continuous **signal**: a field of ~60K luminous particles that lives behind everything and reorganizes itself as you scroll. It starts as noise, resolves into DB, then becomes each chapter of his story. When a particle formation carries data, it is honest data (1 particle = N people, the arc really goes Bangalore to Boston).
 
