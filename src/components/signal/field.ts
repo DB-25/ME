@@ -5,6 +5,7 @@ import { signalStore, type SignalOverride, type SignalState } from "@/lib/signal
 import { adaptQuality } from "./adaptive";
 import { chapterPresence } from "./chapterPresence";
 import { devFlag, recordFrame } from "./devtools";
+import { patchFieldStatus } from "./fieldStatus";
 import {
   INTRO_SPREAD,
   blendLook,
@@ -311,7 +312,10 @@ export function createField(camera: PerspectiveCamera, quality: FieldQuality, in
 
       if (!reducedMotion && !noAdapt) {
         const next = adaptQuality(r.adapt, r.chained ? delta : 0, now, count);
-        if (next !== null) geometry.setDrawRange(0, next);
+        if (next !== null) {
+          geometry.setDrawRange(0, next);
+          patchFieldStatus({ activeCount: next });
+        }
       }
 
       resolveScroll(scene, s, aspect, chapterPresence.present);

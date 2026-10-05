@@ -1,4 +1,5 @@
 import "../fade.css";
+import Link from "next/link";
 import { metrics, type Metric } from "@/content";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
@@ -79,6 +80,9 @@ export function Impact() {
             <p className={`lede !text-[1rem] ${SHADOW}`}>
               Each figure says who stands behind it: a third party, my employer, or me. Where there is a public page, it links.
             </p>
+            <Link href="/receipts/" data-cursor="open" className={`label link relative mt-4 inline-flex min-h-11 items-center !text-[12px] !text-ink/80 hover:!text-accent-hot focus-visible:!text-accent-hot ${SHADOW}`}>
+              All receipts<span aria-hidden className="ml-2">&rarr;</span>
+            </Link>
           </FadeIn>
         </header>
 

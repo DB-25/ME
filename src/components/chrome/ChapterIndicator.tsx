@@ -11,6 +11,7 @@ function routeLabel(pathname: string): string {
   const path = pathname.replace(/\/+$/, "");
   if (path === "/work") return "WORK INDEX";
   if (path.startsWith("/work/")) return "CASE STUDY";
+  if (path === "/receipts") return "RECEIPTS";
   return "NOT FOUND";
 }
 

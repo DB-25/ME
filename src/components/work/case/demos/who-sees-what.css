@@ -1,0 +1,143 @@
+/* A-IEP "Who sees what" stepper. Tokens come from .cs (--pa accent, --cs-ease = expo.out). Hairlines, no shadows, no pills. */
+
+.wss-slot { margin-top: clamp(28px, 3.4vw, 48px); min-height: 560px; }
+.wss-slot[aria-busy="false"] { min-height: 0; }
+.wss-noscript { margin: 0; color: var(--color-muted); }
+
+.wss {
+  --wss-hl: color-mix(in oklab, var(--pa) 30%, transparent);
+  --wss-tok: color-mix(in oklab, var(--pa) 12%, transparent);
+  --wss-tok-ring: color-mix(in oklab, var(--pa) 45%, transparent);
+  --wss-gap: clamp(20px, 2.4vw, 32px);
+}
+
+/* Stage tabs: four equal columns, a hairline on top, the active one drawn in the accent. */
+.wss-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--color-hairline-strong); }
+.wss-tab {
+  appearance: none; background: none; border: 0; margin: 0; font: inherit; text-align: left; cursor: pointer;
+  position: relative; display: grid; align-content: start; gap: 3px;
+  min-height: 64px; padding: 14px 10px 14px 0; color: var(--color-dim);
+  transition: color 0.4s var(--cs-ease);
+}
+.wss-tab::before {
+  content: ""; position: absolute; left: 0; right: 10px; top: -1px; height: 2px; background: var(--pa);
+  transform: scaleX(0); transform-origin: left center; transition: transform 0.8s var(--cs-ease);
+}
+.wss-tab[aria-selected="true"]::before { transform: scaleX(1); }
+.wss-tab[aria-selected="true"] { color: var(--color-ink); }
+.wss-tab:hover { color: var(--color-ink); }
+.wss-tab:focus-visible, .wss-next:focus-visible { outline: 2px solid var(--color-accent-hot); outline-offset: 2px; }
+.wss-tab-n { color: var(--color-dim); transition: color 0.4s var(--cs-ease); }
+.wss-tab[aria-selected="true"] .wss-tab-n { color: var(--pa); }
+.wss-tab-name { font-size: clamp(0.9rem, 1.6vw, 1.5rem); font-weight: 500; letter-spacing: -0.02em; line-height: 1.15; }
+.wss-tab-who { display: none; color: var(--color-dim); }
+@media (min-width: 640px) { .wss-tab-who { display: block; } }
+
+/* Step bar: where you are, and one obvious way forward. */
+.wss-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--color-hairline); padding-block: 4px; }
+.wss-bar p { margin: 0; }
+.wss-next {
+  appearance: none; background: none; border: 0; border-bottom: 1px solid transparent; margin: 0; cursor: pointer;
+  min-height: 44px; display: inline-flex; align-items: center; color: var(--color-ink);
+  transition: color 0.25s, border-color 0.25s;
+}
+.wss-next:hover { color: var(--color-accent-hot); }
+.wss-next span { display: inline-block; margin-left: 0.4em; transition: transform 0.5s var(--cs-ease); }
+.wss-next:hover span { transform: translateX(4px); }
+
+/* Panel: phones read who, then the page, then the facts. From 900px the page sits left and who + facts sit right. */
+.wss-panel { margin-top: clamp(20px, 2.4vw, 32px); display: grid; gap: var(--wss-gap); grid-template-areas: "who" "canvas" "facts"; }
+.wss-who { grid-area: who; min-width: 0; }
+.wss-canvas { grid-area: canvas; min-width: 0; }
+@media (min-width: 900px) { .wss-canvas { position: sticky; top: 96px; align-self: start; } }
+.wss-facts { grid-area: facts; min-width: 0; }
+@media (min-width: 900px) {
+  .wss-panel { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); grid-template-rows: auto 1fr; grid-template-areas: "canvas who" "canvas facts"; column-gap: clamp(32px, 4vw, 64px); align-items: start; }
+}
+
+.wss-who p { margin: 0; }
+.wss-vendor { margin: 10px 0 0; font-size: clamp(1.75rem, 3.2vw, 2.75rem); font-weight: 500; letter-spacing: -0.035em; line-height: 1.02; text-wrap: balance; }
+.wss-who .wss-where { margin-top: 10px; color: var(--color-dim); }
+.wss-who .wss-sees { margin-top: 16px; font-size: clamp(1.1rem, 1.5vw, 1.4rem); line-height: 1.4; letter-spacing: -0.012em; color: var(--color-ink); max-width: 30ch; text-wrap: pretty; }
+
+.wss-facts { margin: 0; border-top: 1px solid var(--color-hairline-strong); }
+.wss-fact { display: grid; row-gap: 6px; padding-block: 14px; border-bottom: 1px solid var(--color-hairline); }
+.wss-fact dt { color: var(--color-ink); }
+.wss-fact dd { margin: 0; max-width: 56ch; font-size: clamp(0.95rem, 1.1vw, 1.05rem); line-height: 1.55; color: var(--color-muted); text-wrap: pretty; }
+
+/* Stage content rises in, in reading order. */
+.wss-rise { animation: wss-rise 0.9s var(--cs-ease) both; animation-delay: calc(var(--i, 0) * 60ms); }
+@keyframes wss-rise { from { opacity: 0; transform: translateY(14px); } }
+
+/* Collapsing blocks: a grid row animates 0fr to 1fr, so no height is measured in JS. */
+.wss-col { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; transition: grid-template-rows 0.9s var(--cs-ease), opacity 0.5s var(--cs-ease), visibility 0s linear 0.9s; }
+.wss-col[data-open="true"] { grid-template-rows: 1fr; opacity: 1; visibility: visible; transition-delay: 0s, 0.12s, 0s; }
+.wss-col-in { min-height: 0; overflow: hidden; transition: padding-bottom 0.9s var(--cs-ease); }
+.wss-col[data-open="true"] .wss-col-in { padding-bottom: var(--wss-gap); }
+/* Every open block carries a trailing gap; the canvas takes the last one back. */
+.wss-canvas { margin-bottom: calc(var(--wss-gap) * -1); }
+
+/* The page. Mono, line-numbered, like OCR text on a dark sheet. */
+.wss-doc { margin: 0; border: 1px solid var(--color-hairline-strong); background: rgb(12 10 18 / 0.72); }
+.wss-doc-h { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; margin: 0; padding: 12px clamp(14px, 2vw, 22px); border-bottom: 1px solid var(--color-hairline); }
+.wss-tally { color: var(--color-dim); }
+.wss-lines { list-style: none; margin: 0; padding: clamp(10px, 1.4vw, 16px) clamp(14px, 2vw, 22px); counter-reset: ln; font-family: var(--font-mono); font-size: 12px; line-height: 1.9; color: var(--color-ink); }
+.wss-lines li { counter-increment: ln; display: grid; grid-template-columns: 2ch minmax(0, 1fr); column-gap: 1.4ch; }
+.wss-lines li::before { content: counter(ln); color: var(--color-dim); text-align: right; }
+.wss-lines li > span { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (min-width: 480px) { .wss-lines { font-size: 13px; } }
+@media (min-width: 1100px) { .wss-lines { font-size: 14px; } }
+
+.wss-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0; padding: 12px clamp(14px, 2vw, 22px); border-top: 1px solid var(--color-hairline); }
+.wss-legend li { display: inline-flex; align-items: center; gap: 8px; animation: wss-rise 0.7s var(--cs-ease) both; }
+.wss-sw { flex: none; display: inline-block; width: 14px; height: 10px; }
+.wss-sw[data-k="id"] { background: var(--wss-hl); box-shadow: inset 0 -1px 0 var(--pa); }
+.wss-sw[data-k="token"] { background: var(--wss-tok); box-shadow: inset 0 0 0 1px var(--wss-tok-ring); }
+.wss-sw[data-k="keep"] { border-bottom: 1px dotted var(--color-label); height: 8px; }
+.wss-sw[data-k="miss"] { border-bottom: 1px dashed var(--color-saffron); height: 8px; }
+
+/* Identifiers: both states live in the DOM. The one in flow sets the width; the other waits, absolute and hidden. */
+.wss-ent { position: relative; display: inline-block; overflow: clip; white-space: pre; vertical-align: baseline; padding-inline: 0.18em; margin-inline: -0.18em; transition: background-color 0.6s var(--cs-ease), box-shadow 0.6s var(--cs-ease), color 0.6s var(--cs-ease); }
+.wss-lt, .wss-lk { display: inline-block; white-space: pre; }
+.wss-lk { color: var(--color-accent-hot); font-weight: 500; }
+.wss-ent[data-on="text"] { background: var(--wss-hl); box-shadow: inset 0 -1px 0 var(--pa); }
+.wss-ent[data-on="token"] { background: var(--wss-tok); box-shadow: inset 0 0 0 1px var(--wss-tok-ring); }
+.wss-ent[data-on="token"][data-student] { background: color-mix(in oklab, var(--pa) 26%, transparent); }
+.wss-ent[data-on="text"] .wss-lk, .wss-ent[data-on="token"] .wss-lt { position: absolute; left: 0.18em; top: 0; opacity: 0; pointer-events: none; }
+.wss-ent[data-plain][data-on="text"] { background: none; box-shadow: none; color: var(--color-ink); font-weight: 500; }
+.wss-ent[data-plain][data-on="text"] .wss-lt { color: var(--color-accent-hot); }
+
+/* Spans the redactor leaves alone. They only read as such once redaction has run. */
+.wss-keep, .wss-miss { transition: border-color 0.6s var(--cs-ease); border-bottom: 1px dotted transparent; }
+.wss[data-stage="2"] .wss-keep, .wss[data-stage="3"] .wss-keep, .wss-sum .wss-keep { border-bottom-color: var(--color-label); }
+.wss[data-stage="2"] .wss-miss, .wss[data-stage="3"] .wss-miss { border-bottom: 1px dashed var(--color-saffron); }
+
+/* Tokens set in prose. */
+.wss-tok { font-family: var(--font-mono); font-size: 0.86em; font-weight: 500; letter-spacing: 0.01em; padding: 0.04em 0.4em; color: var(--color-accent-hot); background: var(--wss-tok); box-shadow: inset 0 0 0 1px var(--wss-tok-ring); white-space: nowrap; }
+.wss-tok[data-student] { background: color-mix(in oklab, var(--pa) 26%, transparent); }
+
+/* Original upload, gone. */
+.wss-gone { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 10px clamp(14px, 2vw, 22px); border: 1px dashed var(--color-hairline-strong); }
+.wss-gone p { margin: 0; }
+.wss-gone-v { font-size: clamp(1.1rem, 1.5vw, 1.4rem); font-weight: 500; letter-spacing: -0.02em; color: var(--color-ink); }
+
+/* What the model writes back, then what is stored, then what the parent sees. */
+.wss-out { border: 1px solid var(--color-hairline-strong); background: rgb(12 10 18 / 0.72); }
+.wss-out-h { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; margin: 0; padding: 12px clamp(14px, 2vw, 22px); border-bottom: 1px solid var(--color-hairline); }
+.wss-out-h span:last-child { color: var(--color-dim); }
+.wss-sum { list-style: none; margin: 0; padding: clamp(6px, 1vw, 10px) clamp(14px, 2vw, 22px); }
+.wss-sum li { display: grid; grid-template-columns: 2.4em minmax(0, 1fr); column-gap: 10px; align-items: baseline; padding-block: 8px; }
+.wss-sum li + li { border-top: 1px solid var(--color-hairline); }
+.wss-sum p { margin: 0; font-size: clamp(0.95rem, 1.1vw, 1.05rem); line-height: 1.6; color: var(--color-ink); text-wrap: pretty; }
+.wss-lang { color: var(--color-dim); }
+
+/* Under the demo. */
+.wss-cap { margin: clamp(20px, 2.4vw, 32px) 0 0; max-width: 72ch; font-size: 0.9rem; line-height: 1.5; color: var(--color-dim); text-wrap: pretty; }
+.wss-src { display: flex; flex-wrap: wrap; gap: 0 22px; margin: 6px 0 0; }
+.wss-src-link { display: inline-flex; align-items: center; min-height: 32px; color: var(--color-ink); text-decoration: none; transition: color 0.25s; }
+.wss-src-link:hover, .wss-src-link:focus-visible { color: var(--color-accent-hot); }
+@media (max-width: 767px) { .wss-src-link { min-height: 44px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .wss *, .wss *::before, .wss *::after { animation: none !important; transition: none !important; }
+}

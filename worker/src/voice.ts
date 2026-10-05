@@ -4,7 +4,7 @@ export type VoiceLine = { id: string; text: string; tags: string[] };
 /** Lines DB recorded in his own voice. The model may only speak these, by id. */
 export const VOICE_LINES: VoiceLine[] = [
   {"id":"bf967ec088","text":"A founder. Can I ship, and keep it running? Here are three proofs.","tags":["tour","founder"]},
-  {"id":"d9ca711cc3","text":"A-IEP: more than one thousand families read a special-education plan in plain language.","tags":["tour","founder","project:a-iep"]},
+  {"id":"5e00e24087","text":"A-IEP: more than three hundred seventy-five special-education plans, read in plain language.","tags":["tour","founder","project:a-iep"]},
   {"id":"e13df562a4","text":"I took it from prototype to production, and made just over half of its commits.","tags":["tour","founder","owned","project:a-iep"]},
   {"id":"9feeb1d3e8","text":"Course Delivery, an eight-day course paced by text: sole engineer, built in three days, pre-launch.","tags":["tour","founder","project:course-delivery"]},
   {"id":"30705e1d72","text":"Public Voice is live at InnovateUS: a voice survey with one smart follow-up. I am the technical lead.","tags":["tour","founder","project:public-voice"]},
@@ -13,7 +13,7 @@ export const VOICE_LINES: VoiceLine[] = [
   {"id":"af37329fbf","text":"The store rating went from one point two to four point five.","tags":["tour","metric","project:acharya-erp"]},
   {"id":"af8c952d39","text":"And a tool of my own: arc-control-mcp, an MCP server with twenty-six tools, published on npm.","tags":["tour","founder","project:arc-control-mcp"]},
   {"id":"188e5cf98a","text":"Hiring. The short version is what I owned, and how far it reached.","tags":["tour","recruiter"]},
-  {"id":"bc274dbf29","text":"I lead A-IEP's engineering: more than one thousand families, and over half of the commits are mine.","tags":["tour","recruiter","owned","project:a-iep"]},
+  {"id":"3dbeec6447","text":"I lead A-IEP's engineering: over half of the commits are mine.","tags":["tour","recruiter","owned","project:a-iep"]},
   {"id":"82f5725c1e","text":"That counts access, not daily use.","tags":["tour","metric","honest"]},
   {"id":"b10b57e6dd","text":"ABE and One-L: I built ABE's quality monitoring and alarms, and the pair won two NASPO awards.","tags":["tour","recruiter","owned","project:abe-one-l"]},
   {"id":"278bfd1130","text":"Across AI for Impact, twenty-six tools have shipped. I help lead the technical side.","tags":["tour","recruiter","metric"]},
@@ -138,7 +138,7 @@ export const VOICE_LINES: VoiceLine[] = [
   {"id":"96e220b095","text":"One of four on a hackathon team, I designed the agent's tool calling and wrote the system prompt that orchestrates it.","tags":["owned","project:vct-scout"]},
   {"id":"f1abb6a9f6","text":"I set the technical direction and built the prototype it grew from. Two teammates wrote most of the production code.","tags":["owned","project:public-voice"]},
   {"id":"13b78e30a1","text":"I built the Flutter app and owned it from design to deployment, then trained interns to take over.","tags":["owned","project:acharya-erp"]},
-  {"id":"10c3796764","text":"More than one thousand families use A-IEP.","tags":["metric","project:a-iep"]},
+  {"id":"6f499d7305","text":"More than three hundred seventy-five plans read in plain language.","tags":["metric","project:a-iep"]},
   {"id":"88bed79cc8","text":"More than twenty thousand people used the Acharya app every day.","tags":["metric","project:acharya-erp"]},
   {"id":"716b3d0d2f","text":"More than forty-four thousand state employees have access to the sandbox I co-built.","tags":["metric","project:genie"]},
   {"id":"75dfeb5b87","text":"The AI for Impact program has shipped twenty-six AI tools for government and civic partners.","tags":["metric"]},

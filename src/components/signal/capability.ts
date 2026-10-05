@@ -1,5 +1,6 @@
 /** Decides whether the live field may run at all: software rendering falls back to a still instead of a frozen tab. */
 import type { GpuReply, GpuVerdict } from "./gpuProbe.worker";
+import { patchFieldStatus } from "./fieldStatus";
 import { isSoftwareRendererName } from "./softwareRenderer";
 
 /** Thrown (or reported) when the field should not run on this machine; the page shows its poster instead. */
@@ -25,9 +26,13 @@ export function shouldGuardGpu(): boolean {
   return process.env.NODE_ENV === "production" && fieldOverride() !== "live";
 }
 
-export function isSoftwareRenderer(gl: WebGLRenderingContext | WebGL2RenderingContext): boolean {
+export function rendererName(gl: WebGLRenderingContext | WebGL2RenderingContext): string {
   const info = gl.getExtension("WEBGL_debug_renderer_info");
-  return isSoftwareRendererName(String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)));
+  return String(info ? gl.getParameter(info.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
+}
+
+export function isSoftwareRenderer(gl: WebGLRenderingContext | WebGL2RenderingContext): boolean {
+  return isSoftwareRendererName(rendererName(gl));
 }
 
 /** Give up on the probe after this long: a machine that slow cannot run the field anyway. */
@@ -56,7 +61,10 @@ export function probeGpu(): Promise<GpuVerdict> {
       resolve(verdict);
     };
     const timer = window.setTimeout(() => finish("software"), PROBE_TIMEOUT_MS);
-    worker.onmessage = (event: MessageEvent<GpuReply>) => finish(event.data.verdict);
+    worker.onmessage = (event: MessageEvent<GpuReply>) => {
+      if (event.data.renderer) patchFieldStatus({ renderer: event.data.renderer, software: event.data.verdict === "software" });
+      finish(event.data.verdict);
+    };
     worker.onerror = () => finish("unknown");
     worker.postMessage(null);
   });

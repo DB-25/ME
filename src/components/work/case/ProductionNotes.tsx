@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { NoteStatus, Project } from "@/content";
 import { Reveal } from "@/components/ui/Reveal";
 import { assetUrl } from "@/lib/asset";
@@ -31,6 +32,9 @@ export function ProductionNotes({ project, n }: { project: Project; n: string })
                 Behind the numbers
               </Reveal>
             </h2>
+            <Link href={`/receipts/?project=${project.slug}`} data-cursor="open" className="label link mt-5 inline-flex min-h-11 items-center !text-ink">
+              All receipts for this project<span aria-hidden className="ml-2">&rarr;</span>
+            </Link>
           </div>
         </div>
         <Reveal as="div" mode="fade" className="col-span-12 md:col-span-8">

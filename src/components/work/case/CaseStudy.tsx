@@ -13,6 +13,7 @@ import { Outcomes } from "./Outcomes";
 import { ProductionNotes } from "./ProductionNotes";
 import { ProblemSection } from "./ProblemSection";
 import { StackList } from "./StackList";
+import { WhoSeesWhat } from "./demos/WhoSeesWhat";
 
 /** Featured projects hand off to the next featured one, lab projects to the next lab one. */
 export function neighbours(project: Project) {
@@ -27,10 +28,13 @@ export function CaseStudy({ project }: { project: Project }) {
 
   // Section numbers follow what actually renders, so a project without media still reads 01, 02, 03.
   const hasArchitecture = Boolean(project.architecture?.nodes.length || project.architecture?.lanes?.length);
+  // The interactive data-boundary demo belongs to A-IEP only.
+  const hasDemo = project.slug === "a-iep";
   const present = [
     true,
     true,
     hasArchitecture,
+    hasDemo,
     project.outcomes.length > 0,
     Boolean(project.notes?.length),
     project.stack.length > 0,
@@ -47,11 +51,12 @@ export function CaseStudy({ project }: { project: Project }) {
     { key: "problem", label: "The problem", n: num[0] },
     { key: "build", label: "What I built", n: num[1] },
     ...(hasArchitecture ? [{ key: "architecture", label: "Architecture", n: num[2] }] : []),
-    ...(present[3] ? [{ key: "outcomes", label: "Outcomes", n: num[3] }] : []),
-    ...(present[4] ? [{ key: "notes", label: "Production notes", n: num[4] }] : []),
-    ...(present[5] ? [{ key: "stack", label: "Stack", n: num[5] }] : []),
-    ...(present[6] ? [{ key: "gallery", label: "In use", n: num[6] }] : []),
-    ...(present[7] ? [{ key: "links", label: "Links", n: num[7] }] : []),
+    ...(hasDemo ? [{ key: "whosees", label: "Who sees what", n: num[3] }] : []),
+    ...(present[4] ? [{ key: "outcomes", label: "Outcomes", n: num[4] }] : []),
+    ...(present[5] ? [{ key: "notes", label: "Production notes", n: num[5] }] : []),
+    ...(present[6] ? [{ key: "stack", label: "Stack", n: num[6] }] : []),
+    ...(present[7] ? [{ key: "gallery", label: "In use", n: num[7] }] : []),
+    ...(present[8] ? [{ key: "links", label: "Links", n: num[8] }] : []),
     { key: "next", label: "Up next", n: "" },
   ];
 
@@ -62,11 +67,12 @@ export function CaseStudy({ project }: { project: Project }) {
       <ProblemSection project={project} n={num[0]} />
       <BuildSection project={project} n={num[1]} />
       <ArchitectureDiagram project={project} n={num[2]} />
-      <Outcomes project={project} n={num[3]} />
-      <ProductionNotes project={project} n={num[4]} />
-      <StackList project={project} n={num[5]} />
-      <Gallery project={project} n={num[6]} />
-      <LinksList project={project} n={num[7]} />
+      {hasDemo ? <WhoSeesWhat n={num[3]} /> : null}
+      <Outcomes project={project} n={num[4]} />
+      <ProductionNotes project={project} n={num[5]} />
+      <StackList project={project} n={num[6]} />
+      <Gallery project={project} n={num[7]} />
+      <LinksList project={project} n={num[8]} />
       <NextProject next={next} index={nextIndex} total={group.length} />
       <CaseNav name={project.name} nextSlug={next.slug} nextName={next.name} stops={stops} />
     </article>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import type { Project } from "@/content";
 import { Reveal } from "@/components/ui/Reveal";
@@ -92,6 +93,11 @@ export function Outcomes({ project, n }: { project: Project; n: string }) {
             );
           })}
         </ol>
+        <p className="mt-8">
+          <Link href={`/receipts/?project=${project.slug}`} data-cursor="open" className="label link inline-flex min-h-11 items-center !text-ink">
+            Check these in the ledger<span aria-hidden className="ml-2">&rarr;</span>
+          </Link>
+        </p>
       </div>
     </section>
   );

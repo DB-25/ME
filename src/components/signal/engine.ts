@@ -5,7 +5,8 @@ import { requestFormations } from "./formations";
 import type { FieldQuality } from "./fieldTypes";
 import type { Fx } from "./fx";
 import { fieldMotion } from "./readingMode";
-import { FieldUnavailableError, isSoftwareRenderer, probeGpu, shouldGuardGpu } from "./capability";
+import { FieldUnavailableError, isSoftwareRenderer, probeGpu, rendererName, shouldGuardGpu } from "./capability";
+import { patchFieldStatus } from "./fieldStatus";
 import { CHAPTER_BLOOM, DEFAULT_BLOOM, OVERRIDE_BLOOM } from "./look";
 
 const ORBIT_SPEED = 0.11;
@@ -148,6 +149,7 @@ export function startEngine(container: HTMLElement, quality: FieldQuality, hooks
     const h = container.clientHeight || 1;
     const dpr = Math.min(Math.max(window.devicePixelRatio || 1, 1), quality.maxDpr);
     renderer.setPixelRatio(dpr);
+    patchFieldStatus({ dpr });
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     field.resize(w, h, dpr);
@@ -162,7 +164,9 @@ export function startEngine(container: HTMLElement, quality: FieldQuality, hooks
       if (disposed) return;
       const fxModule = lean ? null : import("./fx");
       renderer = new WebGLRenderer({ antialias: false, powerPreference: "high-performance", alpha: false, stencil: false, depth: false, failIfMajorPerformanceCaveat: guardGpu });
-      if (guardGpu && isSoftwareRenderer(renderer.getContext())) throw new FieldUnavailableError("software renderer");
+      const software = isSoftwareRenderer(renderer.getContext());
+      patchFieldStatus({ renderer: rendererName(renderer.getContext()), software });
+      if (guardGpu && software) throw new FieldUnavailableError("software renderer");
       // Parallel compile is polled below; skipping the blocking program-log read keeps linking off the main thread.
       renderer.debug.checkShaderErrors = process.env.NODE_ENV !== "production";
       const canvas = renderer.domElement;

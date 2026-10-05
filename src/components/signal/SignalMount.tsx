@@ -7,7 +7,9 @@ import { assetUrl } from "@/lib/asset";
 import { prefersReducedMotion, isCoarsePointer } from "@/lib/motion";
 import { FieldUnavailableError, fieldOverride, probeGpu, shouldGuardGpu } from "./capability";
 import { devFlag, installDevHooks } from "./devtools";
+import { patchFieldStatus } from "./fieldStatus";
 import type { FieldQuality } from "./fieldTypes";
+import { getMotionPrefs, subscribeMotionPrefs, syncSmoothScroll } from "./motionPrefs";
 import { afterPaint, onIdle } from "./schedule";
 import { useChapterScroll } from "./useChapterScroll";
 
@@ -36,7 +38,8 @@ function pickQuality(): FieldQuality {
   return {
     count: light ? COUNT_MOBILE : COUNT_DESKTOP,
     sizeBoost: light ? SIZE_BOOST_LOW : 1,
-    reducedMotion: prefersReducedMotion(),
+    // The visitor's "pause motion" switch rides the reduced-motion path: crossfades, no orbit, no parallax.
+    reducedMotion: prefersReducedMotion() || getMotionPrefs().paused,
     coarse,
     maxDpr: light ? DPR_MAX_LOW : DPR_MAX,
     lean,
@@ -187,7 +190,14 @@ function Poster({ wanted, gone, isHome }: { wanted: boolean; gone: boolean; isHo
 
 /** No WebGL2, or the poster was asked for: no engine to start. Read lazily so the server render is unaffected. */
 function noFieldUpFront(): boolean {
-  return typeof window !== "undefined" && (!hasWebGL2Api() || fieldOverride() === "poster");
+  return typeof window !== "undefined" && (!hasWebGL2Api() || fieldOverride() === "poster" || getMotionPrefs().still);
+}
+
+/** Plain-words reason the live field is not running before it even starts. */
+function upFrontReason(): string {
+  if (getMotionPrefs().still) return "you chose the still";
+  if (!hasWebGL2Api()) return "this browser has no WebGL2";
+  return "the URL asked for the still";
 }
 
 function isPhoneViewport(): boolean {
@@ -203,13 +213,34 @@ export function SignalMount() {
   const [lost, setLost] = useState(false);
   /** Phones always get the poster before the field; desktops only once the field has been ruled out. */
   const [unavailable, setUnavailable] = useState(noFieldUpFront);
+  const [still, setStill] = useState(() => getMotionPrefs().still);
+
+  // The Colophon panel's switches: "still" stops or restarts the field, "pause" restarts it on the reduced-motion path.
+  useEffect(() => {
+    syncSmoothScroll();
+    return subscribeMotionPrefs((next, prev) => {
+      if (next.paused !== prev.paused) setQuality((q) => (q ? pickQuality() : q));
+      if (next.still === prev.still) return;
+      setStill(next.still);
+      if (next.still) {
+        setVisible(false);
+        setGlOk(false);
+      }
+      setUnavailable(noFieldUpFront());
+    });
+  }, []);
 
   useEffect(() => {
     const q = pickQuality();
     if (process.env.NODE_ENV !== "production") {
       installDevHooks(q.count);
     }
-    if (noFieldUpFront()) return;
+    const size = { count: q.count, activeCount: q.count, lean: q.lean, reducedMotion: q.reducedMotion };
+    if (noFieldUpFront()) {
+      patchFieldStatus({ ...size, mode: "poster", reason: upFrontReason() });
+      return;
+    }
+    patchFieldStatus({ ...size, mode: "pending", reason: null, software: false });
     const deferToInput = q.coarse || window.innerWidth < SMALL_VIEWPORT;
     return scheduleBoot(deferToInput, () => {
       // Runs alongside the three.js chunk download; the engine awaits the same promise.
@@ -217,7 +248,7 @@ export function SignalMount() {
       setQuality(q);
       setGlOk(true);
     });
-  }, []);
+  }, [still]);
 
   return (
     <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none", background: "#060509" }}>
@@ -225,16 +256,20 @@ export function SignalMount() {
       <Poster wanted={unavailable} gone={visible && !lost} isHome={isHome} />
       {glOk && quality && (
         <div style={{ position: "absolute", inset: 0, opacity: visible && !lost ? 1 : 0, transition: FADE_IN }}>
-          <GlBoundary onError={() => { setUnavailable(true); setGlOk(false); }}>
+          <GlBoundary onError={() => { setUnavailable(true); setGlOk(false); patchFieldStatus({ mode: "poster", reason: "WebGL failed to start" }); }}>
             <SignalCanvas
               quality={quality}
-              onReady={() => setVisible(true)}
+              onReady={() => {
+                setVisible(true);
+                patchFieldStatus({ mode: "live", reason: null });
+              }}
               onContextLost={() => setLost(true)}
               onContextRestored={() => setLost(false)}
               onError={(error) => {
                 // A machine that cannot run the field is expected, not a bug: no console error for it.
                 if (error instanceof FieldUnavailableError) console.info(`[signal] ${error.message}, showing the poster`);
                 else console.error("[signal] WebGL field failed, using fallback", error);
+                patchFieldStatus({ mode: "poster", reason: error instanceof FieldUnavailableError ? error.message.replace("signal field unavailable: ", "") : "WebGL failed to start" });
                 setVisible(false);
                 setUnavailable(true);
                 setGlOk(false);
