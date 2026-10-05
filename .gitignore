@@ -57,3 +57,9 @@ worker/.wrangler/
 worker/.dev.vars
 .brag/
 voice-sample.*
+
+# Internal working notes (critiques, audits, claims dossier): local only, never public
+.internal/
+docs/critique/
+docs/ux/
+docs/dossier.md
