@@ -144,12 +144,11 @@ export const featuredMoreProjects: Project[] = [
     ],
     outcomes: [
       {
-        value: "20,000+",
-        numeric: 20000,
-        suffix: "+",
-        label: "Daily users",
-        context: "Students and staff across Acharya Institutes used it every day for attendance, marks and payments.",
-        source: SRC.resume,
+        value: "17,000",
+        numeric: 17000,
+        label: "Users",
+        context: "About 15,000 on Android and 2,000 on iOS, from the app’s store analytics: students and staff across Acharya Institutes, for attendance, marks and payments.",
+        source: SRC.acharyaUsers,
         asOf: "Aug 2023",
         projectSlug: "acharya-erp",
       },

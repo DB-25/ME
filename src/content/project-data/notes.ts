@@ -9,9 +9,14 @@ import { REPO } from "../sources";
 export const PRODUCTION_NOTES: Record<string, ProductionNote[]> = {
   "a-iep": [
     {
+      label: "OCR evaluation",
+      status: "Measured, unpublished",
+      text: "The first stage I measured is OCR, on synthetic IEPs (clean, scanned and photographed), scoring digit-bearing facts, checkboxes and invented numbers rather than text similarity. A self-hostable 1B model, LightOnOCR-2, matched production Mistral OCR on facts, numbers and checkboxes and invented no numbers; the only difference was one dropped diacritic in an 8 pt table. A 4-bit build of olmOCR 2 read 0% of checkboxes on clean pages while its text similarity stayed near 97%; the FP8 build read 100%. Quantization, not the model, removed the information parents act on. Runs from 30 Sep and 1 Oct 2026; the results are not published yet.",
+    },
+    {
       label: "Evaluation",
       status: "Designed, not run",
-      text: "The only automated check on output quality is a schema check: nine sections present, in the right shape. The benchmark is a written design, not a result. It scores atomic facts against both the summary and the source, uses a judge from a different model family, and grades each translation with a per-language judge. No accuracy number exists yet, so none is shown.",
+      text: "For the summaries themselves, the only automated check is still a schema check: nine sections present, in the right shape. The summary benchmark is a written design, not a result. It scores atomic facts against both the summary and the source, uses a judge from a different model family, and grades each translation with a per-language judge. No accuracy number exists yet, so none is shown.",
       links: [
         { label: "Eval design and cost", href: REPO.aiepEvalCost },
         { label: "Audit and roadmap", href: REPO.aiepEvalResearch },
@@ -193,7 +198,7 @@ export const PRODUCTION_NOTES: Record<string, ProductionNote[]> = {
   "vct-scout": [
     {
       label: "What I wrote",
-      text: "In the public repo, my commits are the system prompt that orchestrates the agent and the tools that save and load a team composition. Rudra Sett built the chat backend and the player-data tools, and Aravind Dasarathy wrote the map tools.",
+      text: "I wrote the system prompt that orchestrates the agent and the tools that save and load a team composition. Rudra Sett built the chat backend and the player-data tools, and Aravind Dasarathy wrote the map tools.",
       links: [
         { label: "System prompt", href: REPO.vctPrompt },
         { label: "Tool schemas", href: REPO.vctTools },

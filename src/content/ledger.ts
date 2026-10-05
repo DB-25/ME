@@ -166,7 +166,9 @@ function noteRows(): LedgerRow[] {
         definition: note.text,
         appears: [{ label: `${p.name}, production notes`, href: `/work/${p.slug}/#sec-notes` }],
         basis,
-        source: link ? { label: link.label, href: link.href, isPrivate: false } : { label: "Private repo", isPrivate: true },
+        source: link
+          ? { label: link.label, href: link.href, isPrivate: false }
+          : { label: note.status === "Measured, unpublished" ? "Unpublished results" : "Private repo", isPrivate: true },
         asOf: REPO_READ,
         projects: [p.slug],
       });

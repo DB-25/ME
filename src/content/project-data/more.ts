@@ -126,7 +126,7 @@ export const moreProjects: Project[] = [
     year: "2026",
     role: "Sole engineer",
     owned:
-      "Sole engineer: all 65 commits in three days, from sign‑in and SMS pacing to the quiz gate, certificate, admin console, runbook and carrier compliance doc.",
+      "Sole engineer, start to finish in three days: sign‑in, SMS pacing, the quiz gate, certificate, admin console, runbook and the carrier compliance doc.",
     org: "InnovateUS",
     featured: true,
     category: "platform",
@@ -161,9 +161,9 @@ export const moreProjects: Project[] = [
     },
     outcomes: [
       {
-        value: "65",
-        numeric: 65,
-        label: "Commits, all mine, in 3 days",
+        value: "3",
+        numeric: 3,
+        label: "Days, solo, to a working course",
         context: "From the first import on 29 Sep to the admin console on 1 Oct 2026, one engineer end to end.",
         source: SRC.courseReadme,
         projectSlug: "course-delivery",

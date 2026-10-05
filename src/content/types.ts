@@ -20,6 +20,7 @@ export type Metric = {
 /** How far a production-note claim can be trusted. A fixed vocabulary, so every case reads the same way. */
 export type NoteStatus =
   | "Measured"
+  | "Measured, unpublished"
   | "Projected"
   | "Designed, not run"
   | "Self-reported"

@@ -30,7 +30,7 @@ export const timeline: TimelineEntry[] = [
     place: "Bangalore, India",
     title: "Software Engineer, Flutter",
     org: "Acharya Institutes",
-    body: "Built the Acharya ERP app in Flutter. It reached 20,000+ daily users, and I trained interns to take it over.",
+    body: "Built the Acharya ERP app in Flutter. About 17,000 students and staff used it, and I trained interns to take it over.",
     kind: "work",
   },
   {
@@ -117,7 +117,7 @@ export const timeline: TimelineEntry[] = [
     place: "Boston, MA",
     title: "Course Delivery SMS",
     org: "The Burnes Center for Social Change",
-    body: "Started an 8-day, text-paced video course platform for InnovateUS. 65 commits in the first three days.",
+    body: "Started an 8-day, text-paced video course platform for InnovateUS, as its sole engineer; the core was built in three days.",
     kind: "work",
   },
   {

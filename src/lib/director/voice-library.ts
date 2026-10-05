@@ -76,7 +76,7 @@ const AUTHORED = {
     "tour", "founder", "project:a-iep",
   ],
   founderAiepOwned: [
-    "I took it from prototype to production, and made just over half of its commits.",
+    "I took it from prototype to production, and built its processing pipeline and privacy design.",
     "tour", "founder", "owned", "project:a-iep",
   ],
   founderCourse: [
@@ -90,7 +90,7 @@ const AUTHORED = {
   founderClose: ["Tell me what you are building. The email is the large link.", "tour", "founder", "closer"],
   /* the long founder story, for the live model and keyword composition */
   founderAcharya: [
-    "Before that, a Flutter app with more than twenty thousand daily users. I owned it from design to deployment.",
+    "Before that, a Flutter app used by about seventeen thousand students and staff. I owned it from design to deployment.",
     "tour", "founder", "project:acharya-erp",
   ],
   acharyaRating: ["The store rating went from one point two to four point five.", "tour", "metric", "project:acharya-erp"],
@@ -102,7 +102,7 @@ const AUTHORED = {
   /* hiring: ownership and scale */
   hiringOpen: ["Hiring. The short version is what I owned, and how far it reached.", "tour", "recruiter"],
   hiringAiep: [
-    "I lead A-IEP's engineering: over half of the commits are mine.",
+    "I lead A-IEP's engineering, from the pipeline to the privacy design.",
     "tour", "recruiter", "owned", "project:a-iep",
   ],
   accessCaveat: ["That counts access, not daily use.", "tour", "metric", "honest"],
@@ -306,9 +306,9 @@ export const PROJECT_INTRO: Record<string, VoiceLine> = Object.fromEntries(
 
 /** What I owned on a project, first person, only for projects whose content records it. */
 const OWNED_TEXT: Record<string, string> = {
-  "a-iep": "I took the earlier co-op prototype to production and made just over half of its commits.",
+  "a-iep": "I took the earlier co-op prototype to production and built its processing pipeline and privacy design.",
   "acharya-erp": "I built the Flutter app and owned it from design to deployment, then trained interns to take over.",
-  genie: "Top committer on the Burnes team's build, I wrote Smart Model, the router that picks a model per request.",
+  genie: "On the Burnes team's build, I wrote Smart Model, the router that picks a model per request.",
   "abe-one-l": "I joined ABE and One-L after their NASPO awards. I built ABE's monitoring and alarms, and direct One-L.",
   "vct-scout": "One of four on a hackathon team, I designed the agent's tool calling and wrote the system prompt that orchestrates it.",
   "public-voice": "I set the technical direction and built the prototype it grew from. Two teammates built most of the production code.",
@@ -324,7 +324,7 @@ export const OWNED_LINE: Record<string, VoiceLine> = Object.fromEntries(
 /** One sentence per headline number, keyed by its label. A new metric falls back to its value and label. */
 const METRIC_TEXT: Record<string, string> = {
   "IEPs read by A-IEP": "More than three hundred seventy-five plans read in plain language.",
-  "Daily users on Acharya ERP": "More than twenty thousand people used the Acharya app every day.",
+  "Users on Acharya ERP": "About seventeen thousand students and staff used the Acharya app.",
   "State employees with access": "More than forty-four thousand state employees have access to the sandbox I co-built.",
   "AI tools shipped": "The AI for Impact program has shipped twenty-six AI tools for government and civic partners.",
   "Engineers mentored": "I have mentored more than fifty student engineers, from prototype to production.",

@@ -8,6 +8,7 @@ import { CaseLabel } from "./CaseLabel";
 /** How much weight a status carries, as a tone for its dot: measured, planned, someone's own word, or nothing to show. */
 const TONE: Record<NoteStatus, "ok" | "plan" | "self" | "none"> = {
   Measured: "ok",
+  "Measured, unpublished": "ok",
   Tested: "ok",
   Projected: "plan",
   "Designed, not run": "plan",
