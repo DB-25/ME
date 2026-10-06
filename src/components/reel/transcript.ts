@@ -32,7 +32,7 @@ export const TRANSCRIPT: TranscriptEntry[] = [
     title: "02 GENIE",
     lowerThird: "GENIE. 44,000+ state employees with access.",
     onScreen:
-      "Two to four models, side by side. Smart Model picks the model so you don't have to. 40%, lower model spend, self-reported.",
+      "Two to four models, side by side. Smart Model picks the model so you don't have to. 17, Bedrock models, one picks for you.",
     visual:
       "Three model panels answer the same prompt at once. Then the Smart Model view ticks Task, Cost and Token size and highlights the chosen model.",
   },
