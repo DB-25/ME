@@ -12,7 +12,9 @@ const SHADOW = "[text-shadow:0_0_12px_rgb(6_5_9/1),0_0_26px_rgb(6_5_9/0.9)]";
 const PROVENANCE = { source: SRC.agentLogs, basis: "self" } as const;
 const CASE_STUDY = "/work/arc-control-mcp/";
 
-const { claudeCode, cursor } = usage.tools;
+const { claudeCode, cursor, codex } = usage.tools;
+/** Whole billions read cleanly at this size: "10B to 25B". */
+const billions = (n: number) => `${Math.round(n / 1e9)}B`;
 const STATS = [
   { label: "Tool calls", value: fmt.count(usage.toolCalls), note: `in ${fmt.count(usage.turns)} model turns` },
   { label: "Sessions", value: fmt.count(usage.sessions), note: `plus ${fmt.count(usage.subagents)} subagents` },
@@ -20,11 +22,18 @@ const STATS = [
   { label: "Output tokens", value: fmt.compact(usage.tokens.output, 1), note: `Claude Code, from ${fmt.count(claudeCode.prompts)} prompts` },
 ];
 
+/** One string, so the numbers and the words between them can never lose a space in JSX. */
+const FOOTNOTE =
+  `From what this Mac kept: ${fmt.count(cursor?.chats ?? 0)} Cursor chats, ${fmt.count(claudeCode.sessions)} Claude Code sessions and ` +
+  `${fmt.count(codex?.sessions ?? 0)} Codex sessions. Across the three, roughly ${billions(usage.allTools.low.tokens)} to ` +
+  `${billions(usage.allTools.high.tokens)} tokens went through the models, nearly all of it cached context read back in on each turn. ` +
+  `That is why output tokens, Claude Code's own count, are the figure above.`;
+
 const SUMMARY = `Activity strip, ${heat.window}: ${fmt.count(usage.activeDays)} active days out of ${fmt.count(heat.spanDays)}. The busiest day was ${heat.busiestDay}, with ${fmt.count(usage.busiest.turns)} model turns. Each day is shaded by how many turns the agents took.`;
 
 /**
  * Closes the chapter on how I work with agents. The activity strip and four counts come from agent-usage.json
- * (scripts/agent-usage.mjs reads my own Claude Code logs and Cursor chat history), so re-running the script updates the page. Nothing here
+ * (scripts/agent-usage.mjs reads my own Claude Code, Codex and Cursor history), so re-running the script updates the page. Nothing here
  * is hand-typed except the wording. Server-rendered: the strip is plain CSS grid cells.
  */
 export function AgentsPanel() {
@@ -96,10 +105,7 @@ export function AgentsPanel() {
           </span>
         </p>
         <p className={`mt-3 max-w-[34rem] text-[0.8125rem] leading-[1.55] text-ink/70 ${SHADOW}`}>
-          Counted from what this Mac kept: {fmt.count(cursor?.chats ?? 0)} Cursor chats and {fmt.count(claudeCode.sessions)} Claude Code sessions. Claude Code logs
-          only go back to {heat.claudeSince}, and Cursor does not record tokens, so the token figure is Claude Code alone. Its total was{" "}
-          {fmt.compact(usage.tokens.total, 2)}, but {fmt.percent(usage.tokens.cacheShare)} of that is cached context read back in on each turn, which is
-          why output tokens are the figure above.
+          {FOOTNOTE}
         </p>
       </FadeIn>
     </div>

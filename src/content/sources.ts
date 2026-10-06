@@ -31,7 +31,11 @@ export const SRC = {
   arcNpm: "https://api.npmjs.org/downloads/point/last-month/arc-control-mcp",
   /** Play Console statistics (monthly and daily active users, installed audience), read 5 Oct 2026 for my tenure, 1 Sep 2021 to 31 Aug 2023. Private, so self-reported. */
   acharyaPlay: `${ROOT}play-console.stats`,
-  /** Counts aggregated from my local Claude Code logs and Cursor chat history (scripts/agent-usage.mjs). Private, so self-reported. */
+  /**
+   * Counts aggregated from my local Claude Code, Codex and Cursor history (scripts/agent-usage.mjs). Private, so
+   * self-reported. The all-tools token range counts Claude Code and Codex, and extends Cursor from the chats where it
+   * kept token counts: its own per-prompt rate at the low end, Claude Code's per-turn rate at the high end.
+   */
   agentLogs: `${ROOT}agent-logs.json`,
   acharyaUsers: `${ROOT}/ME/public/photos/acharya-users.jpg`,
   citation: `${ROOT}/ME/public/photos/governors-citation.jpg`,
