@@ -198,7 +198,7 @@ export const flagshipProjects: Project[] = [
         value: "17",
         numeric: 17,
         label: "Bedrock models Smart Model routes across",
-        context: "One router call reads the prompt against a capability sheet of task fit, cost and token size, and picks the model. The list is in the router's own code.",
+        context: "One router call reads the prompt against a capability sheet of task fit, cost and token size, and picks the model. Simple requests can go to models up to 12 times cheaper per request than the default: Claude 3 Haiku against Claude 3.5 Sonnet at Bedrock list prices, for 1,500 tokens in and 500 out. The list is in the router's own code.",
         source: REPO.genieRouter,
         projectSlug: "genie",
       },
