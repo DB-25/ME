@@ -49,6 +49,8 @@ const VCT = "https://github.com/DB-25/vct-gen-ai";
 
 export const REPO = {
   aiepRepo: AIEP,
+  /** Smart Model's router: the 17 Bedrock models it chooses among are listed in model_id_data. */
+  genieRouter: "https://github.com/sarahklute/EOTSS-GENIE/blob/main/lib/model-interfaces/langchain/functions/request-handler/adapters/bedrock/metamodel.py",
   /** The public commit log filtered to my GitHub account. GitHub matches by commit email, so it counts commits under both author names. */
   aiepMyCommits: `${AIEP}/commits/main/?author=DB-25`,
   aiepLanguages: `${AIEP}/blob/main/lib/user-interface/index.ts`,

@@ -1079,8 +1079,8 @@
     ]
   },
   {
-    "id": "699fdc02a4",
-    "text": "I joined ABE and One-L after their NASPO awards. I built ABE's monitoring and alarms, and direct One-L.",
+    "id": "4ffee2d996",
+    "text": "I joined ABE and One-L after their NASPO awards. I built ABE's quality monitoring, and direct One-L.",
     "tags": [
       "owned",
       "project:abe-one-l"
@@ -1162,14 +1162,6 @@
     "tags": [
       "metric",
       "project:abe-one-l"
-    ]
-  },
-  {
-    "id": "340ab65a69",
-    "text": "A self-reported forty percent lower model spend, because Smart Model picks a model for each request.",
-    "tags": [
-      "metric",
-      "project:genie"
     ]
   },
   {

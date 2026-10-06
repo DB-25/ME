@@ -309,7 +309,7 @@ const OWNED_TEXT: Record<string, string> = {
   "a-iep": "I took the earlier co-op prototype to production and built its processing pipeline and privacy design.",
   "acharya-erp": "I built the Flutter app and owned it from design to deployment, then trained interns to take over.",
   genie: "On the Burnes team's build, I wrote Smart Model, the router that picks a model per request.",
-  "abe-one-l": "I joined ABE and One-L after their NASPO awards. I built ABE's monitoring and alarms, and direct One-L.",
+  "abe-one-l": "I joined ABE and One-L after their NASPO awards. I built ABE's quality monitoring, and direct One-L.",
   "vct-scout": "One of four on a hackathon team, I designed the agent's tool calling and wrote the system prompt that orchestrates it.",
   "public-voice": "I set the technical direction and built the prototype it grew from. Two teammates built most of the production code.",
   "course-delivery": "I was the sole engineer: the Lambda API, the SMS pacing, the quiz gate and the certificate.",
@@ -330,7 +330,6 @@ const METRIC_TEXT: Record<string, string> = {
   "Engineers mentored": "I have mentored more than fifty student engineers, from prototype to production.",
   "Place, AWS x Riot Games hackathon": "Second place at the AWS and Riot Games hackathon, among more than three thousand two hundred participants.",
   "NASPO awards for ABE and One-L": "Two NASPO awards in twenty twenty-five went to ABE and One-L, before I joined either.",
-  "Lower model spend": "A self-reported forty percent lower model spend, because Smart Model picks a model for each request.",
 };
 
 export function metricLine(m: Metric): VoiceLine {

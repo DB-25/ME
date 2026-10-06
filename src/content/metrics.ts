@@ -65,13 +65,4 @@ export const metrics: Metric[] = [
     source: SRC.naspo,
     projectSlug: "abe-one-l",
   },
-  {
-    value: "40%",
-    numeric: 40,
-    suffix: "%",
-    label: "Lower model spend",
-    context: "Smart Model picks a fitting model for each request. The baseline and period behind the figure are not published, and each routed request also pays for one router call.",
-    source: SRC.resume,
-    projectSlug: "genie",
-  },
 ];

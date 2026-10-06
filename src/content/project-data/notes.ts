@@ -90,8 +90,8 @@ export const PRODUCTION_NOTES: Record<string, ProductionNote[]> = {
     },
     {
       label: "Cost",
-      status: "Self-reported",
-      text: "The 40% lower spend is self-reported; its baseline and period are not published. Every routed request also pays for one router call before the answer.",
+      status: "Not measured",
+      text: "I never measured a saving, so none is claimed. Picking a cheaper model for simple prompts saves money, but the router call itself runs on Claude Sonnet and reads the whole capability sheet, so on a typical request it costs about as much as it saves. A small, cheap router model is the first fix I would make.",
     },
     {
       label: "Evaluation",
