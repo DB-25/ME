@@ -47,6 +47,6 @@ export const profile: Profile = {
     "A synthetic IEP benchmark, so A‑IEP can report measured accuracy",
     "Course Delivery SMS: an 8‑day, text‑paced video course for InnovateUS",
     "Public Voice, a no‑login voice survey that asks one smart follow‑up",
-    "arc-control-mcp, a 26-tool MCP server that lets agents drive the Arc browser",
+    "arc-control-mcp, a 50-tool MCP server that lets agents drive the Arc browser",
   ],
 };

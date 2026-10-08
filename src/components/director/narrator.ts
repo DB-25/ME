@@ -19,7 +19,7 @@ import { lineAudio, type LineAudioEngine } from "./lineAudio";
 export type Caption = { id: number; words: string[]; active: number };
 
 /** Reading pace when nobody is speaking. */
-const TIMED_CHARS_PER_SECOND = 17;
+const TIMED_CHARS_PER_SECOND = 21;
 const TIMED_MIN_MS = 700;
 /** A beat of silence between lines. */
 const GAP_MS = 220;

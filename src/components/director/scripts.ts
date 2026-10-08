@@ -1,5 +1,5 @@
 import type { DirectorAction } from "@/lib/director/protocol";
-import { metrics, projects } from "@/content";
+import { metrics, projects, type Metric } from "@/content";
 import { LINE, OWNED_LINE, PROJECT_INTRO, metricLine, type VoiceLine } from "@/lib/director/voice-library";
 import { ART, type ArtId } from "./art";
 import type { Intent, Match } from "./match";
@@ -21,6 +21,9 @@ const has = (slug: string) => Boolean(project(slug));
 /** The headline numbers that point at a project, in the order the content ranks them. */
 const proven = () => metrics.filter((m) => m.projectSlug && has(m.projectSlug));
 
+/** The headline figure that belongs to a project, if the Impact chapter has one. */
+const metricOf = (slug: string): Metric | undefined => metrics.find((m) => m.projectSlug === slug);
+
 /* ---------- step builders ---------- */
 
 const say = (line: VoiceLine | string): Step => ({ say: typeof line === "string" ? line : line.text });
@@ -29,6 +32,17 @@ const go = (chapter: Extract<DirectorAction, { name: "goto_chapter" }>["args"]["
   act: { name: "goto_chapter", args: { chapter } },
 });
 const show = (slug: string): Step[] => (has(slug) ? [{ act: { name: "show_project", args: { slug } } }] : []);
+/**
+ * Scroll to a project's headline figure and light it up, then say the lines: `lead` (an introduction), the figure's
+ * own sentence, then `after` (a caveat). The figure is lit before any of it is said. Nothing if the content has none.
+ */
+const figure = (slug: string, { lead, after = [] }: { lead?: VoiceLine; after?: VoiceLine[] } = {}): Step[] => {
+  const m = metricOf(slug);
+  if (!m) return [];
+  return [{ act: { name: "show_metric", args: { label: m.label } } }, ...(lead ? [say(lead)] : []), say(metricLine(m)), ...after.map(say)];
+};
+/** The case study is the last thing a tour does: it opens once the lines have been said. */
+const caseStudy = (slug: string): Step[] => (project(slug) && !project(slug)?.compact ? [{ act: { name: "open_case_study", args: { slug } } }] : []);
 const draw = (art: ArtId, label: string): Step => ({ act: { name: "draw", args: { svg: ART[art], label } } });
 const hue = (hex: string | null): Step => ({ act: { name: "set_hue", args: { hex } } });
 const form = (formation: Extract<DirectorAction, { name: "form" }>["args"]["formation"]): Step => ({
@@ -62,9 +76,8 @@ function composed(match: Match): Step[] {
     say(LINE.composedOpen),
     ...match.tech.hits.flatMap((h) => projectBeat(h.slug)),
     ...sayAll(first && OWNED_LINE[first.slug]),
-    draw("lightbulb", "cut from your keywords"),
-    say(LINE.composedClose),
     go("contact"),
+    say(LINE.composedClose),
     end,
   ];
 }
@@ -72,42 +85,40 @@ function composed(match: Match): Step[] {
 /* ---------- the cuts ---------- */
 
 /*
- * The three persona cuts are each a 30 to 45 second tour that opens on the strongest evidence for that
- * visitor and lands on Contact. A drawing always comes right before the line it illustrates: that line
- * is spoken over the sketch, and the next move of the page dissolves it (see draw in ./executor).
+ * Each cut is a 35 to 50 second walk with one rule: the page moves to the thing, lights it, and only then
+ * says the sentence about it. Every beat is one move and one short line, with no drawing in between.
+ * The persona cuts open on the strongest evidence for that visitor and end on a next step: Contact, or
+ * the case study that holds the receipts. They say what the live Director says (same figures, same
+ * caveats), so the offline tour is the same person, only without the model.
  */
 
-/** Founder: ownership (A-IEP), speed (Course Delivery), a live product (Public Voice), then the ask. */
+/** Founder: ownership and production (A-IEP), scale in the field (Acharya), solo speed (Course Delivery), then the ask. */
 function founder(): Step[] {
   return [
     say(LINE.founderOpen),
     ...show("a-iep"),
-    say(LINE.founderAiep),
-    draw("bridge", "prototype to production"),
     say(LINE.founderAiepOwned),
+    ...figure("a-iep"),
+    ...figure("acharya-erp", { lead: LINE.founderAcharyaIntro }),
     ...show("course-delivery"),
     say(LINE.founderCourse),
-    ...show("public-voice"),
-    say(LINE.founderVoice),
     go("contact"),
     say(LINE.founderClose),
     end,
   ];
 }
 
-/** Hiring manager: what I owned, and how far it reached. */
+/** Hiring manager: what I owned and how far it reached, with the caveat that goes with each number. */
 function hiring(match: Match): Step[] {
-  const access = metrics.find((m) => /access/i.test(m.label));
   return [
     say(LINE.hiringOpen),
     ...show("a-iep"),
     say(LINE.hiringAiep),
+    ...figure("a-iep"),
     ...show("genie"),
-    ...(access ? [say(metricLine(access)), say(LINE.accessCaveat)] : []),
-    ...show("abe-one-l"),
-    say(LINE.hiringAbe),
-    draw("chart", "results, with receipts"),
-    say(LINE.hiringScale),
+    say(LINE.hiringSmartModel),
+    ...figure("genie", { after: [LINE.accessCaveat] }),
+    say(LINE.hiringAuditResult),
     ...techBeat(match),
     go("contact"),
     say(LINE.hiringClose),
@@ -115,15 +126,13 @@ function hiring(match: Match): Step[] {
   ];
 }
 
-/** Engineer: the architecture, the privacy pipeline, how I measure it, and a tool of my own. */
+/** Engineer: the architecture, the privacy pipeline, how I measure it, a tool of my own, and the case study. */
 function engineer(match: Match): Step[] {
   const rag = match.rag || match.tech.hits.some((h) => h.slug === "knowledge-agent-for-impact" && h.stack.length);
   return [
     say(rag ? LINE.engineerRagOpen : LINE.engineerOpen),
-    go("systems"),
-    draw("documents", "documents in, plain language out"),
-    say(LINE.engineerPipeline),
     ...show("a-iep"),
+    say(LINE.engineerPipeline),
     say(LINE.engineerPrivacy),
     ...(rag && has("knowledge-agent-for-impact")
       ? [
@@ -134,8 +143,9 @@ function engineer(match: Match): Step[] {
     say(LINE.engineerEvals),
     ...show("arc-control-mcp"),
     say(LINE.engineerArc),
-    go("contact"),
-    say(LINE.engineerClose),
+    ...show("a-iep"),
+    say(LINE.engineerCaseStudy),
+    ...caseStudy("a-iep"),
     end,
   ];
 }
@@ -148,7 +158,8 @@ function designer(): Step[] {
     say(LINE.designerField),
     draw("bezier", "a curve, handles showing"),
     say(LINE.designerSvg),
-    go("work"),
+    go("contact"),
+    say(LINE.designerClose),
     end,
   ];
 }
@@ -158,9 +169,9 @@ function student(): Step[] {
     say(LINE.studentOpen),
     go("origin"),
     say(LINE.studentBangalore),
-    draw("stairs", "one step at a time"),
     ...sayAll(LINE.studentBoston, LINE.studentCoop, LINE.studentLesson),
     go("contact"),
+    say(LINE.closeEmail),
     end,
   ];
 }
@@ -169,12 +180,13 @@ function gamer(): Step[] {
   return [
     say(LINE.gamerOpen),
     go("human"),
-    form("crosshair"),
     hue("#ff4655"),
     draw("crosshair", "crosshair, head height"),
-    say(LINE.gamerVct),
     ...show("vct-scout"),
+    say(LINE.gamerVct),
     say(LINE.gamerScout),
+    say(LINE.gamerCaseStudy),
+    ...caseStudy("vct-scout"),
     end,
   ];
 }
@@ -187,6 +199,8 @@ function food(): Step[] {
     say(LINE.foodVegetarian),
     go("human"),
     say(LINE.foodKitchen),
+    go("contact"),
+    say(LINE.closeEmail),
     end,
   ];
 }
@@ -195,28 +209,31 @@ function offDutyCut(): Step[] {
   return [
     say(LINE.offDutyOpen),
     go("human"),
-    form("crosshair"),
     say(LINE.offDutyGames),
     draw("paniPuri", "pani puri, mid-pour"),
     say(LINE.offDutyTrip),
+    go("contact"),
+    say(LINE.closeEmail),
     end,
   ];
 }
 
+/** Who I am, in three beats, with two numbers to prove it. */
 function intro(): Step[] {
   return [
     say(LINE.introName),
     go("hero"),
-    form("signal"),
     say(LINE.introRole),
     say(LINE.introOneLiner),
-    go("origin"),
-    say(LINE.introStart),
+    ...figure("a-iep"),
+    ...figure("genie", { after: [LINE.accessCaveat] }),
+    go("contact"),
+    say(LINE.closeEmail),
     end,
   ];
 }
 
-/** The short tour: used for "surprise me" and when nothing at all matched. */
+/** The short tour: used for "surprise me" and when nothing at all matched. Two numbers, then the ask. */
 function shortTour(opening: VoiceLine): Step[] {
   const [a, b] = proven();
   return [
@@ -225,11 +242,10 @@ function shortTour(opening: VoiceLine): Step[] {
     say(LINE.tourBangalore),
     go("systems"),
     say(LINE.tourPipeline),
-    draw("signal", "noise, resolving into signal"),
-    go("impact"),
-    ...(a && b ? [say(metricLine(a)), say(metricLine(b))] : []),
-    go("proof"),
-    say(LINE.tourSources),
+    ...(a ? [{ act: { name: "show_metric", args: { label: a.label } } } as Step, say(metricLine(a))] : []),
+    ...(b ? [{ act: { name: "show_metric", args: { label: b.label } } } as Step, say(metricLine(b))] : []),
+    go("contact"),
+    say(LINE.closeEmail),
     end,
   ];
 }
@@ -256,7 +272,7 @@ export function buildScript(match: Match): Step[] {
     case "intro":
       return intro();
     case "contact":
-      return [say(LINE.contactLine), go("contact"), end];
+      return [go("contact"), say(LINE.contactLine), end];
     case "surprise":
       return shortTour(LINE.surpriseOpen);
     default:

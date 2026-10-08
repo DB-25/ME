@@ -10,6 +10,9 @@ const SPOTLIGHT_MS = 1100;
 const DRAW_MS = 1300;
 const FORM_MS = 1500;
 const HUE_MS = 450;
+const METRIC_MS = 1400;
+/** A lit figure stays lit this long if nothing else moves the page. */
+const METRIC_HOLD_MS = 6000;
 const REDUCED_MS = 350;
 
 const POINT_COUNT = 24_000;
@@ -150,6 +153,33 @@ function spotlight(slug: string) {
   window.dispatchEvent(new CustomEvent<SpotlightDetail>(SPOTLIGHT_EVENT, { detail: { slug } }));
 }
 
+/** The figure currently lit by show_metric, if any. */
+let litMetric: { el: HTMLElement; timer: number } | null = null;
+const LIT_CLASS = "dir-metric-on";
+
+function unlightMetric() {
+  if (!litMetric) return;
+  window.clearTimeout(litMetric.timer);
+  litMetric.el.classList.remove(LIT_CLASS);
+  litMetric = null;
+}
+
+/** The Impact figure whose label is `label`, or null. Matched by attribute value, so no selector escaping is needed. */
+const findMetric = (label: string) =>
+  Array.from(document.querySelectorAll<HTMLElement>("[data-metric]")).find((el) => el.dataset.metric === label) ?? null;
+
+async function showMetric(label: string, ctx: ExecContext) {
+  ctx.log(`metric: ${label}`);
+  unlightMetric();
+  const el = findMetric(label);
+  if (!el) return gotoChapter("impact", ctx.signal);
+  await travel(stageY(el, "center"), ctx.signal);
+  if (ctx.signal.aborted) return;
+  el.classList.add(LIT_CLASS);
+  litMetric = { el, timer: window.setTimeout(unlightMetric, METRIC_HOLD_MS) };
+  return beat(METRIC_MS, ctx.signal);
+}
+
 /*
  * A sketch is held while the line after it is spoken, and dissolves when the page moves on. While it is
  * up the page content steps back (html.dir-sketch, see director.css), so no drawing is ever struck
@@ -197,7 +227,10 @@ async function draw(svg: string, label: string, ctx: ExecContext) {
 export async function runAction(action: DirectorAction, ctx: ExecContext): Promise<void> {
   const store = signalStore.getState();
   if (action.name !== "speak" && action.name !== "end_scene" && action.name !== "draw" && action.name !== "set_hue") endSketch();
+  if (action.name !== "speak" && action.name !== "end_scene" && action.name !== "show_metric") unlightMetric();
   switch (action.name) {
+    case "show_metric":
+      return showMetric(action.args.label, ctx);
     case "goto_chapter":
       ctx.log(`goto ${action.args.chapter}`);
       return gotoChapter(action.args.chapter, ctx.signal);
@@ -238,6 +271,7 @@ export async function runAction(action: DirectorAction, ctx: ExecContext): Promi
 /** Hand the particle field and the Work chapter back to the visitor. */
 export function releaseStage() {
   endSketch();
+  unlightMetric();
   signalStore.getState().set({ override: null, hue: null, energy: 0 });
   window.dispatchEvent(new CustomEvent("director:release"));
 }

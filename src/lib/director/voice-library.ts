@@ -76,7 +76,7 @@ const AUTHORED = {
     "tour", "founder", "project:a-iep",
   ],
   founderAiepOwned: [
-    "I took it from prototype to production, and built its processing pipeline and privacy design.",
+    "I lead A-IEP's engineering. I took it from prototype to production.",
     "tour", "founder", "owned", "project:a-iep",
   ],
   founderCourse: [
@@ -89,13 +89,13 @@ const AUTHORED = {
   ],
   founderClose: ["Tell me what you are building. The email is the large link.", "tour", "founder", "closer"],
   /* the long founder story, for the live model and keyword composition */
-  founderAcharya: [
-    "Before that, a Flutter app every student and staff member used. Monthly active users grew more than five times while I owned it.",
+  founderAcharyaIntro: [
+    "Before that, a Flutter app every student and staff member used.",
     "tour", "founder", "project:acharya-erp",
   ],
   acharyaRating: ["The store rating went from one point two to four point five.", "tour", "metric", "project:acharya-erp"],
   founderArc: [
-    "And a tool of my own: arc-control-mcp, an MCP server with twenty-six tools, published on npm.",
+    "And a tool of my own: arc-control-mcp, an MCP server with fifty tools, published on npm.",
     "tour", "founder", "project:arc-control-mcp",
   ],
 
@@ -116,6 +116,14 @@ const AUTHORED = {
   ],
   hiringClose: ["If that is the scope you need, the email is the large link.", "tour", "recruiter", "closer"],
   hiringAudit: ["I audit my own work too.", "tour", "recruiter", "honest"],
+  hiringSmartModel: [
+    "On GENIE I wrote Smart Model: seventeen Bedrock models, and simple requests up to twelve times cheaper per request.",
+    "tour", "recruiter", "owned", "project:genie",
+  ],
+  hiringAuditResult: [
+    "I audit my own work: A-IEP's summary benchmark is designed, and no results are published yet.",
+    "tour", "recruiter", "honest", "project:a-iep",
+  ],
   hiringAuditDetail: [
     "A-IEP's only automated check was a schema check, so I started a benchmark.",
     "tour", "recruiter", "honest", "project:a-iep",
@@ -135,10 +143,14 @@ const AUTHORED = {
     "tour", "engineer", "honest", "project:a-iep",
   ],
   engineerArc: [
-    "arc-control-mcp: twenty-six tools, sixteen test files, and it never touches the tab I am reading.",
+    "arc-control-mcp: fifty tools, thirty-five test files, and it never touches the tab I am using.",
     "tour", "engineer", "project:arc-control-mcp",
   ],
   engineerClose: ["If this is the engineering you need, the email is the large link.", "tour", "engineer", "closer"],
+  engineerCaseStudy: [
+    "The architecture and the receipts are in the A-IEP case study. Opening it now.",
+    "tour", "engineer", "closer", "project:a-iep",
+  ],
   engineerPii: [
     "I redact names and other identifiers before a language model reads a word, and I delete the original upload.",
     "tour", "engineer", "project:a-iep",
@@ -163,6 +175,7 @@ const AUTHORED = {
   designerOpen: ["A designer. Worth knowing I hold the stylus too.", "tour", "designer"],
   designerField: ["This page is one field of particles that rearranges itself per chapter.", "tour", "designer"],
   designerSvg: ["The shapes you just watched are SVG, sampled into particles.", "tour", "designer"],
+  designerClose: ["If you need someone who sweats this, the email is the large link.", "tour", "designer", "closer"],
 
   /* student */
   studentOpen: ["A student. The path, briefly.", "tour", "student"],
@@ -187,6 +200,7 @@ const AUTHORED = {
     "Ask in plain English, get a roster, built on more than four thousand seven hundred match files.",
     "tour", "gamer", "project:vct-scout",
   ],
+  gamerCaseStudy: ["The case study has the team and the sources. Opening it now.", "tour", "gamer", "closer", "project:vct-scout"],
 
   /* food and off duty */
   foodOpen: ["Pani puri. A reasonable thing to draw.", "tour", "offduty"],
@@ -269,7 +283,7 @@ const AUTHORED = {
   vctAward: ["It also won Best Cross-Regional Team Submission.", "detail", "proof", "project:vct-scout"],
   kaiBase: ["It's a reusable stack, so a new chatbot starts from a working base.", "detail", "engineer", "project:knowledge-agent-for-impact"],
   arcSafe: [
-    "arc-control-mcp never touches the tab I'm looking at, and it reports missing permissions instead of failing silently.",
+    "arc-control-mcp keeps its tabs in a window of its own, waits while I am typing, and reports a failure as a failure.",
     "detail", "engineer", "project:arc-control-mcp",
   ],
   arcLean: ["It has two runtime dependencies and no build step.", "detail", "engineer", "project:arc-control-mcp"],
@@ -324,7 +338,7 @@ export const OWNED_LINE: Record<string, VoiceLine> = Object.fromEntries(
 /** One sentence per headline number, keyed by its label. A new metric falls back to its value and label. */
 const METRIC_TEXT: Record<string, string> = {
   "IEPs read by A-IEP": "More than three hundred seventy-five plans read in plain language.",
-  "Monthly active users on Acharya ERP": "Monthly active users grew from about three thousand to more than sixteen thousand while I owned the app.",
+  "Monthly active users on Acharya ERP": "While I owned it, monthly active users went from two thousand nine hundred seventy-two to sixteen thousand one hundred forty-eight.",
   "State employees with access": "More than forty-four thousand state employees have access to the sandbox I co-built.",
   "AI tools shipped": "The AI for Impact program has shipped twenty-six AI tools for government and civic partners.",
   "Engineers mentored": "I have mentored more than fifty student engineers, from prototype to production.",

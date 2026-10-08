@@ -37,6 +37,11 @@ export type DirectorAction =
   | { name: "goto_chapter"; args: { chapter: ChapterId } }
   /** Spotlight one project (scrolls to work and focuses it). */
   | { name: "show_project"; args: { slug: string } }
+  /**
+   * Scroll to the Impact chapter and light up one headline figure. `label` is the figure's label
+   * exactly as the Impact chapter prints it (METRIC_LABELS in the worker's knowledge).
+   */
+  | { name: "show_metric"; args: { label: string } }
   /** Open a case study page. */
   | { name: "open_case_study"; args: { slug: string } }
   /**

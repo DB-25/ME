@@ -17,8 +17,8 @@
     ]
   },
   {
-    "id": "0cb0a14afa",
-    "text": "I took it from prototype to production, and built its processing pipeline and privacy design.",
+    "id": "8ebd9ec7af",
+    "text": "I lead A-IEP's engineering. I took it from prototype to production.",
     "tags": [
       "tour",
       "founder",
@@ -54,8 +54,8 @@
     ]
   },
   {
-    "id": "d5215562af",
-    "text": "Before that, a Flutter app every student and staff member used. Monthly active users grew more than five times while I owned it.",
+    "id": "7be681157e",
+    "text": "Before that, a Flutter app every student and staff member used.",
     "tags": [
       "tour",
       "founder",
@@ -72,8 +72,8 @@
     ]
   },
   {
-    "id": "af8c952d39",
-    "text": "And a tool of my own: arc-control-mcp, an MCP server with twenty-six tools, published on npm.",
+    "id": "18c9c0b34c",
+    "text": "And a tool of my own: arc-control-mcp, an MCP server with fifty tools, published on npm.",
     "tags": [
       "tour",
       "founder",
@@ -145,6 +145,26 @@
     ]
   },
   {
+    "id": "9366feac68",
+    "text": "On GENIE I wrote Smart Model: seventeen Bedrock models, and simple requests up to twelve times cheaper per request.",
+    "tags": [
+      "tour",
+      "recruiter",
+      "owned",
+      "project:genie"
+    ]
+  },
+  {
+    "id": "ee3c7ef477",
+    "text": "I audit my own work: A-IEP's summary benchmark is designed, and no results are published yet.",
+    "tags": [
+      "tour",
+      "recruiter",
+      "honest",
+      "project:a-iep"
+    ]
+  },
+  {
     "id": "2e284231e5",
     "text": "A-IEP's only automated check was a schema check, so I started a benchmark.",
     "tags": [
@@ -208,8 +228,8 @@
     ]
   },
   {
-    "id": "73b771ea38",
-    "text": "arc-control-mcp: twenty-six tools, sixteen test files, and it never touches the tab I am reading.",
+    "id": "d5bfe40460",
+    "text": "arc-control-mcp: fifty tools, thirty-five test files, and it never touches the tab I am using.",
     "tags": [
       "tour",
       "engineer",
@@ -223,6 +243,16 @@
       "tour",
       "engineer",
       "closer"
+    ]
+  },
+  {
+    "id": "ea64ad5061",
+    "text": "The architecture and the receipts are in the A-IEP case study. Opening it now.",
+    "tags": [
+      "tour",
+      "engineer",
+      "closer",
+      "project:a-iep"
     ]
   },
   {
@@ -314,6 +344,15 @@
     ]
   },
   {
+    "id": "80d788c2ff",
+    "text": "If you need someone who sweats this, the email is the large link.",
+    "tags": [
+      "tour",
+      "designer",
+      "closer"
+    ]
+  },
+  {
     "id": "5f80e4265a",
     "text": "A student. The path, briefly.",
     "tags": [
@@ -380,6 +419,16 @@
     "tags": [
       "tour",
       "gamer",
+      "project:vct-scout"
+    ]
+  },
+  {
+    "id": "222577aa8a",
+    "text": "The case study has the team and the sources. Opening it now.",
+    "tags": [
+      "tour",
+      "gamer",
+      "closer",
       "project:vct-scout"
     ]
   },
@@ -821,8 +870,8 @@
     ]
   },
   {
-    "id": "65631f2e5e",
-    "text": "arc-control-mcp never touches the tab I'm looking at, and it reports missing permissions instead of failing silently.",
+    "id": "db8d6a3357",
+    "text": "arc-control-mcp keeps its tabs in a window of its own, waits while I am typing, and reports a failure as a failure.",
     "tags": [
       "detail",
       "engineer",
@@ -1119,8 +1168,8 @@
     ]
   },
   {
-    "id": "83f3cc069a",
-    "text": "Monthly active users grew from about three thousand to more than sixteen thousand while I owned the app.",
+    "id": "905a928ad6",
+    "text": "While I owned it, monthly active users went from two thousand nine hundred seventy-two to sixteen thousand one hundred forty-eight.",
     "tags": [
       "metric",
       "project:acharya-erp"

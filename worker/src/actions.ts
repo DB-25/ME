@@ -1,10 +1,11 @@
 import { CHAPTER_IDS, FORMATIONS } from "./protocol";
 import type { ChapterId, DirectorAction, FormationId } from "./protocol";
-import { PROJECT_SLUGS } from "./knowledge";
+import { METRIC_LABELS, PROJECT_SLUGS } from "./knowledge";
 import { sanitizeSvg } from "./svg";
 import { VOICE_LINES } from "./voice";
 
 const SLUGS = new Set(PROJECT_SLUGS);
+const METRICS = new Set(METRIC_LABELS);
 export const VOICE_IDS: ReadonlySet<string> = new Set(VOICE_LINES.map((l) => l.id));
 const MAX_LABEL = 60;
 const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
@@ -49,6 +50,11 @@ export function toAction(
       const slug = args.slug;
       if (typeof slug !== "string" || !SLUGS.has(slug)) return drop(onDrop, `unknown slug ${String(slug)}`);
       return { name, args: { slug } };
+    }
+    case "show_metric": {
+      const label = args.label;
+      if (typeof label !== "string" || !METRICS.has(label)) return drop(onDrop, `unknown metric ${String(label).slice(0, 60)}`);
+      return { name, args: { label } };
     }
     case "form": {
       const formation = args.formation;

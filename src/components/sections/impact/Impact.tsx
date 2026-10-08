@@ -56,7 +56,8 @@ function Context({ metric, className = "" }: { metric: Metric; className?: strin
 
 function Figure({ metric, size }: { metric: Metric; size: string }) {
   return (
-    <div className={`font-medium leading-[0.86] tracking-[-0.055em] text-ink ${size}`}>
+    // data-metric lets the Director find this figure and light it up (see runAction, show_metric).
+    <div data-metric={metric.label} className={`font-medium leading-[0.86] tracking-[-0.055em] text-ink ${size}`}>
       <Counter metric={metric} className="" />
     </div>
   );

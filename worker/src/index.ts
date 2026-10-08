@@ -110,14 +110,13 @@ async function handleDirector(request: Request, env: Env, cors: Record<string, s
     return json({ error: "director_offline" }, 503, cors);
   }
 
-  const upstream = await openUpstream(
-    { apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL, reasoningEffort: env.OPENAI_REASONING_EFFORT ?? "" },
-    messages,
-  );
+  const config = { apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL, reasoningEffort: env.OPENAI_REASONING_EFFORT ?? "" };
+  const upstream = await openUpstream(config, messages);
   if (!upstream) return json({ error: "upstream_error" }, 502, cors);
 
   const line = (event: DirectorEvent) => encoder.encode(JSON.stringify(event) + "\n");
-  const iterator = directorEvents(upstream);
+  // A turn that comes back without words gets one text-only retry (see directorEvents).
+  const iterator = directorEvents(upstream, () => openUpstream(config, messages, { answerOnly: true }));
 
   const stream = new ReadableStream<Uint8Array>({
     async pull(controller) {

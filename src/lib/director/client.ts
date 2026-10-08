@@ -10,6 +10,7 @@ const IDLE_TIMEOUT_MS = 25_000;
 const ACTION_NAMES = new Set([
   "goto_chapter",
   "show_project",
+  "show_metric",
   "open_case_study",
   "draw",
   "form",
@@ -54,6 +55,7 @@ function parseEvent(line: string): DirectorEvent | null {
   if (e.type === "error") return { type: "error", message: typeof e.message === "string" ? e.message : "director error" };
   if (e.type === "action" && e.action && typeof e.action.name === "string" && ACTION_NAMES.has(e.action.name)) {
     if (e.action.name === "speak" && typeof e.action.args?.lineId !== "string") return null;
+    if (e.action.name === "show_metric" && typeof (e.action.args as { label?: unknown } | undefined)?.label !== "string") return null;
     return raw as DirectorEvent;
   }
   return null;

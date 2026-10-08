@@ -28,6 +28,8 @@ writeFileSync(
 export * from ${JSON.stringify(src + "/openai")};
 export * from ${JSON.stringify(src + "/tts")};
 export * from ${JSON.stringify(src + "/tools")};
+export { METRIC_LABELS, PROJECT_NAMES } from ${JSON.stringify(src + "/knowledge")};
+export * from ${JSON.stringify(src + "/evidence")};
 export { SYSTEM_PROMPT } from ${JSON.stringify(src + "/prompt")};
 export { handleVisit } from ${JSON.stringify(src + "/visits")};
 export { default as worker } from ${JSON.stringify(src + "/index")};`,
@@ -79,7 +81,8 @@ try {
   await test("prompt carries the library and the voice rules", () => {
     assert.match(m.SYSTEM_PROMPT, /aaaaaaaaaa \[intro\] Line one\./);
     assert.match(m.SYSTEM_PROMPT, /bbbbbbbbbb Line two\./);
-    assert.match(m.SYSTEM_PROMPT, /1 to 4 speak calls/);
+    assert.match(m.SYSTEM_PROMPT, /Never answer with a recorded line alone/);
+    assert.match(m.SYSTEM_PROMPT, /answer in words, first/);
   });
 
   // directorEvents over a mocked OpenAI SSE stream
@@ -92,7 +95,7 @@ try {
     return out;
   };
 
-  await test("stream: unknown ids dropped, repeats dropped, speaks capped at 4", async () => {
+  await test("stream: unknown ids dropped, repeats dropped, speaks capped at 2", async () => {
     const out = await collect([
       call("speak", { lineId: "aaaaaaaaaa" }),
       call("speak", { lineId: "nope" }),
@@ -103,7 +106,102 @@ try {
       call("end_scene", {}),
     ]);
     const names = out.filter((e) => e.type === "action").map((e) => e.action.name + (e.action.args.lineId ? ":" + e.action.args.lineId : ""));
-    assert.deepEqual(names, ["speak:aaaaaaaaaa", "goto_chapter", "speak:bbbbbbbbbb", "speak:cccccccccc", "end_scene"]);
+    assert.deepEqual(names, ["speak:aaaaaaaaaa", "goto_chapter", "speak:bbbbbbbbbb", "end_scene"]);
+  });
+  const textDelta = (delta) => ({ type: "response.output_text.delta", delta });
+  const messageDone = { type: "response.output_item.done", item: { type: "message" } };
+  const shape = (events) => events.map((e) => (e.type === "text" ? "T" : e.type === "action" ? e.action.name : e.type));
+  const ANSWER = "I lead A-IEP's engineering and took it from prototype to production. ";
+
+  await test("show_metric: known label accepted, unknown or missing dropped", () => {
+    const label = m.METRIC_LABELS[0];
+    assert.ok(label, "knowledge exports metric labels");
+    assert.deepEqual(m.toAction("show_metric", JSON.stringify({ label }), onDrop), { name: "show_metric", args: { label } });
+    for (const raw of ['{"label":"Revenue"}', "{}", '{"label":7}']) assert.equal(m.toAction("show_metric", raw, onDrop), null, raw);
+    const tool = m.TOOLS.find((t) => t.name === "show_metric");
+    assert.ok(tool && tool.strict);
+    assert.deepEqual(tool.parameters.properties.label.enum, m.METRIC_LABELS);
+  });
+  await test("evidence: a headline number lights its figure, a named project is spotlighted", () => {
+    const none = new Set();
+    assert.deepEqual(m.evidenceFor("It has read 375+ IEPs.", none), [{ name: "show_metric", args: { label: "IEPs read by A-IEP" } }]);
+    assert.deepEqual(m.evidenceFor("I lead A\u2011IEP, the special-education tool.", none), [{ name: "show_project", args: { slug: "a-iep" } }]);
+    assert.deepEqual(m.evidenceFor("I wrote Smart Model.", none), [{ name: "show_project", args: { slug: "genie" } }]);
+    assert.deepEqual(m.evidenceFor("Email me at dhruvbaradiya@gmail.com.", none), [{ name: "goto_chapter", args: { chapter: "contact" } }]);
+    assert.deepEqual(m.evidenceFor("I like pani puri.", none), []);
+    assert.deepEqual(m.evidenceFor("Ask me about A-IEP, GENIE, or arc-control-mcp.", none), []);
+  });
+  await test("evidence: nothing is shown twice, and a bare common word is not a project", () => {
+    assert.deepEqual(m.evidenceFor("A-IEP again.", new Set(["project:a-iep"])), []);
+    assert.deepEqual(m.evidenceFor("It has read 375 IEPs, via A-IEP.", new Set(["metric:IEPs read by A-IEP"])), [{ name: "show_project", args: { slug: "a-iep" } }]);
+    assert.deepEqual(m.evidenceFor("I abetted nothing.", new Set()), []);
+  });
+  await test("evidence: every project name and every headline figure has a way to be noticed", () => {
+    for (const [slug, name] of Object.entries(m.PROJECT_NAMES)) {
+      const hit = m.evidenceFor(`I built ${name} myself.`, new Set());
+      assert.deepEqual(hit, [{ name: "show_project", args: { slug } }], name);
+    }
+    const lit = new Set();
+    for (const label of m.METRIC_LABELS) {
+      const probe = { "IEPs read by A-IEP": "375+", "Monthly active users on Acharya ERP": "16,148", "State employees with access": "44,000+", "AI tools shipped": "26 AI tools", "Engineers mentored": "mentored 50+ engineers", "Place, AWS x Riot Games hackathon": "second place", "NASPO awards for ABE and One-L": "NASPO" }[label];
+      assert.ok(probe, `add a probe for the new figure "${label}"`);
+      for (const a of m.evidenceFor(probe, lit)) if (a.name === "show_metric") lit.add(a.args.label);
+    }
+    assert.equal(lit.size, m.METRIC_LABELS.length);
+  });
+  await test("stream: a sentence that names a project brings its evidence; the first sentence goes before it, later ones after", async () => {
+    const out = await collect([
+      textDelta("I lead A-IEP's engineering and took it to production. "),
+      textDelta("It has read 375+ plans in four languages. "),
+      textDelta("Write to me at the email on the contact chapter."),
+      messageDone,
+      call("end_scene", {}),
+    ]);
+    assert.deepEqual(shape(out), ["T", "show_project", "show_metric", "T", "goto_chapter", "T", "end_scene"]);
+  });
+  await test("stream: the model's own call for something already shown is dropped", async () => {
+    const out = await collect([textDelta("I lead A-IEP's engineering and took it to production. "), messageDone, call("show_project", { slug: "a-iep" }), call("show_project", { slug: "genie" }), call("end_scene", {})]);
+    assert.deepEqual(shape(out), ["T", "show_project", "show_project", "end_scene"]);
+    assert.deepEqual(out.filter((e) => e.type === "action").map((e) => e.action.args.slug).filter(Boolean), ["a-iep", "genie"]);
+  });
+  await test("stream: an action the model emits before any words is held until the words are out", async () => {
+    const out = await collect([call("show_project", { slug: "a-iep" }), textDelta(ANSWER), messageDone, call("end_scene", {})]);
+    assert.deepEqual(shape(out), ["T", "show_project", "end_scene"]);
+  });
+  await test("stream: text first, then actions, passes straight through in order", async () => {
+    const out = await collect([textDelta(ANSWER), messageDone, call("show_project", { slug: "a-iep" }), textDelta("Numbers next. "), messageDone, call("end_scene", {})]);
+    assert.deepEqual(shape(out), ["T", "show_project", "T", "end_scene"]);
+  });
+  await test("stream: no words and no repair passes the turn through untouched", async () => {
+    const out = await collect([call("draw", { svg: "<svg viewBox=\"0 0 512 512\"><circle cx=\"256\" cy=\"256\" r=\"80\"/></svg>", label: "x" }), call("end_scene", {})]);
+    assert.deepEqual(shape(out), ["draw", "end_scene"]);
+  });
+  await test("stream: a turn with no answer is repaired, keeping evidence and dropping decoration", async () => {
+    const first = sse([
+      call("draw", { svg: "<svg viewBox=\"0 0 512 512\"><circle cx=\"256\" cy=\"256\" r=\"80\"/></svg>", label: "x" }),
+      call("show_project", { slug: "genie" }),
+      call("speak", { lineId: "aaaaaaaaaa" }),
+      call("end_scene", {}),
+      { type: "response.completed" },
+    ]);
+    const repair = async () => sse([textDelta("GENIE is the safe sandbox for Massachusetts state employees. "), textDelta("I wrote Smart Model, its router."), { type: "response.completed" }]);
+    const out = [];
+    for await (const e of m.directorEvents(first, repair)) out.push(e);
+    assert.deepEqual(shape(out), ["T", "T", "show_project", "end_scene"]);
+  });
+  await test("stream: a short but real answer is not repaired", async () => {
+    const first = sse([textDelta("That one is better asked to me directly, by email. "), messageDone, call("end_scene", {}), { type: "response.completed" }]);
+    let repaired = false;
+    const out = [];
+    for await (const e of m.directorEvents(first, async () => ((repaired = true), null))) out.push(e);
+    assert.equal(repaired, false);
+    assert.deepEqual(shape(out), ["T", "end_scene"]);
+  });
+  await test("stream: a failed repair still ends the turn cleanly", async () => {
+    const first = sse([call("end_scene", {}), { type: "response.completed" }]);
+    const out = [];
+    for await (const e of m.directorEvents(first, async () => null)) out.push(e);
+    assert.deepEqual(shape(out), ["end_scene"]);
   });
   await test("stream: speak after end_scene is ignored", async () => {
     const out = await collect([call("end_scene", {}), call("speak", { lineId: "aaaaaaaaaa" })]);

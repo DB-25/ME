@@ -27,8 +27,17 @@ const SKIP_KEYS = new Set([
   "architecture", "screenshot", "video", "videoAutoplay", "accentColor", "sceneId", "photo",
   "photoAlt", "photoCaption", "artifact", "artifactLabel", "phone", "numericValue", "prefix",
   "suffix", "proficiency", "connections", "color", "kind", "flagship",
+  // Launch films, stills and link targets are not facts the Director can use. The film transcripts
+  // alone were once 14 KB per export and pushed every project after the first two out of the prompt.
+  "film", "vertical", "poster", "thumb", "thumb43", "transcript", "media", "cover", "href", "appears", "sort",
+  "isPrivate", "accent", "headlines", "numeric", "image", "links", "source",
 ]);
-const MAX_EXPORT_CHARS = 14000;
+// Whole exports that are plumbing (URL registries, film text, label tables) or a restatement of other
+// exports (the ledger is built from projects, metrics and recognition), not knowledge.
+const SKIP_EXPORTS = new Set(["transcripts.FILM_TRANSCRIPTS", "sources.REPO", "sources.SRC", "provenance.BASIS", "ledger.ledger", "ledger.ledgerProjects"]);
+// A section this long means something noisy slipped in. Fail loudly: silent truncation is how
+// the Director once knew only two of its fourteen projects.
+const MAX_EXPORT_CHARS = 40000;
 
 const clean = (s) => String(s).replace(/\s*\u2014\s*/g, ", ").replace(/\s+/g, " ").trim();
 
@@ -64,6 +73,8 @@ const tmp = mkdtempSync(join(tmpdir(), "director-knowledge-"));
 const files = readdirSync(contentDir).filter((f) => /\.tsx?$/.test(f) && !f.startsWith("index"));
 const sections = [];
 const slugs = [];
+const metricLabels = [];
+const projectNames = {};
 let email;
 
 try {
@@ -81,21 +92,30 @@ try {
     const mod = await import(pathToFileURL(outfile).href);
     for (const [name, value] of Object.entries(mod)) {
       if (name === "default" || typeof value === "function" || value == null) continue;
+      if (SKIP_EXPORTS.has(`${file.replace(/\.tsx?$/, "")}.${name}`)) continue;
       email ??= findFirst(value, "email");
+      if (file === "metrics.ts" && name === "metrics") {
+        for (const m of value) if (typeof m?.label === "string") metricLabels.push(m.label);
+      }
       let body;
       if (Array.isArray(value) && value.some((v) => v && typeof v === "object")) {
         body = value.map((item) => `- ${fmt(item)}`).join("\n");
         if (/project/i.test(name) || /project/i.test(file)) {
           for (const item of value) {
             const slug = item?.slug ?? item?.id;
-            if (typeof slug === "string") slugs.push(slug);
+            if (typeof slug === "string") {
+              slugs.push(slug);
+              if (typeof item.name === "string") projectNames[slug] = item.name;
+            }
           }
         }
       } else {
         body = fmt(value);
       }
       if (!body) continue;
-      if (body.length > MAX_EXPORT_CHARS) body = body.slice(0, MAX_EXPORT_CHARS) + " [truncated]";
+      if (body.length > MAX_EXPORT_CHARS) {
+        throw new Error(`${file}.${name} is ${body.length} chars (limit ${MAX_EXPORT_CHARS}): add its noisy keys to SKIP_KEYS or the export to SKIP_EXPORTS`);
+      }
       sections.push(`## ${file.replace(/\.tsx?$/, "")}.${name}\n${body}`);
     }
   }
@@ -116,6 +136,12 @@ export const KNOWLEDGE = ${JSON.stringify(knowledge)};
 export const PROJECT_SLUGS: string[] = ${JSON.stringify(projectSlugs)};
 
 export const CONTACT_EMAIL = ${JSON.stringify(email ?? "")};
+
+/** Display names by slug, as the Work chapter prints them. The Director uses them to notice a project named in its own words. */
+export const PROJECT_NAMES: Record<string, string> = ${JSON.stringify(projectNames)};
+
+/** Labels of the headline figures on the Impact chapter, in page order. show_metric takes one of these. */
+export const METRIC_LABELS: string[] = ${JSON.stringify(metricLabels)};
 `,
 );
 console.log(
