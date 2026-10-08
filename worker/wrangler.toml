@@ -63,6 +63,6 @@ simple = { limit = 20, period = 60 }
 #   npx wrangler kv namespace create VISITS_KV      then paste the printed id below and uncomment.
 #   npx wrangler secret put VISIT_SALT              any long random string; it salts the per-day visitor hash. Keep it secret.
 # KV free tier: 1,000 writes a day (each new visitor is 2), about 500 new visitors a day. Counter updates are not atomic.
-# [[kv_namespaces]]
-# binding = "VISITS_KV"
-# id = "<namespace id>"
+[[kv_namespaces]]
+binding = "VISITS_KV"
+id = "b3cb143e54624bc09fb30b71b411daf7"
