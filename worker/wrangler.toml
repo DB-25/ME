@@ -10,7 +10,7 @@ enabled = true
 [vars]
 # Model is swappable without a code change. gpt-6.1-sol is the default;
 # gpt-6-luna is the ~20x cheaper fallback.
-OPENAI_MODEL = "gpt-6.1-sol"
+OPENAI_MODEL = "gpt-5.6-sol"
 # Reasoning effort for the Responses API: low keeps latency down. Empty string omits the field.
 OPENAI_REASONING_EFFORT = "low"
 # Comma-separated site origins allowed to call the Worker. SET THIS AT DEPLOY to every origin the
