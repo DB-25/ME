@@ -1,21 +1,21 @@
 {
-  "generatedAt": "2026-10-06",
+  "generatedAt": "2026-10-08",
   "from": "2025-02-28",
-  "to": "2026-10-06",
-  "activeDays": 224,
-  "sessions": 773,
-  "subagents": 430,
-  "turns": 100896,
-  "prompts": 5123,
-  "toolCalls": 51987,
+  "to": "2026-10-08",
+  "activeDays": 226,
+  "sessions": 777,
+  "subagents": 460,
+  "turns": 104037,
+  "prompts": 5243,
+  "toolCalls": 53097,
   "tools": {
     "claudeCode": {
       "from": "2026-05-29",
-      "sessions": 108,
-      "turns": 38890,
-      "prompts": 2104,
-      "toolCalls": 10300,
-      "days": 77
+      "sessions": 111,
+      "turns": 41459,
+      "prompts": 2177,
+      "toolCalls": 10864,
+      "days": 79
     },
     "cursor": {
       "chats": 654,
@@ -29,38 +29,38 @@
       }
     },
     "codex": {
-      "sessions": 11,
+      "sessions": 12,
       "subagents": 10,
-      "turns": 1152,
-      "prompts": 144,
-      "toolCalls": 1221,
-      "tokens": 128638604,
-      "output": 636055
+      "turns": 1724,
+      "prompts": 191,
+      "toolCalls": 1767,
+      "tokens": 206476715,
+      "output": 945404
     }
   },
   "allTools": {
     "low": {
-      "tokens": 9823620095,
-      "output": 27383043
+      "tokens": 10579331531,
+      "output": 28272114
     },
     "high": {
-      "tokens": 24512081327,
-      "output": 50407418
+      "tokens": 25340970442,
+      "output": 50265813
     }
   },
   "tokens": {
-    "input": 1061858,
-    "output": 19405762,
-    "cacheWrite": 205905599,
-    "cacheRead": 9280685727,
-    "total": 9507058946,
+    "input": 1067016,
+    "output": 19985484,
+    "cacheWrite": 220980721,
+    "cacheRead": 9942899050,
+    "total": 10184932271,
     "cacheShare": 0.976
   },
   "families": {
-    "opus": 23678,
+    "opus": 25909,
     "haiku": 336,
     "fable": 4002,
-    "sonnet": 10724
+    "sonnet": 11044
   },
   "busiest": {
     "day": "2026-04-16",
@@ -961,7 +961,15 @@
     ],
     [
       "2026-10-06",
-      7
+      2312
+    ],
+    [
+      "2026-10-07",
+      788
+    ],
+    [
+      "2026-10-08",
+      48
     ]
   ]
 }
