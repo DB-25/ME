@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Sample Recorder</title>
+<style>
+  :root { --bg: #08070c; --panel: #121019; --line: #262233; --ink: #ece9f5; --dim: #8d87a3; --accent: #8b7bff; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 80px; display: grid; gap: 18px; }
+  h1 { font-size: 22px; margin: 0; letter-spacing: -0.02em; }
+  .muted { color: var(--dim); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  select, button { font: inherit; color: var(--ink); background: #1b1825; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+  button { cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #0b0a10; font-weight: 600; }
+  button.rec { background: #ef4444; border-color: #ef4444; color: #fff; font-weight: 600; min-width: 150px; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .meter { flex: 1; min-width: 180px; height: 10px; background: #1b1825; border-radius: 6px; overflow: hidden; }
+  .meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--ok), var(--warn) 75%, var(--bad)); transition: width 60ms linear; }
+  .claude { border-color: #3b3266; background: #15122a; }
+  .claude b { color: var(--accent); }
+  .grid { display: grid; grid-template-columns: 280px 1fr; gap: 18px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .list button { width: 100%; text-align: left; margin-bottom: 8px; display: flex; justify-content: space-between; gap: 8px; }
+  .list button.active { border-color: var(--accent); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #3a3550; flex: none; margin-top: 7px; }
+  .dot.ok { background: var(--ok); } .dot.warn { background: var(--warn); } .dot.bad { background: var(--bad); } .dot.ask { background: var(--accent); }
+  .prompt h2 { font-size: 20px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .readtext { font-size: 18px; line-height: 1.6; background: #0d0b14; border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin: 12px 0; }
+  .note { border-left: 3px solid var(--accent); padding: 6px 12px; margin: 12px 0; background: #15122a; border-radius: 0 8px 8px 0; }
+  .take { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
+  .take.chosen { border-color: var(--accent); }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0; }
+  .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #1b1825; color: var(--dim); }
+  .flag { font-size: 13px; } .flag.ok { color: var(--ok); } .flag.warn { color: var(--warn); } .flag.bad { color: var(--bad); }
+  .timer { font-variant-numeric: tabular-nums; font-size: 20px; min-width: 64px; }
+  .progress { height: 8px; background: #1b1825; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+  .progress i { display: block; height: 100%; background: var(--accent); width: 0; }
+  audio { width: 100%; height: 34px; margin-top: 6px; }
+  kbd { font-size: 12px; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; color: var(--dim); }
+</style>
+</head>
+<body>
+<main>
+  <div class="row" style="justify-content: space-between">
+    <div><h1>Voice sample</h1><div class="muted">Everything stays on this Mac. Talk like you are on a call with a friend.</div></div>
+    <div style="min-width: 260px"><div class="muted" id="total">0 s of speech picked, aim for 150 s</div><div class="progress"><i id="totalbar"></i></div></div>
+  </div>
+
+  <div class="card row">
+    <label for="mic" class="muted">Microphone</label>
+    <select id="mic"><option>Allow microphone access first</option></select>
+    <button id="allow">Allow mic</button>
+    <div class="meter" title="Input level"><i id="level"></i></div>
+    <span class="muted" style="font-size: 13px">Aim for the bar to bounce into yellow when you talk, never red.</span>
+  </div>
+
+  <div class="card claude" id="claude" hidden><b>From Claude</b><div id="message"></div></div>
+
+  <div class="grid">
+    <div class="list card" id="list"></div>
+    <div class="card prompt" id="prompt"></div>
+  </div>
+
+  <div class="card row" style="justify-content: space-between">
+    <span class="muted" id="finishinfo">When every prompt has a picked take, build the sample.</span>
+    <button class="primary" id="finish">Build voice-sample.wav</button>
+  </div>
+</main>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+let data = { items: [] }, current = null, stream = null, ctx = null, analyser = null, recording = null, deviceLabel = "";
+
+const WORKLET = `class Tap extends AudioWorkletProcessor { process(inputs) { const ch = inputs[0][0]; if (ch) this.port.postMessage(ch.slice(0)); return true; } } registerProcessor("tap", Tap);`;
+
+async function openMic(deviceId) {
+  stream?.getTracks().forEach((t) => t.stop());
+  // Raw input: browser noise suppression and auto gain smear the timbre the clone needs to learn.
+  stream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: deviceId ? { exact: deviceId } : undefined, channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+  deviceLabel = stream.getAudioTracks()[0]?.label ?? "";
+  ctx?.close();
+  ctx = new AudioContext();
+  await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET], { type: "text/javascript" })));
+  const source = ctx.createMediaStreamSource(stream);
+  analyser = ctx.createAnalyser();
+  analyser.fftSize = 1024;
+  source.connect(analyser);
+  const tap = new AudioWorkletNode(ctx, "tap");
+  tap.port.onmessage = (e) => recording?.chunks.push(e.data);
+  source.connect(tap);
+  await listMics();
+  meter();
+}
+
+async function listMics() {
+  const devices = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === "audioinput");
+  const active = stream?.getAudioTracks()[0]?.getSettings().deviceId;
+  $("mic").innerHTML = devices.map((d) => `<option value="${d.deviceId}" ${d.deviceId === active ? "selected" : ""}>${d.label || "Microphone"}</option>`).join("");
+  $("allow").hidden = true;
+}
+
+function meter() {
+  const buf = new Float32Array(analyser.fftSize);
+  const tick = () => {
+    analyser.getFloatTimeDomainData(buf);
+    const peak = buf.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+    $("level").style.width = `${Math.min(100, peak * 140)}%`;
+    requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+function wav(chunks, rate) {
+  const length = chunks.reduce((n, c) => n + c.length, 0);
+  const view = new DataView(new ArrayBuffer(44 + length * 2));
+  const str = (o, s) => [...s].forEach((c, i) => view.setUint8(o + i, c.charCodeAt(0)));
+  str(0, "RIFF"); view.setUint32(4, 36 + length * 2, true); str(8, "WAVEfmt "); view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); view.setUint16(22, 1, true); view.setUint32(24, rate, true); view.setUint32(28, rate * 2, true);
+  view.setUint16(32, 2, true); view.setUint16(34, 16, true); str(36, "data"); view.setUint32(40, length * 2, true);
+  let o = 44;
+  for (const c of chunks) for (const s of c) { view.setInt16(o, Math.max(-1, Math.min(1, s)) * 0x7fff, true); o += 2; }
+  return new Blob([view], { type: "audio/wav" });
+}
+
+async function toggleRecord() {
+  if (!ctx) return alert("Allow the microphone first.");
+  if (!recording) {
+    await ctx.resume();
+    recording = { chunks: [], start: performance.now() };
+    renderPrompt();
+    const clock = setInterval(() => { if (!recording) return clearInterval(clock); $("timer").textContent = `${((performance.now() - recording.start) / 1000).toFixed(0)} s`; }, 250);
+    return;
+  }
+  const { chunks } = recording;
+  recording = null;
+  $("rec").disabled = true;
+  $("rec").textContent = "Analysing...";
+  const body = wav(chunks, ctx.sampleRate);
+  await fetch(`/api/take?prompt=${current}&device=${encodeURIComponent(deviceLabel)}`, { method: "POST", body });
+  await refresh(true);
+}
+
+async function select(prompt, file) {
+  await fetch("/api/select", { method: "POST", body: JSON.stringify({ prompt, file }) });
+  await refresh(true);
+}
+
+const worst = (take) => take?.flags?.some((f) => f.level === "bad") ? "bad" : take?.flags?.some((f) => f.level === "warn") ? "warn" : take ? "ok" : "";
+
+function renderList() {
+  $("list").innerHTML = data.items.map((p, i) => {
+    const chosen = p.takes.find((t) => t.file === p.selected);
+    const status = p.note && !chosen ? "ask" : worst(chosen);
+    return `<button class="${p.id === current ? "active" : ""}" data-id="${p.id}"><span>${i + 1}. ${p.title}</span><span class="dot ${status}"></span></button>`;
+  }).join("");
+  $("list").querySelectorAll("button").forEach((b) => (b.onclick = () => { if (recording) return; current = b.dataset.id; renderList(); renderPrompt(); }));
+}
+
+function renderPrompt() {
+  const p = data.items.find((x) => x.id === current);
+  if (!p) return;
+  const badges = (m) => m ? [`${m.seconds} s`, `${m.speechSeconds} s speech`, `${m.lufs ?? "?"} LUFS`, `peak ${m.peak ?? "?"} dB`, `noise ${m.noiseFloor ?? "?"} dB`].map((b) => `<span class="badge">${b}</span>`).join("") : "";
+  $("prompt").innerHTML = `
+    <div class="muted">${p.kind === "read" ? "Read" : "Talk"} &middot; about ${p.target} s</div>
+    <h2>${p.title}</h2>
+    ${p.text ? `<div class="readtext">${p.text}</div>` : `<div class="muted">${p.hint ?? ""}</div>`}
+    ${p.note ? `<div class="note"><b>Claude:</b> ${p.note}</div>` : ""}
+    <div class="row" style="margin-top: 14px">
+      <button class="rec" id="rec">${recording ? "Stop" : "Record"}</button>
+      <span class="timer" id="timer">${recording ? "0 s" : ""}</span>
+      <span class="muted"><kbd>Space</kbd> to start and stop</span>
+    </div>
+    ${p.takes.slice().reverse().map((t) => `
+      <div class="take ${t.file === p.selected ? "chosen" : ""}">
+        <div class="row" style="justify-content: space-between">
+          <span class="muted">${t.file.split("__")[1].slice(11, 19).replace(/-/g, ":")}</span>
+          <button data-file="${t.file}" class="pick">${t.file === p.selected ? "Picked" : "Use this take"}</button>
+        </div>
+        <div class="badges">${badges(t.metrics)}</div>
+        ${(t.flags ?? []).map((f) => `<div class="flag ${f.level}">${f.text}</div>`).join("")}
+        <audio controls preload="none" src="/takes/${encodeURIComponent(t.file)}"></audio>
+      </div>`).join("")}`;
+  $("rec").onclick = toggleRecord;
+  $("prompt").querySelectorAll(".pick").forEach((b) => (b.onclick = () => select(p.id, b.dataset.file)));
+}
+
+async function refresh(force = false) {
+  if (recording && !force) return;
+  data = await (await fetch("/api/state")).json();
+  current ??= data.items[0]?.id;
+  $("claude").hidden = !data.message;
+  $("message").innerHTML = data.message;
+  $("total").textContent = `${data.speechSeconds} s of speech picked, aim for 150 s`;
+  $("totalbar").style.width = `${Math.min(100, (data.speechSeconds / 150) * 100)}%`;
+  if (data.output) $("finishinfo").textContent = `Built ${data.output}. Tell Claude it is ready.`;
+  renderList();
+  renderPrompt();
+}
+
+$("allow").onclick = () => openMic().catch((e) => alert(`Microphone error: ${e.message}`));
+$("mic").onchange = (e) => openMic(e.target.value);
+$("finish").onclick = async () => {
+  const r = await (await fetch("/api/finish", { method: "POST" })).json();
+  $("finishinfo").textContent = r.error ? r.error : `Built voice-sample.wav from ${r.takes} takes. Tell Claude it is ready.`;
+};
+document.addEventListener("keydown", (e) => { if (e.code === "Space" && e.target === document.body) { e.preventDefault(); toggleRecord(); } });
+// Claude can add prompts and notes while you record; they show up here on their own.
+setInterval(() => refresh(), 4000);
+refresh();
+</script>
+</body>
+</html>

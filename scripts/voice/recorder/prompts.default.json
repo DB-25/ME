@@ -1,0 +1,11 @@
+{
+  "prompts": [
+    { "id": "talk-now", "kind": "talk", "title": "What are you working on right now?", "hint": "A-IEP, the evaluation work, the portfolio, whatever is actually on your mind.", "target": 25 },
+    { "id": "talk-aiep", "kind": "talk", "title": "Explain A-IEP to a friend who has never heard of it.", "hint": "Parents get a fifty-page plan; it turns it into plain language, in their own language; names get stripped out first.", "target": 25 },
+    { "id": "talk-acharya", "kind": "talk", "title": "What happened with the Acharya app?", "hint": "You took it over at a 1.2 rating, users kept growing, what broke, what you fixed.", "target": 25 },
+    { "id": "talk-setup", "kind": "talk", "title": "Tell me about your setup, or the last thing you played.", "hint": "PC builds, keyboards, Valorant, CS2. Whatever you would ramble about.", "target": 25 },
+    { "id": "talk-founder", "kind": "talk", "title": "A founder just joined the call. What do you tell them in the first thirty seconds?", "hint": "Say it the way you actually would.", "target": 25 },
+    { "id": "read-numbers", "kind": "read", "title": "Read this casually. Change any word you would not say.", "text": "So, quick numbers. A-IEP has read three hundred seventy-five plans so far, and it runs in four languages. On the Acharya app, monthly users went from two thousand nine hundred seventy-two to sixteen thousand one hundred forty-eight while I owned it, and the rating went from one point two to four point five. GENIE gave forty-four thousand state employees access to AI, and the router I wrote picks between seventeen models. At the AWS and Riot Games hackathon, we came second out of more than three thousand two hundred people.", "target": 30 },
+    { "id": "read-close", "kind": "read", "title": "Read this like you mean it.", "text": "Wait, is that right? Yeah, second. Honestly, still a little annoyed about that. Anyway. Want to see something I built? Ask me anything, I'll show you.", "target": 10 }
+  ]
+}
