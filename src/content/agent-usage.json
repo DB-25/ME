@@ -1,24 +1,24 @@
 {
-  "generatedAt": "2026-10-08",
+  "generatedAt": "2026-10-09",
   "from": "2025-02-28",
-  "to": "2026-10-08",
-  "activeDays": 226,
-  "sessions": 777,
-  "subagents": 460,
-  "turns": 104037,
-  "prompts": 5243,
-  "toolCalls": 53097,
+  "to": "2026-10-09",
+  "activeDays": 227,
+  "sessions": 782,
+  "subagents": 467,
+  "turns": 104801,
+  "prompts": 5307,
+  "toolCalls": 53271,
   "tools": {
     "claudeCode": {
       "from": "2026-05-29",
-      "sessions": 111,
-      "turns": 41459,
-      "prompts": 2177,
-      "toolCalls": 10864,
-      "days": 79
+      "sessions": 115,
+      "turns": 42220,
+      "prompts": 2238,
+      "toolCalls": 11034,
+      "days": 80
     },
     "cursor": {
-      "chats": 654,
+      "chats": 655,
       "prompts": 2875,
       "turns": 60854,
       "toolCalls": 40466,
@@ -31,36 +31,36 @@
     "codex": {
       "sessions": 12,
       "subagents": 10,
-      "turns": 1724,
-      "prompts": 191,
-      "toolCalls": 1767,
-      "tokens": 206476715,
-      "output": 945404
+      "turns": 1727,
+      "prompts": 194,
+      "toolCalls": 1771,
+      "tokens": 206773478,
+      "output": 946032
     }
   },
   "allTools": {
     "low": {
-      "tokens": 10579331531,
-      "output": 28272114
+      "tokens": 10810229626,
+      "output": 28641828
     },
     "high": {
-      "tokens": 25340970442,
-      "output": 50265813
+      "tokens": 25634786519,
+      "output": 50638759
     }
   },
   "tokens": {
-    "input": 1067016,
-    "output": 19985484,
-    "cacheWrite": 220980721,
-    "cacheRead": 9942899050,
-    "total": 10184932271,
+    "input": 1068572,
+    "output": 20354570,
+    "cacheWrite": 225006950,
+    "cacheRead": 10169103511,
+    "total": 10415533603,
     "cacheShare": 0.976
   },
   "families": {
-    "opus": 25909,
+    "opus": 26551,
     "haiku": 336,
     "fable": 4002,
-    "sonnet": 11044
+    "sonnet": 11163
   },
   "busiest": {
     "day": "2026-04-16",
@@ -969,7 +969,11 @@
     ],
     [
       "2026-10-08",
-      48
+      601
+    ],
+    [
+      "2026-10-09",
+      211
     ]
   ]
 }
