@@ -1,20 +1,20 @@
 {
-  "generatedAt": "2026-10-14",
+  "generatedAt": "2026-10-15",
   "from": "2025-02-28",
   "to": "2026-10-14",
   "activeDays": 230,
-  "sessions": 792,
-  "subagents": 488,
-  "turns": 107030,
-  "prompts": 5405,
-  "toolCalls": 54108,
+  "sessions": 798,
+  "subagents": 489,
+  "turns": 107460,
+  "prompts": 5450,
+  "toolCalls": 54207,
   "tools": {
     "claudeCode": {
       "from": "2026-05-29",
-      "sessions": 124,
-      "turns": 43881,
-      "prompts": 2322,
-      "toolCalls": 11315,
+      "sessions": 130,
+      "turns": 44311,
+      "prompts": 2367,
+      "toolCalls": 11414,
       "days": 83
     },
     "cursor": {
@@ -40,25 +40,25 @@
   },
   "allTools": {
     "low": {
-      "tokens": 11298398682,
-      "output": 29290977
+      "tokens": 11398066311,
+      "output": 29534775
     },
     "high": {
-      "tokens": 26137001321,
-      "output": 51030713
+      "tokens": 26227726883,
+      "output": 51327122
     }
   },
   "tokens": {
-    "input": 1076136,
-    "output": 20969890,
-    "cacheWrite": 229670976,
-    "cacheRead": 10583707976,
-    "total": 10835424978,
+    "input": 1077040,
+    "output": 21213688,
+    "cacheWrite": 231547722,
+    "cacheRead": 10681254157,
+    "total": 10935092607,
     "cacheShare": 0.977
   },
   "families": {
-    "opus": 27461,
-    "haiku": 1034,
+    "opus": 27876,
+    "haiku": 1045,
     "sonnet": 11216,
     "fable": 4002
   },
@@ -985,7 +985,7 @@
     ],
     [
       "2026-10-14",
-      109
+      539
     ]
   ]
 }
