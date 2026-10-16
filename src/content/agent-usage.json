@@ -1,21 +1,21 @@
 {
-  "generatedAt": "2026-10-15",
+  "generatedAt": "2026-10-16",
   "from": "2025-02-28",
-  "to": "2026-10-14",
-  "activeDays": 230,
-  "sessions": 798,
-  "subagents": 489,
-  "turns": 107460,
-  "prompts": 5450,
-  "toolCalls": 54207,
+  "to": "2026-10-16",
+  "activeDays": 232,
+  "sessions": 799,
+  "subagents": 526,
+  "turns": 110423,
+  "prompts": 5556,
+  "toolCalls": 54815,
   "tools": {
     "claudeCode": {
       "from": "2026-05-29",
       "sessions": 130,
-      "turns": 44311,
-      "prompts": 2367,
-      "toolCalls": 11414,
-      "days": 83
+      "turns": 47239,
+      "prompts": 2466,
+      "toolCalls": 11991,
+      "days": 85
     },
     "cursor": {
       "chats": 655,
@@ -29,37 +29,37 @@
       }
     },
     "codex": {
-      "sessions": 13,
+      "sessions": 14,
       "subagents": 10,
-      "turns": 2295,
-      "prompts": 208,
-      "toolCalls": 2327,
-      "tokens": 275051159,
-      "output": 979861
+      "turns": 2330,
+      "prompts": 215,
+      "toolCalls": 2358,
+      "tokens": 278135201,
+      "output": 993692
     }
   },
   "allTools": {
     "low": {
-      "tokens": 11398066311,
-      "output": 29534775
+      "tokens": 12147727652,
+      "output": 30259883
     },
     "high": {
-      "tokens": 26227726883,
-      "output": 51327122
+      "tokens": 27008310377,
+      "output": 51162731
     }
   },
   "tokens": {
-    "input": 1077040,
-    "output": 21213688,
-    "cacheWrite": 231547722,
-    "cacheRead": 10681254157,
-    "total": 10935092607,
+    "input": 1083006,
+    "output": 21924965,
+    "cacheWrite": 246236558,
+    "cacheRead": 11412425377,
+    "total": 11681669906,
     "cacheShare": 0.977
   },
   "families": {
-    "opus": 27876,
-    "haiku": 1045,
-    "sonnet": 11216,
+    "opus": 28866,
+    "haiku": 1877,
+    "sonnet": 12321,
     "fable": 4002
   },
   "busiest": {
@@ -986,6 +986,14 @@
     [
       "2026-10-14",
       539
+    ],
+    [
+      "2026-10-15",
+      2363
+    ],
+    [
+      "2026-10-16",
+      600
     ]
   ]
 }
